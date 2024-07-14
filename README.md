@@ -1,6 +1,10 @@
 # KAMMUY - Kinetic And Magnetohydrodynamic MUlti-hierarchY simulation code
 
 KAMMUY solves MHD & PIC simultaneously to understand multi-scale phenomena of plasmas. 
+PIC simulation is accelerated by GPUs using CUDA and Thrust library.
+MHD simulation is performed by CPUs. 
+KAMMUY adopts heterogeneous computing. 
+This is the modern computing style in a CPU & GPU environment.
 
 KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditional belief system of the Ainu people in Hokkaido, Japan.
 
