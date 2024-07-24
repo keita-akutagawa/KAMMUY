@@ -8,10 +8,10 @@ extern const int interfaceLength;
 extern const int indexOfInterfaceStartInMHD;
 extern const int indexOfInterfaceStartInPIC;
 
-
 extern const int windowSizeForRemoveNoiseByConvolution;
 
 
+extern __constant__ float device_PI;
 
 void initializeDeviceConstants();
 
