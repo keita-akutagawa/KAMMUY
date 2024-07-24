@@ -8,7 +8,7 @@
 
 __global__ void uniformForPositionX_kernel(
     Particle* particle, 
-    const int nStart, const int nEnd, const int seed
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -22,8 +22,8 @@ __global__ void uniformForPositionX_kernel(
 }
 
 void InitializeParticle::uniformForPositionX(
-    int nStart, 
-    int nEnd, 
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
     int seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
@@ -42,7 +42,7 @@ void InitializeParticle::uniformForPositionX(
 
 __global__ void uniformForPositionY_kernel(
     Particle* particle, 
-    const int nStart, const int nEnd, const int seed
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -56,8 +56,8 @@ __global__ void uniformForPositionY_kernel(
 }
 
 void InitializeParticle::uniformForPositionY(
-    int nStart, 
-    int nEnd, 
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
     int seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
@@ -74,11 +74,47 @@ void InitializeParticle::uniformForPositionY(
 }
 
 
+__global__ void uniformForPositionYDetail_kernel(
+    Particle* particle, 
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed, const float ymin, const float ymax
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < nEnd - nStart) {
+        curandState state; 
+        curand_init(seed, i, 0, &state);
+        float y = curand_uniform(&state) * (ymax - ymin) + ymin;
+        particle[i + nStart].y = y;
+    }
+}
+
+void InitializeParticle::uniformForPositionYDetail(
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
+    int seed, 
+    float ymin, 
+    float ymax, 
+    thrust::device_vector<Particle>& particlesSpecies
+)
+{
+    dim3 threadsPerBlock(256);
+    dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
+
+    uniformForPositionYDetail_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        nStart, nEnd, seed, ymin, ymax
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
 __global__ void maxwellDistributionForVelocity_kernel(
     Particle* particle, 
     const float bulkVxSpecies, const float bulkVySpecies, const float bulkVzSpecies, 
     const float vxThSpecies, const float vyThSpecies, const float vzThSpecies, 
-    const int nStart, const int nEnd, const int seed
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -116,8 +152,8 @@ void InitializeParticle::maxwellDistributionForVelocity(
     float vxThSpecies, 
     float vyThSpecies, 
     float vzThSpecies, 
-    int nStart, 
-    int nEnd, 
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
     int seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
@@ -138,7 +174,7 @@ void InitializeParticle::maxwellDistributionForVelocity(
 
 __global__ void harrisForPositionY_kernel(
     Particle* particle, float sheatThickness, 
-    const int nStart, const int nEnd, const int seed
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -162,8 +198,8 @@ __global__ void harrisForPositionY_kernel(
 }
 
 void InitializeParticle::harrisForPositionY(
-    int nStart, 
-    int nEnd, 
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
     int seed, 
     float sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
@@ -183,7 +219,7 @@ void InitializeParticle::harrisForPositionY(
 
 __global__ void harrisBackgroundForPositionY_kernel(
     Particle* particle, float sheatThickness, 
-    const int nStart, const int nEnd, const int seed
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -207,8 +243,8 @@ __global__ void harrisBackgroundForPositionY_kernel(
 }
 
 void InitializeParticle::harrisBackgroundForPositionY(
-    int nStart, 
-    int nEnd, 
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
     int seed, 
     float sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
