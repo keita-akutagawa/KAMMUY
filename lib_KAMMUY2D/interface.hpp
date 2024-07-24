@@ -1,6 +1,11 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "const.hpp"
+#include "../lib_IdealMHD2D_gpu/const.hpp"
+#include "../lib_IdealMHD2D_gpu/conservation_parameter_struct.hpp"
+#include "../lib_PIC2D_gpu_single/const.hpp"
+#include "../lib_PIC2D_gpu_single/field_parameter_struct.hpp"
+#include "../lib_PIC2D_gpu_single/particle_struct.hpp"
 
 
 class Interface2D
@@ -18,15 +23,30 @@ public:
 
     void getQuantityMHDtoPIC();
 
-    void sendMHDtoPIC_MagneticField();
+    void sendMHDtoPIC_MagneticField(
+        thrust::device_vector<ConservationParameter>& U, 
+        thrust::device_vector<MagneticField>& B
+    );
 
-    void sendMHDtoPIC_ElectricField();
+    void sendMHDtoPIC_ElectricField(
+        thrust::device_vector<ConservationParameter>& U, 
+        thrust::device_vector<ElectricField>& E
+    );
 
-    void sendMHDtoPIC_CurrentField();
+    void sendMHDtoPIC_CurrentField(
+        thrust::device_vector<ConservationParameter>& U, 
+        thrust::device_vector<CurrentField>& Current
+    );
 
-    void sendMHDtoPIC_Particle();
+    void sendMHDtoPIC_Particle(
+        thrust::device_vector<ConservationParameter>& U, 
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron
+    );
 
-    void reloadParticles();
+    void reloadParticles(
+        thrust::device_vector<Particle>& particlesSpecies
+    );
 
 
     void getQuantityPICtoMHD();
