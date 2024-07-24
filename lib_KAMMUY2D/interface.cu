@@ -3,14 +3,18 @@
 
 
 Interface2D::Interface2D()
-    :  interlockingFunction(interfaceLength), 
-       host_interlockingFunction(interfaceLength)
+    :  interlockingFunctionX(interfaceLength), 
+       interlockingFunctionY(interfaceLength), 
+       host_interlockingFunctionX(interfaceLength), 
+       host_interlockingFunctionY(interfaceLength)
 {
     for(int i = 0; interfaceLength; i++) {
-        host_interlockingFunction[i] = 0.5f * (1.0f + cos(PI * (i - 0) / (interfaceLength - i)));
+        host_interlockingFunctionX[i] = 0.5f * (1.0f + cos(PI * (i - 0) / (interfaceLength - i)));
+        host_interlockingFunctionY[i] = 0.5f * (1.0f + cos(PI * (i - 0) / (interfaceLength - i)));
     }
 
-    interlockingFunction = host_interlockingFunction;
+    interlockingFunctionX = host_interlockingFunctionX;
+    interlockingFunctionY = host_interlockingFunctionY;
 }
 
 
