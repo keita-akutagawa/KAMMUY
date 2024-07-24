@@ -6,9 +6,9 @@
 class Interface2D
 {
 private:
-    thrust::device_vector<float> interlockingFunction;
+    thrust::device_vector<float> interlockingFunctionX;
 
-    thrust::host_vector<float> host_interlockingFunction;
+    thrust::host_vector<float> host_interlockingFunctionX;
 
     
 public:
