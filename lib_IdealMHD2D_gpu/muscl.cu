@@ -3,6 +3,8 @@
 #include <thrust/tuple.h>
 
 
+using namespace MHD2DConst;
+
 struct LeftParameterFunctor {
     MinMod minmod;
 

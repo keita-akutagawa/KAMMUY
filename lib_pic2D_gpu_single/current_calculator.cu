@@ -3,6 +3,8 @@
 #include <thrust/fill.h>
 
 
+using namespace PIC2DConst;
+
 void CurrentCalculator::resetCurrent(
     thrust::device_vector<CurrentField>& current
 )

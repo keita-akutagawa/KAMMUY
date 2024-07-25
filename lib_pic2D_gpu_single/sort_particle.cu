@@ -2,6 +2,8 @@
 #include "sort_particle.hpp"
 
 
+using namespace PIC2DConst;
+
 void ParticleSorter::sortParticle(
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron

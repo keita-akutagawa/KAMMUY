@@ -2,6 +2,8 @@
 #include "particle_push.hpp"
 
 
+using namespace PIC2DConst;
+
 void ParticlePush::pushVelocity(
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron, 

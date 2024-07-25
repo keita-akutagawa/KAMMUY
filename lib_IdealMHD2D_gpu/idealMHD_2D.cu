@@ -8,6 +8,8 @@
 #include "idealMHD_2D.hpp"
 
 
+using namespace MHD2DConst;
+
 IdealMHD2D::IdealMHD2D()
     : fluxF(nx * ny),
       fluxG(nx * ny),

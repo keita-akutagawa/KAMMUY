@@ -1,6 +1,8 @@
 #include "boundary.hpp"
 
 
+using namespace MHD2DConst;
+
 __global__
 void periodicBoundaryX2nd_kernel(ConservationParameter* U)
 {

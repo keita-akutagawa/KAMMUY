@@ -2,6 +2,8 @@
 #include <thrust/fill.h>
 
 
+using namespace PIC2DConst;
+
 Filter::Filter()
     : rho(nx * ny), 
       F(nx * ny)

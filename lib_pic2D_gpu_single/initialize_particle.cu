@@ -6,6 +6,8 @@
 #include <random>
 
 
+using namespace PIC2DConst;
+
 __global__ void uniformForPositionX_kernel(
     Particle* particle, 
     const unsigned long long nStart, const unsigned long long nEnd, const int seed

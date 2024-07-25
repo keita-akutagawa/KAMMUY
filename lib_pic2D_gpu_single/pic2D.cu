@@ -5,6 +5,8 @@
 #include "pic2D.hpp"
 
 
+using namespace PIC2DConst;
+
 PIC2D::PIC2D()
     : particlesIon(totalNumIon), 
       particlesElectron(totalNumElectron), 

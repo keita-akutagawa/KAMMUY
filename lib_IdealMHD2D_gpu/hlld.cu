@@ -4,6 +4,8 @@
 #include <thrust/tuple.h>
 
 
+using namespace MHD2DConst;
+
 HLLD::HLLD()
     : dQCenter(nx * ny),
       dQLeft(nx * ny),

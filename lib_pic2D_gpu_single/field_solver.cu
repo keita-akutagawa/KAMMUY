@@ -1,6 +1,8 @@
 #include "field_solver.hpp"
 
 
+using namespace PIC2DConst;
+
 __global__ void timeEvolutionB_kernel(
     MagneticField* B, const ElectricField* E, const float dt
 )

@@ -1,6 +1,8 @@
 #include "boundary.hpp"
 
 
+using namespace PIC2DConst;
+
 __global__ void periodicBoundaryParticleX_kernel(
     Particle* particlesSpecies, unsigned long long totalNumSpecies
 )

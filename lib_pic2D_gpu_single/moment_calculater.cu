@@ -2,6 +2,7 @@
 #include "moment_calculater.hpp"
 
 
+using namespace PIC2DConst;
 
 void MomentCalculater::resetZerothMomentOfOneSpecies(
     thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies

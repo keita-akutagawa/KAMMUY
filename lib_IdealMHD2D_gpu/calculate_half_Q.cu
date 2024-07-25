@@ -1,6 +1,8 @@
 #include "calculate_half_Q.hpp"
 
 
+using namespace MHD2DConst;
+
 struct GetBasicParamterFunctor {
 
     __device__
