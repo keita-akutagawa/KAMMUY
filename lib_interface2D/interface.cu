@@ -2,18 +2,20 @@
 #include <cmath>
 
 
+using namespace Interface2DConst;
+
 Interface2D::Interface2D()
-    :  interlockingFunctionX(Interface2DConst::interfaceLength), 
-       interlockingFunctionY(Interface2DConst::interfaceLength), 
-       host_interlockingFunctionX(Interface2DConst::interfaceLength), 
-       host_interlockingFunctionY(Interface2DConst::interfaceLength)
+    :  interlockingFunctionX(interfaceLength), 
+       interlockingFunctionY(interfaceLength), 
+       host_interlockingFunctionX(interfaceLength), 
+       host_interlockingFunctionY(interfaceLength)
 {
-    for(int i = 0; Interface2DConst::interfaceLength; i++) {
+    for(int i = 0; interfaceLength; i++) {
         host_interlockingFunctionX[i] = 0.5f * (
-            1.0f + cos(Interface2DConst::PI * (i - 0) / (Interface2DConst::interfaceLength - i))
+            1.0f + cos(PI * (i - 0) / (interfaceLength - i))
         );
         host_interlockingFunctionY[i] = 0.5f * (
-            1.0f + cos(Interface2DConst::PI * (i - 0) / (Interface2DConst::interfaceLength - i))
+            1.0f + cos(PI * (i - 0) / (interfaceLength - i))
         );
     }
 
