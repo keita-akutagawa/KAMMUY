@@ -27,7 +27,7 @@ void Interface2D::sendMHDtoPIC_MagneticField(
     thrust::device_vector<MagneticField>& B
 )
 {
-
+    
 }
 
 
