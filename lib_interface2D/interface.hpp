@@ -8,8 +8,6 @@
 #include "../lib_PIC2D_gpu_single/particle_struct.hpp"
 
 
-using namespace PIC2DConst;
-
 class Interface2D
 {
 private:

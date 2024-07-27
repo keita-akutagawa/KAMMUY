@@ -12,10 +12,10 @@ Interface2D::Interface2D()
 {
     for(int i = 0; interfaceLength; i++) {
         host_interlockingFunctionX[i] = 0.5f * (
-            1.0f + cos(PI * (i - 0) / (interfaceLength - i))
+            1.0f + cos(Interface2DConst::PI * (i - 0) / (interfaceLength - i))
         );
         host_interlockingFunctionY[i] = 0.5f * (
-            1.0f + cos(PI * (i - 0) / (interfaceLength - i))
+            1.0f + cos(Interface2DConst::PI  * (i - 0) / (interfaceLength - i))
         );
     }
 
@@ -32,8 +32,8 @@ __global__ void sendMHDtoPIC_MagneticField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx) {
-
+    if (i < PIC2DConst::device_nx && j < Interface2DConst::interfaceLength) {
+        
     }
 }
 
