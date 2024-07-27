@@ -24,12 +24,34 @@ Interface2D::Interface2D()
 }
 
 
-void Interface2D::sendMHDtoPIC_MagneticField(
-    thrust::device_vector<ConservationParameter>& U, 
+__global__ void sendMHDtoPIC_MagneticField_yDirection_kernel(
+    const ConservationParameter* U, 
+    MagneticField* B
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (i < PIC2DConst::device_nx) {
+
+    }
+}
+
+void Interface2D::sendMHDtoPIC_MagneticField_yDirection(
+    const thrust::device_vector<ConservationParameter>& U, 
     thrust::device_vector<MagneticField>& B
 )
 {
-    
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((PIC2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (Interface2DConst::interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    sendMHDtoPIC_MagneticField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U.data()), 
+        thrust::raw_pointer_cast(B.data())
+    );
+
+    cudaDeviceSynchronize();
 }
 
 

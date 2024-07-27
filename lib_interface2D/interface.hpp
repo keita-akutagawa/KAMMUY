@@ -8,6 +8,8 @@
 #include "../lib_PIC2D_gpu_single/particle_struct.hpp"
 
 
+using namespace PIC2DConst;
+
 class Interface2D
 {
 private:
@@ -23,23 +25,23 @@ public:
 
     void getQuantityMHDtoPIC();
 
-    void sendMHDtoPIC_MagneticField(
-        thrust::device_vector<ConservationParameter>& U, 
+    void sendMHDtoPIC_MagneticField_yDirection(
+        const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<MagneticField>& B
     );
 
     void sendMHDtoPIC_ElectricField(
-        thrust::device_vector<ConservationParameter>& U, 
+        const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<ElectricField>& E
     );
 
     void sendMHDtoPIC_CurrentField(
-        thrust::device_vector<ConservationParameter>& U, 
+        const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<CurrentField>& Current
     );
 
     void sendMHDtoPIC_Particle(
-        thrust::device_vector<ConservationParameter>& U, 
+        const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
     );

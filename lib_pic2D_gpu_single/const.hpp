@@ -1,5 +1,3 @@
-#ifndef CONST_STRUCT_H
-#define CONST_STRUCT_H
 
 
 namespace PIC2DConst
@@ -127,4 +125,3 @@ namespace PIC2DConst
 
 }
 
-#endif
