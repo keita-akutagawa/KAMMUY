@@ -51,17 +51,6 @@ public:
         int indexOfInterfaceStartInPIC
     );
 
-    void setInterfaceQuantity(
-        const thrust::device_vector<MagneticField>& B, 
-        const thrust::device_vector<ElectricField>& E, 
-        const thrust::device_vector<CurrentField>& current, 
-        const thrust::device_vector<Particle>& particlesIon, 
-        const thrust::device_vector<Particle>& particlesElectron, 
-        const thrust::device_vector<ConservationParameter>& U
-    );
-
-    void getQuantityMHDtoPIC();
-
     void sendMHDtoPIC_magneticField_yDirection(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<MagneticField>& B
@@ -86,9 +75,6 @@ public:
     void reloadParticles(
         thrust::device_vector<Particle>& particlesSpecies
     );
-
-
-    void getQuantityPICtoMHD();
 
     void sendPICtoMHD();
 
