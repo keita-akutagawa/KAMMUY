@@ -63,7 +63,7 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx && j < Interface2DConst::interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx && 0 < j && j < Interface2DConst::interfaceLength - 1) {
         float bXPIC, bYPIC, bZPIC;
         float bXMHD, bYMHD, bZMHD;
         float bXInterface, bYInterface, bZInterface;
@@ -121,7 +121,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx && j < Interface2DConst::interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx && 0 < j &&  j < Interface2DConst::interfaceLength - 1) {
         float eXPIC, eYPIC, eZPIC;
         float eXMHD, eYMHD, eZMHD;
         float eXPlusX1MHD;
@@ -211,10 +211,14 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx && j < Interface2DConst::interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx && 0 < j && j < Interface2DConst::interfaceLength - 1) {
         float jXPIC, jYPIC, jZPIC;
         float jXMHD, jYMHD, jZMHD;
+        float jXPlusX1MHD; 
+        float jYPlusY1MHD; 
         float jXInterface, jYInterface, jZInterface;
+        int nx = IdealMHD2DConst::device_nx;
+        float dx = IdealMHD2DConst::device_dx, dy = IdealMHD2DConst::device_dy;
 
         int indexPIC = indexOfInterfaceStartInPIC +  j + i * PIC2DConst::device_nx;
         int indexMHD = indexOfInterfaceStartInMHD +  j + i * IdealMHD2DConst::device_nx;
@@ -223,17 +227,23 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
         jXPIC = current[indexPIC].jX;
         jYPIC = current[indexPIC].jY;
         jZPIC = current[indexPIC].jZ;
-        jXMHD = 0.25f * (U[indexMHD].bX + U[indexMHD - IdealMHD2DConst::device_nx].bX + U[indexMHD + 1].bX + U[indexMHD + 1 - IdealMHD2DConst::device_nx].bX);
-        jYMHD = 0.25f * (U[indexMHD].bY + U[indexMHD + IdealMHD2DConst::device_nx].bY + U[indexMHD - 1].bY + U[indexMHD - 1 + IdealMHD2DConst::device_nx].bY);
-        jZMHD = 0.25f * (U[indexMHD].bZ + U[indexMHD + IdealMHD2DConst::device_nx].bZ + U[indexMHD + 1].bZ + U[indexMHD + 1 + IdealMHD2DConst::device_nx].bZ);
+        jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0f * dy);
+        jYMHD = -(U[indexMHD + nx].bZ - U[indexMHD - nx].bZ) / (2.0f * dx);
+        jZMHD = 0.25f * ((U[indexMHD + nx].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
+                       + (U[indexMHD].bY - U[indexMHD - nx].bY) / dx - (U[indexMHD + 1 - nx].bX - U[indexMHD - nx].bX) / dy
+                       + (U[indexMHD - 1 + nx].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
+                       + (U[indexMHD - 1].bY - U[indexMHD - 1 - nx].bY) / dx - (U[indexMHD - nx].bX - U[indexMHD - 1 - nx].bX) / dy);
 
-        bXInterface = interlockingFunctionYHalf[j] * bXMHD + (1.0f - interlockingFunctionYHalf[j]) * bXPIC;
-        bYInterface = interlockingFunctionY[j]     * bYMHD + (1.0f - interlockingFunctionY[j])     * bYPIC;
-        bZInterface = interlockingFunctionYHalf[j] * bZMHD + (1.0f - interlockingFunctionYHalf[j]) * bZPIC;
+        jXPlusX1MHD = (U[indexMHD + 2].bZ - U[indexMHD].bZ) / (2.0f * dy);
+        jYPlusY1MHD = -(U[indexMHD + 2 * nx].bZ - U[indexMHD].bZ) / (2.0f * dx);
+
+        jXInterface = interlockingFunctionY[j]     * 0.5f * (jXMHD + jXPlusX1MHD) + (1.0f - interlockingFunctionY[j])     * jXPIC;
+        jYInterface = interlockingFunctionYHalf[j] * 0.5f * (jYMHD + jYPlusY1MHD) + (1.0f - interlockingFunctionYHalf[j]) * jYPIC;
+        jZInterface = interlockingFunctionY[j]     * jZMHD                        + (1.0f - interlockingFunctionY[j])     * jZPIC;
         
-        B[indexPIC].bX = bXInterface;
-        B[indexPIC].bY = bYInterface;
-        B[indexPIC].bZ = bZInterface;
+        current[indexPIC].jX = jXInterface;
+        current[indexPIC].jY = jYInterface;
+        current[indexPIC].jZ = jZInterface;
     }
 }
 
