@@ -267,3 +267,21 @@ void Interface2D::sendMHDtoPIC_currentField_yDirection(
     cudaDeviceSynchronize();
 }
 
+
+void Interface2D::sendMHDtoPIC_particle(
+    const thrust::device_vector<ConservationParameter>& U, 
+    thrust::device_vector<Particle>& particlesIon, 
+    thrust::device_vector<Particle>& particlesElectron
+)
+{
+    
+}
+
+
+void Interface2D::reloadParticles(
+    thrust::device_vector<Particle>& particlesSpecies
+)
+{
+
+}
+
