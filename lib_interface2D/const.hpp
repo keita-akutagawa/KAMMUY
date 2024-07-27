@@ -15,11 +15,11 @@ namespace Interface2DConst
 
     extern __constant__ float device_PI;
 
-    extern __constant__ int interfaceLength;
-    extern __constant__ int indexOfInterfaceStartInMHD;
-    extern __constant__ int indexOfInterfaceStartInPIC;
+    extern __constant__ int device_interfaceLength;
+    extern __constant__ int device_indexOfInterfaceStartInMHD;
+    extern __constant__ int device_indexOfInterfaceStartInPIC;
 
-    extern __constant__ int windowSizeForRemoveNoiseByConvolution;
+    extern __constant__ int device_windowSizeForRemoveNoiseByConvolution;
 
     void initializeDeviceConstants();
 

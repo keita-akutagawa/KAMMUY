@@ -5,40 +5,79 @@
 #include "../lib_IdealMHD2D_gpu/conservation_parameter_struct.hpp"
 #include "../lib_PIC2D_gpu_single/const.hpp"
 #include "../lib_PIC2D_gpu_single/field_parameter_struct.hpp"
+#include "../lib_pic2D_gpu_single/moment_struct.hpp"
 #include "../lib_PIC2D_gpu_single/particle_struct.hpp"
+#include "../lib_PIC2D_gpu_single/moment_calculater.hpp"
 
 
 class Interface2D
 {
 private:
-    thrust::device_vector<float> interlockingFunctionX;
-    thrust::device_vector<float> interlockingFunctionY;
+    int indexOfInterfaceStartInMHD;
+    int indexOfInterfaceStartInPIC;
+    int indexOfInterfaceEndInMHD;
+    int indexOfInterfaceEndInPIC;
 
-    thrust::host_vector<float> host_interlockingFunctionX;
+    thrust::device_vector<float> interlockingFunctionY;
+    thrust::device_vector<float> interlockingFunctionYHalf;
+
     thrust::host_vector<float> host_interlockingFunctionY;
+    thrust::host_vector<float> host_interlockingFunctionYHalf;
+
+    thrust::device_vector<MagneticField> interfacePIC_B;
+    thrust::device_vector<ElectricField> interfacePIC_E;
+    thrust::device_vector<CurrentField> interfacePIC_current;
+    thrust::device_vector<ZerothMoment> interfacePIC_zerothMomentIon;
+    thrust::device_vector<ZerothMoment> interfacePIC_zerothMomentElectron;
+    thrust::device_vector<FirstMoment> interfacePIC_firstMomentIon;
+    thrust::device_vector<FirstMoment> interfacePIC_firstMomentElectron;
+    thrust::device_vector<SecondMoment> interfacePIC_secondMomentIon;
+    thrust::device_vector<SecondMoment> interfacePIC_secondMomentElectron;
+    thrust::device_vector<ConservationParameter> interfaceMHD_U;
+
+    thrust::device_vector<ZerothMoment> tmp_interfacePIC_zerothMomentIon;
+    thrust::device_vector<ZerothMoment> tmp_interfacePIC_zerothMomentElectron;
+    thrust::device_vector<FirstMoment> tmp_interfacePIC_firstMomentIon;
+    thrust::device_vector<FirstMoment> tmp_interfacePIC_firstMomentElectron;
+    thrust::device_vector<SecondMoment> tmp_interfacePIC_secondMomentIon;
+    thrust::device_vector<SecondMoment> tmp_interfacePIC_secondMomentElectron;
+
+    MomentCalculater momentCalculater;
 
     
 public:
-    Interface2D();
+    Interface2D(
+        int indexOfInterfaceStartInMHD, 
+        int indexOfInterfaceStartInPIC
+    );
+
+    void setInterfaceQuantity(
+        const thrust::device_vector<MagneticField>& B, 
+        const thrust::device_vector<ElectricField>& E, 
+        const thrust::device_vector<CurrentField>& current, 
+        const thrust::device_vector<Particle>& particlesIon, 
+        const thrust::device_vector<Particle>& particlesElectron, 
+        const thrust::device_vector<ConservationParameter>& U
+    );
 
     void getQuantityMHDtoPIC();
 
-    void sendMHDtoPIC_MagneticField_yDirection(
+    void sendMHDtoPIC_magneticField_yDirection(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<MagneticField>& B
     );
 
-    void sendMHDtoPIC_ElectricField(
+    void sendMHDtoPIC_electricField_yDirection(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<ElectricField>& E
     );
 
-    void sendMHDtoPIC_CurrentField(
+    void sendMHDtoPIC_currentField_yDirection(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<CurrentField>& Current
     );
 
-    void sendMHDtoPIC_Particle(
+    void sendMHDtoPIC_particle(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
