@@ -1,8 +1,5 @@
-#ifndef CONST_STRUCT_H
-#define CONST_STRUCT_H
 
-
-namespace MHD2DConst
+namespace IdealMHD2DConst
 {
     extern const double EPS;
     extern const double PI;
@@ -49,6 +46,5 @@ void initializeDeviceConstants();
 
 }
 
-#endif
 
 
