@@ -417,8 +417,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].w = wPIC - jZPIC / round(nePIC) / abs(PIC2DConst::qElectron);
         reloadParticlesDataIon[j + i * PIC2DConst::device_nx].vth = vThiPIC;
         reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].vth = vThePIC;
-        reloadParticlesDataIon[j + i * PIC2DConst::device_nx].hasData = true;
-        reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].hasData = true;
 
         reloadParticlesIndexIon[j + i * PIC2DConst::device_nx] = round(niPIC);
         reloadParticlesIndexElectron[j + i * PIC2DConst::device_nx] = round(nePIC);

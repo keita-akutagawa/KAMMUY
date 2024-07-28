@@ -2,13 +2,13 @@
 #include <thrust/host_vector.h>
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
-#include "../lib_IdealMHD2D_gpu/const.hpp"
-#include "../lib_IdealMHD2D_gpu/conservation_parameter_struct.hpp"
-#include "../lib_PIC2D_gpu_single/const.hpp"
-#include "../lib_PIC2D_gpu_single/field_parameter_struct.hpp"
-#include "../lib_pic2D_gpu_single/moment_struct.hpp"
-#include "../lib_PIC2D_gpu_single/particle_struct.hpp"
-#include "../lib_PIC2D_gpu_single/moment_calculater.hpp"
+#include "../IdealMHD2D_gpu/const.hpp"
+#include "../IdealMHD2D_gpu/conservation_parameter_struct.hpp"
+#include "../PIC2D_gpu_single/const.hpp"
+#include "../PIC2D_gpu_single/field_parameter_struct.hpp"
+#include "../pic2D_gpu_single/moment_struct.hpp"
+#include "../PIC2D_gpu_single/particle_struct.hpp"
+#include "../PIC2D_gpu_single/moment_calculater.hpp"
 
 
 class Interface2D

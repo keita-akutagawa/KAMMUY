@@ -14,8 +14,7 @@ struct ReloadParticlesData
         u(0.0f), 
         v(0.0f), 
         w(0.0f),
-        vth(0.0f), 
-        hasData(false)
+        vth(0.0f)
         {}
     
 };
