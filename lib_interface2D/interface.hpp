@@ -74,7 +74,10 @@ public:
         thrust::device_vector<Particle>& particlesElectron
     );
 
-    void sendPICtoMHD();
+    void sendPICtoMHD(
+        const thrust::device_vector<MagneticField>& B, 
+        thrust::device_vector<ConservationParameter>& U
+    );
 
 private:
 
