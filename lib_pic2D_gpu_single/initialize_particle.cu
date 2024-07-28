@@ -20,6 +20,7 @@ __global__ void uniformForPositionX_kernel(
         curand_init(seed, i, 0, &state);
         float x = curand_uniform(&state) * (device_xmax - device_xmin) + device_xmin;
         particle[i + nStart].x = x;
+        particle[i + nStart].isExist = true;
     }
 }
 
@@ -54,6 +55,7 @@ __global__ void uniformForPositionY_kernel(
         curand_init(seed, i, 0, &state);
         float y = curand_uniform(&state) * (device_ymax - device_ymin) + device_ymin;
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 
@@ -88,6 +90,7 @@ __global__ void uniformForPositionYDetail_kernel(
         curand_init(seed, i, 0, &state);
         float y = curand_uniform(&state) * (ymax - ymin) + ymin;
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 
@@ -143,6 +146,7 @@ __global__ void maxwellDistributionForVelocity_kernel(
         particle[i + nStart].vy = vy;
         particle[i + nStart].vz = vz;
         particle[i + nStart].gamma = sqrt(1.0f + (vx * vx + vy * vy + vz * vz) / (device_c * device_c));
+        particle[i + nStart].isExist = true;
     }
 }
 
@@ -196,6 +200,7 @@ __global__ void harrisForPositionY_kernel(
         }
         
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 
@@ -241,6 +246,7 @@ __global__ void harrisBackgroundForPositionY_kernel(
         } 
         
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 

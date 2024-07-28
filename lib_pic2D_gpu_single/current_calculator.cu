@@ -20,10 +20,10 @@ void CurrentCalculator::calculateCurrent(
 )
 {
     calculateCurrentOfOneSpecies(
-        current, particlesIon, qIon, totalNumIon
+        current, particlesIon, qIon, existNumIon
     );
     calculateCurrentOfOneSpecies(
-        current, particlesElectron, qElectron, totalNumElectron
+        current, particlesElectron, qElectron, existNumElectron
     );
 }
 
@@ -31,12 +31,12 @@ void CurrentCalculator::calculateCurrent(
 __global__ void calculateCurrentOfOneSpecies_kernel(
     CurrentField* current,
     const Particle* particlesSpecies, 
-    const float q, const unsigned long long totalNumSpecies
+    const float q, const unsigned long long existNumSpecies
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < totalNumSpecies) {
+    if (i < existNumSpecies) {
     
         float cx1, cx2; 
         int xIndex1, xIndex2;
@@ -87,16 +87,16 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
 void CurrentCalculator::calculateCurrentOfOneSpecies(
     thrust::device_vector<CurrentField>& current, 
     const thrust::device_vector<Particle>& particlesSpecies, 
-    float q, int totalNumSpecies
+    float q, int existNumSpecies
 )
 {
     dim3 threadsPerBlock(256);
-    dim3 blocksPerGrid((totalNumSpecies + threadsPerBlock.x - 1) / threadsPerBlock.x);
+    dim3 blocksPerGrid((existNumSpecies + threadsPerBlock.x - 1) / threadsPerBlock.x);
 
     calculateCurrentOfOneSpecies_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
         thrust::raw_pointer_cast(particlesSpecies.data()), 
-        q, totalNumSpecies
+        q, existNumSpecies
     );
 
     cudaDeviceSynchronize();

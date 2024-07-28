@@ -27,6 +27,10 @@ public:
         thrust::device_vector<Particle>& particlesIon,
         thrust::device_vector<Particle>& particlesElectron
     );
+    void openBoundaryParticleY(
+        thrust::device_vector<Particle>& particlesIon,
+        thrust::device_vector<Particle>& particlesElectron
+    );
 
 
     void periodicBoundaryBX(

@@ -432,7 +432,8 @@ __global__ void reloadParticles_kernel(
     Particle* particlesSpecies, 
     int reloadParticlesNumSpecies, 
     int restartParticlesIndexSpecies, 
-    int indexOfInterfaceStartInPIC
+    int indexOfInterfaceStartInPIC, 
+    int existNumSpecies
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -463,7 +464,7 @@ __global__ void reloadParticles_kernel(
             particleReload.vx = vx; particleReload.vy = vy, particleReload.vz = vz; 
             particleReload.gamma = gamma;
 
-            
+            particlesSpecies[existNumSpecies + k] = particleReload;
         }
 
     }
@@ -527,8 +528,23 @@ void Interface2D::sendMHDtoPIC_particle(
         thrust::raw_pointer_cast(reloadParticlesSourceIon.data()), 
         thrust::raw_pointer_cast(particlesIon.data()), 
         reloadParticlesNumIon, restartParticlesIndexIon, 
-        indexOfInterfaceStartInPIC
+        indexOfInterfaceStartInPIC, 
+        PIC2DConst::existNumIon
     );
+
+    cudaDeviceSynchronize();
+
+    reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
+        thrust::raw_pointer_cast(reloadParticlesIndexElectron.data()), 
+        thrust::raw_pointer_cast(reloadParticlesSourceElectron.data()), 
+        thrust::raw_pointer_cast(particlesElectron.data()), 
+        reloadParticlesNumElectron, restartParticlesIndexElectron, 
+        indexOfInterfaceStartInPIC, 
+        PIC2DConst::existNumElectron
+    );
+
+    cudaDeviceSynchronize();
 
     restartParticlesIndexIon = reloadParticlesNumIon % Interface2DConst::reloadParticlesTotalNumIon;
     restartParticlesIndexElectron = reloadParticlesNumElectron % Interface2DConst::reloadParticlesTotalNumElectron;
@@ -553,4 +569,51 @@ void Interface2D::setMoments(
     momentCalculater.calculateFirstMomentOfOneSpecies(
         firstMomentElectron, particlesElectron, PIC2DConst::totalNumElectron
     );
+}
+
+
+__global__ void deleteParticles_kernel(
+    Particle* particlesSpecies, 
+    int indexOfInterfaceStartInPIC, 
+    unsigned long long totalNumSpecies
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < totalNumSpecies) {
+        float y = particlesSpecies[i].y;
+        float interfaceMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy;
+        float interfaceMax = (indexOfInterfaceStartInPIC + Interface2DConst::device_interfaceLength) * PIC2DConst::device_dy;
+        if (y >= interfaceMin + PIC2DConst::dy && y <= interfaceMax - PIC2DConst::dy) {
+            particlesSpecies[i].isExist = false;
+        }
+    }
+}
+
+void Interface2D::deleteParticles(
+    thrust::device_vector<Particle>& particlesIon, 
+    thrust::device_vector<Particle>& particlesElectron
+)
+{
+    dim3 threadsPerBlockForIon(256);
+    dim3 blocksPerGridForIon((PIC2DConst::totalNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+
+    initializeReloadParticlesSource_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
+        thrust::raw_pointer_cast(particlesIon.data()),
+        indexOfInterfaceStartInPIC, 
+        PIC2DConst::totalNumIon
+    );
+
+    cudaDeviceSynchronize();
+
+    dim3 threadsPerBlockForElectron(256);
+    dim3 blocksPerGridForElectron((PIC2DConst::totalNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+
+    initializeReloadParticlesSource_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
+        thrust::raw_pointer_cast(particlesElectron.data()),
+        indexOfInterfaceStartInPIC, 
+        PIC2DConst::totalNumElectron
+    );
+
+    cudaDeviceSynchronize();
 }

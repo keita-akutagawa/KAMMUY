@@ -27,6 +27,9 @@ namespace PIC2DConst
     extern const unsigned long long totalNumElectron;
     extern const unsigned long long totalNumParticles;
 
+    extern unsigned long long existNumIon;
+    extern unsigned long long existNumElectron;
+
     extern const float B0;
 
     extern const float mRatio;
@@ -86,6 +89,9 @@ namespace PIC2DConst
     extern __constant__ unsigned long long device_totalNumIon;
     extern __constant__ unsigned long long device_totalNumElectron;
     extern __constant__ unsigned long long device_totalNumParticles;
+
+    extern unsigned long long device_existNumIon;
+    extern unsigned long long device_existNumElectron;
 
     extern __constant__ float device_B0;
 

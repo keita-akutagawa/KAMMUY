@@ -84,7 +84,7 @@ struct CalculateZerothMomentOfOneSpeciesFunctor {
 void MomentCalculater::calculateZerothMomentOfOneSpecies(
     thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
-    unsigned long long totalNumSpecies
+    unsigned long long existNumSpecies
 )
 {
     resetZerothMomentOfOneSpecies(zerothMomentOfOneSpecies);
@@ -96,7 +96,7 @@ void MomentCalculater::calculateZerothMomentOfOneSpecies(
 
     thrust::for_each(
         thrust::counting_iterator<unsigned long long>(0), 
-        thrust::counting_iterator<unsigned long long>(totalNumSpecies), 
+        thrust::counting_iterator<unsigned long long>(existNumSpecies), 
         calculateZerothMomentOfOneSpeciesFunctor
     );
 
@@ -159,7 +159,7 @@ struct CalculateFirstMomentOfOneSpeciesFunctor {
 void MomentCalculater::calculateFirstMomentOfOneSpecies(
     thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
-    unsigned long long totalNumSpecies
+    unsigned long long existNumSpecies
 )
 {
     resetFirstMomentOfOneSpecies(firstMomentOfOneSpecies);
@@ -171,7 +171,7 @@ void MomentCalculater::calculateFirstMomentOfOneSpecies(
 
     thrust::for_each(
         thrust::counting_iterator<unsigned long long>(0), 
-        thrust::counting_iterator<unsigned long long>(totalNumSpecies), 
+        thrust::counting_iterator<unsigned long long>(existNumSpecies), 
         calculateFirstMomentOfOneSpeciesFunctor
     );
 
@@ -249,7 +249,7 @@ struct CalculateSecondMomentOfOneSpeciesFunctor {
 void MomentCalculater::calculateSecondMomentOfOneSpecies(
     thrust::device_vector<SecondMoment>& secondMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
-    unsigned long long totalNumSpecies
+    unsigned long long existNumSpecies
 )
 {
     resetSecondMomentOfOneSpecies(secondMomentOfOneSpecies);
@@ -261,7 +261,7 @@ void MomentCalculater::calculateSecondMomentOfOneSpecies(
 
     thrust::for_each(
         thrust::counting_iterator<unsigned long long>(0), 
-        thrust::counting_iterator<unsigned long long>(totalNumSpecies), 
+        thrust::counting_iterator<unsigned long long>(existNumSpecies), 
         calculateSecondMomentOfOneSpeciesFunctor
     );
 

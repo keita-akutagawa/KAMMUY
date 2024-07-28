@@ -31,7 +31,7 @@ private:
 
     void calculateRhoOfOneSpecies(
         const thrust::device_vector<Particle>& particlesSpecies, 
-        float q, int totalNumSpecies
+        float q, int existNumSpecies
     );
 };
 

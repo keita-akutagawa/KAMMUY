@@ -504,10 +504,10 @@ void PIC2D::calculateFullMoments()
 void PIC2D::calculateZerothMoments()
 {
     momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentIon, particlesIon, totalNumIon
+        zerothMomentIon, particlesIon, existNumIon
     );
     momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentElectron, particlesElectron, totalNumElectron
+        zerothMomentElectron, particlesElectron, existNumElectron
     );
 }
 
@@ -515,10 +515,10 @@ void PIC2D::calculateZerothMoments()
 void PIC2D::calculateFirstMoments()
 {
     momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentIon, particlesIon, totalNumIon
+        firstMomentIon, particlesIon, existNumIon
     );
     momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentElectron, particlesElectron, totalNumElectron
+        firstMomentElectron, particlesElectron, existNumElectron
     );
 }
 
@@ -526,10 +526,10 @@ void PIC2D::calculateFirstMoments()
 void PIC2D::calculateSecondMoments()
 {
     momentCalculater.calculateSecondMomentOfOneSpecies(
-        secondMomentIon, particlesIon, totalNumIon
+        secondMomentIon, particlesIon, existNumIon
     );
     momentCalculater.calculateSecondMomentOfOneSpecies(
-        secondMomentElectron, particlesElectron, totalNumElectron
+        secondMomentElectron, particlesElectron, existNumElectron
     );
 }
 
@@ -749,7 +749,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsXIon(filenameXIon, std::ios::binary);
     ofsXIon << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < totalNumIon; i++) {
+    for (unsigned long long i = 0; i < existNumIon; i++) {
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].x), sizeof(float));
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].y), sizeof(float));
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].z), sizeof(float));
@@ -757,7 +757,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsXElectron(filenameXElectron, std::ios::binary);
     ofsXElectron << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < totalNumElectron; i++) {
+    for (unsigned long long i = 0; i < existNumElectron; i++) {
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].x), sizeof(float));
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].y), sizeof(float));
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].z), sizeof(float));
@@ -768,7 +768,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsVIon(filenameVIon, std::ios::binary);
     ofsVIon << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < totalNumIon; i++) {
+    for (unsigned long long i = 0; i < existNumIon; i++) {
         vx = host_particlesIon[i].vx;
         vy = host_particlesIon[i].vy;
         vz = host_particlesIon[i].vz;
@@ -782,7 +782,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsVElectron(filenameVElectron, std::ios::binary);
     ofsVElectron << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < totalNumElectron; i++) {
+    for (unsigned long long i = 0; i < existNumElectron; i++) {
         vx = host_particlesElectron[i].vx;
         vy = host_particlesElectron[i].vy;
         vz = host_particlesElectron[i].vz;

@@ -85,8 +85,8 @@ void Filter::calculateRho(
 {
     resetRho();
 
-    calculateRhoOfOneSpecies(particlesIon, qIon, totalNumIon);
-    calculateRhoOfOneSpecies(particlesElectron, qElectron, totalNumElectron);
+    calculateRhoOfOneSpecies(particlesIon, qIon, existNumIon);
+    calculateRhoOfOneSpecies(particlesElectron, qElectron, existNumElectron);
 }
 
 
@@ -129,7 +129,7 @@ struct CalculateRhoOfOneSpeciesFunctor {
 
 void Filter::calculateRhoOfOneSpecies(
     const thrust::device_vector<Particle>& particlesSpecies, 
-    float q, int totalNumSpecies
+    float q, int existNumSpecies
 )
 {
     CalculateRhoOfOneSpeciesFunctor calculateRhoOfOneSpeciesFunctor{
@@ -140,7 +140,7 @@ void Filter::calculateRhoOfOneSpecies(
 
     thrust::for_each(
         thrust::counting_iterator<unsigned long long>(0), 
-        thrust::counting_iterator<unsigned long long>(totalNumSpecies), 
+        thrust::counting_iterator<unsigned long long>(existNumSpecies), 
         calculateRhoOfOneSpeciesFunctor
     );
 
