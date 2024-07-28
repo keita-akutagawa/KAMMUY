@@ -1,6 +1,3 @@
-#ifndef CONST_STRUCT_H
-#define CONST_STRUCT_H
-
 
 namespace Interface2DConst
 {
@@ -12,6 +9,9 @@ namespace Interface2DConst
 
     extern const int windowSizeForRemoveNoiseByConvolution;
 
+    extern const unsigned long long reloadParticlesTotalNumIon;
+    extern const unsigned long long reloadParticlesTotalNumElectron;
+
 
     extern __constant__ float device_PI;
 
@@ -21,8 +21,10 @@ namespace Interface2DConst
 
     extern __constant__ int device_windowSizeForRemoveNoiseByConvolution;
 
+    extern __constant__ unsigned long long device_reloadParticlesTotalNumIon;
+    extern __constant__ unsigned long long device_reloadParticlesTotalNumElectron;
+
     void initializeDeviceConstants();
 
 }
 
-#endif

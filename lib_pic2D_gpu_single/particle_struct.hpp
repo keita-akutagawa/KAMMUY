@@ -8,6 +8,7 @@ struct Particle
     float vy; 
     float vz;
     float gamma;
+    bool isExist;
 
     __host__ __device__
     Particle() : 
@@ -17,7 +18,8 @@ struct Particle
         vx(0.0f), 
         vy(0.0f), 
         vz(0.0f), 
-        gamma(0.0f)
+        gamma(0.0f), 
+        isExist(false)
         {}
     
     __host__ __device__

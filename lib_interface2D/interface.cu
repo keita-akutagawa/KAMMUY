@@ -3,7 +3,33 @@
 #include <curand_kernel.h>
 
 
-using namespace Interface2DConst;
+__global__ void initializeReloadParticlesSource_kernel(
+    Particle* reloadParticlesSourceSpecies, 
+    int reloadParticlesNumSpecies, 
+    int seed
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < reloadParticlesNumSpecies) {
+        curandState stateX; 
+        curandState stateY;
+        curandState stateVx; 
+        curandState stateVy; 
+        curandState stateVz;  
+        curand_init(seed, i, 0, &stateX);
+        curand_init(seed + 1, i, 0, &stateY);
+        curand_init(seed + 2, i, 0, &stateVx);
+        curand_init(seed + 3, i, 0, &stateVy);
+        curand_init(seed + 4, i, 0, &stateVz);
+
+        reloadParticlesSourceSpecies[i].x = curand_uniform(&stateX);
+        reloadParticlesSourceSpecies[i].y = curand_uniform(&stateY);
+        reloadParticlesSourceSpecies[i].vx = curand_normal(&stateVx);
+        reloadParticlesSourceSpecies[i].vy = curand_normal(&stateVy);
+        reloadParticlesSourceSpecies[i].vz = curand_normal(&stateVz);
+    }
+}
 
 Interface2D::Interface2D(
     int indexStartMHD, 
@@ -11,38 +37,71 @@ Interface2D::Interface2D(
 )
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 
-       interlockingFunctionY(interfaceLength), 
-       interlockingFunctionYHalf(interfaceLength - 1),
-       host_interlockingFunctionY(interfaceLength), 
-       host_interlockingFunctionYHalf(interfaceLength - 1),
+       interlockingFunctionY(Interface2DConst::interfaceLength), 
+       interlockingFunctionYHalf(Interface2DConst::interfaceLength - 1),
+       host_interlockingFunctionY(Interface2DConst::interfaceLength), 
+       host_interlockingFunctionYHalf(Interface2DConst::interfaceLength - 1),
 
        zerothMomentIon(PIC2DConst::nx * PIC2DConst::ny), 
        zerothMomentElectron(PIC2DConst::nx * PIC2DConst::ny), 
        firstMomentIon(PIC2DConst::nx * PIC2DConst::ny), 
        firstMomentElectron(PIC2DConst::nx * PIC2DConst::ny),
 
-       reloadParticlesDataIon(PIC2DConst::nx * interfaceLength), 
-       reloadParticlesDataElectron(PIC2DConst::nx * interfaceLength), 
+       reloadParticlesNumIon(0),
+       reloadParticlesNumElectron(0), 
+       restartParticlesIndexIon(0), 
+       restartParticlesIndexElectron(0), 
 
-       reloadParticlesIon(PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength + 100)), 
-       reloadParticlesElectron(PIC2DConst::numberDensityElectron * PIC2DConst::nx * (Interface2DConst::interfaceLength + 100))
+       reloadParticlesDataIon(PIC2DConst::nx * Interface2DConst::interfaceLength), 
+       reloadParticlesDataElectron(PIC2DConst::nx * Interface2DConst::interfaceLength), 
+
+       reloadParticlesSourceIon(Interface2DConst::reloadParticlesTotalNumIon), 
+       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNumElectron), 
+
+       reloadParticlesIndexIon(PIC2DConst::nx * Interface2DConst::interfaceLength), 
+       reloadParticlesIndexElectron(PIC2DConst::nx * Interface2DConst::interfaceLength), 
+       host_reloadParticlesIndexIon(PIC2DConst::nx * Interface2DConst::interfaceLength), 
+       host_reloadParticlesIndexElectron(PIC2DConst::nx * Interface2DConst::interfaceLength)
 {
     indexOfInterfaceEndInMHD = indexOfInterfaceStartInMHD + Interface2DConst::interfaceLength;
     indexOfInterfaceEndInPIC = indexOfInterfaceStartInPIC + Interface2DConst::interfaceLength;
 
-    for(int i = 0; interfaceLength; i++) {
+    for(int i = 0; Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionY[i] = 0.5f * (
-            1.0f + cos(Interface2DConst::PI  * (i - 0.0f) / (interfaceLength - 0.0f))
+            1.0f + cos(Interface2DConst::PI  * (i - 0.0f) / (Interface2DConst::interfaceLength - 0.0f))
         );
     }
-    for(int i = 0; interfaceLength - 1; i++) {
+    for(int i = 0; Interface2DConst::interfaceLength - 1; i++) {
         host_interlockingFunctionY[i] = 0.5f * (
-            1.0f + cos(Interface2DConst::PI  * (i + 0.5f - 0.0f) / (interfaceLength - 0.0f))
+            1.0f + cos(Interface2DConst::PI  * (i + 0.5f - 0.0f) / (Interface2DConst::interfaceLength - 0.0f))
         );
     }
 
     interlockingFunctionY = host_interlockingFunctionY;
     interlockingFunctionYHalf = host_interlockingFunctionYHalf;
+
+
+    dim3 threadsPerBlockForIon(256);
+    dim3 blocksPerGridForIon((Interface2DConst::reloadParticlesTotalNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+
+    initializeReloadParticlesSource_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
+        thrust::raw_pointer_cast(reloadParticlesSourceIon.data()),
+        Interface2DConst::reloadParticlesTotalNumIon, 
+        10000
+    );
+
+    cudaDeviceSynchronize();
+
+    dim3 threadsPerBlockForElectron(256);
+    dim3 blocksPerGridForElectron((Interface2DConst::reloadParticlesTotalNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+
+    initializeReloadParticlesSource_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
+        thrust::raw_pointer_cast(reloadParticlesSourceElectron.data()),
+        Interface2DConst::reloadParticlesTotalNumElectron, 
+        20000
+    );
+
+    cudaDeviceSynchronize();
 }
 
 
@@ -279,6 +338,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int reloadParticlesNumIon, int reloadParticlesNumElectron, 
     ReloadParticlesData* reloadParticlesDataIon, 
     ReloadParticlesData* reloadParticlesDataElectron, 
+    int* reloadParticlesIndexIon, 
+    int* reloadParticlesIndexElectron, 
     int indexOfInterfaceStartInMHD, 
     int indexOfInterfaceStartInPIC
 )
@@ -354,15 +415,58 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].w = wPIC - jZPIC / round(nePIC) / abs(PIC2DConst::qElectron);
         reloadParticlesDataIon[j + i * PIC2DConst::device_nx].vth = vThiPIC;
         reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].vth = vThePIC;
+        reloadParticlesDataIon[j + i * PIC2DConst::device_nx].hasData = true;
+        reloadParticlesDataElectron[j + i * PIC2DConst::device_nx].hasData = true;
 
+        reloadParticlesIndexIon[j + i * PIC2DConst::device_nx] = round(niPIC);
+        reloadParticlesIndexElectron[j + i * PIC2DConst::device_nx] = round(nePIC);
     }
 }
 
+
+
 __global__ void reloadParticles_kernel(
-    thrust::device_vector<Particle>& particlesSpecies
+    const ReloadParticlesData* reloadParticlesDataSpecies, 
+    const int* reloadParticlesIndexSpecies, 
+    const Particle* reloadParticlesSpecies, 
+    Particle* particlesSpecies, 
+    int reloadParticlesNumSpecies, 
+    int restartParticlesIndexSpecies, 
+    int indexOfInterfaceStartInPIC
 )
 {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
 
+    if (0 < i && i < PIC2DConst::device_nx && 0 < j && j < Interface2DConst::interfaceLength - 1) {
+        int index = j + i * PIC2DConst::device_nx;
+        int reloadNum = reloadParticlesDataSpecies[index].number;
+        float u = reloadParticlesDataSpecies[index].u;
+        float v = reloadParticlesDataSpecies[index].v;
+        float w = reloadParticlesDataSpecies[index].w;
+        float vth = reloadParticlesDataSpecies[index].vth;
+        Particle particleSource, particleReload;
+        float x, y, z, vx, vy, vz, gamma;
+
+        for (int k = reloadParticlesIndexSpecies[index]; k < reloadParticlesIndexSpecies[index + 1]; k++) {
+            particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % Interface2DConst::device_reloadParticlesTotalNumIon];
+
+            x = particleSource.x; x += i * PIC2DConst::device_dx;
+            y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
+            z = 0.0f;
+            vx = particleSource.vx; vx = u + vx * vth;
+            vy = particleSource.vx; vy = v + vy * vth;
+            vz = particleSource.vx; vz = w + vz * vth;
+            gamma = sqrt(1.0f + (vx * vx + vy * vy + vz * vz) / (PIC2DConst::device_c * PIC2DConst::device_c));
+            
+            particleReload.x = x; particleReload.y = y; particleReload.z = z;
+            particleReload.vx = vx; particleReload.vy = vy, particleReload.vz = vz; 
+            particleReload.gamma = gamma;
+
+            
+        }
+
+    }
 }
 
 void Interface2D::sendMHDtoPIC_particle(
@@ -391,14 +495,43 @@ void Interface2D::sendMHDtoPIC_particle(
         reloadParticlesNumIon, reloadParticlesNumElectron, 
         thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
+        thrust::raw_pointer_cast(reloadParticlesIndexIon.data()), 
+        thrust::raw_pointer_cast(reloadParticlesIndexElectron.data()), 
         indexOfInterfaceStartInMHD, 
-        indexOfInterfaceStartInPIC 
+        indexOfInterfaceStartInPIC
     );
 
     cudaDeviceSynchronize();
 
 
+    host_reloadParticlesIndexIon = reloadParticlesIndexIon;
+    host_reloadParticlesIndexElectron = reloadParticlesIndexElectron;
 
+    for (int i = 0; i < PIC2DConst::nx; i++) {
+        for (int j = 0; j < Interface2DConst::interfaceLength; j++) {
+
+            if (j == 0 && i == 0) continue;
+
+            host_reloadParticlesIndexIon[j + i * PIC2DConst::nx] += host_reloadParticlesIndexIon[j + i * PIC2DConst::nx - 1];
+            host_reloadParticlesIndexElectron[j + i * PIC2DConst::nx] += host_reloadParticlesIndexElectron[j + i * PIC2DConst::nx - 1];
+        }
+    }
+
+    reloadParticlesIndexIon = host_reloadParticlesIndexIon;
+    reloadParticlesIndexElectron = host_reloadParticlesIndexElectron;
+
+
+    reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
+        thrust::raw_pointer_cast(reloadParticlesIndexIon.data()), 
+        thrust::raw_pointer_cast(reloadParticlesSourceIon.data()), 
+        thrust::raw_pointer_cast(particlesIon.data()), 
+        reloadParticlesNumIon, restartParticlesIndexIon, 
+        indexOfInterfaceStartInPIC
+    );
+
+    restartParticlesIndexIon = reloadParticlesNumIon % Interface2DConst::reloadParticlesTotalNumIon;
+    restartParticlesIndexElectron = reloadParticlesNumElectron % Interface2DConst::reloadParticlesTotalNumElectron;
 }
 
 

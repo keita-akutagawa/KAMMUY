@@ -32,10 +32,17 @@ private:
 
     int reloadParticlesNumIon;
     int reloadParticlesNumElectron;
+    int restartParticlesIndexIon;
+    int restartParticlesIndexElectron;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
-    thrust::device_vector<Particle> reloadParticlesIon;
-    thrust::device_vector<Particle> reloadParticlesElectron;
+    thrust::device_vector<Particle> reloadParticlesSourceIon;
+    thrust::device_vector<Particle> reloadParticlesSourceElectron;
+
+    thrust::device_vector<int> reloadParticlesIndexIon;
+    thrust::device_vector<int> reloadParticlesIndexElectron;
+    thrust::host_vector<int> host_reloadParticlesIndexIon;
+    thrust::host_vector<int> host_reloadParticlesIndexElectron;
 
     MomentCalculater momentCalculater;
 
@@ -74,6 +81,11 @@ private:
     void setMoments(
         const thrust::device_vector<Particle>& particlesIon, 
         const thrust::device_vector<Particle>& particlesElectron
+    );
+
+    void deleteParticles(
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron
     );
 };
 

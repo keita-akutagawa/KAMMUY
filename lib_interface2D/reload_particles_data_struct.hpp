@@ -6,6 +6,7 @@ struct ReloadParticlesData
     float v;
     float w;
     float vth;
+    bool hasData;
 
     __host__ __device__
     ReloadParticlesData() : 
@@ -13,7 +14,8 @@ struct ReloadParticlesData
         u(0.0f), 
         v(0.0f), 
         w(0.0f),
-        vth(0.0f)
+        vth(0.0f), 
+        hasData(false)
         {}
     
 };
