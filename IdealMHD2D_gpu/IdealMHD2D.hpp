@@ -30,6 +30,12 @@ public:
 
     void oneStepRK2();
 
+    void oneStepRK2_predictor();
+
+    void oneStepRK2_corrector(
+        const thrust::device_vector<ConservationParameter>& UHalf
+    );
+
     void save(
         std::string directoryname, 
         std::string filenameWithoutStep, 

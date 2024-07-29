@@ -16,6 +16,7 @@ class Interface2D
 private:
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
+    int interfaceLength; 
     int indexOfInterfaceEndInMHD;
     int indexOfInterfaceEndInPIC;
 
@@ -50,7 +51,8 @@ private:
 public:
     Interface2D(
         int indexStartMHD, 
-        int indexStartPIC
+        int indexStartPIC, 
+        int interfaceLength
     );
 
     void sendMHDtoPIC_magneticField_yDirection(

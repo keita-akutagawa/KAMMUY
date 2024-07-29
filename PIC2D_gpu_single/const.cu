@@ -1,6 +1,8 @@
 #include "const.hpp"
 
 
+using namespace PIC2DConst;
+
 void initializeDeviceConstants()
 {
     cudaMemcpyToSymbol(device_c, &c, sizeof(float));

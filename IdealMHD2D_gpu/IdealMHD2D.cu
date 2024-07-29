@@ -199,6 +199,45 @@ void IdealMHD2D::oneStepRK2()
 }
 
 
+void IdealMHD2D::oneStepRK2_predictor()
+{
+    oneStepRK2();
+}
+
+// 未完成
+void IdealMHD2D::oneStepRK2_corrector(
+    const thrust::device_vector<ConservationParameter>& UHalf
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    shiftUToCenterForCT(UBar);
+    fluxF = fluxSolver.getFluxF(UBar);
+    fluxG = fluxSolver.getFluxG(UBar);
+    backUToCenterHalfForCT(UBar);
+
+    thrust::copy(U.begin(), U.end(), tmpU.begin());
+    auto tupleForFluxSecond = thrust::make_tuple(
+        tmpU.begin(), UBar.begin(), fluxF.begin(), fluxF.begin() - ny, fluxG.begin(), fluxG.begin() - 1
+    );
+    auto tupleForFluxSecondIterator = thrust::make_zip_iterator(tupleForFluxSecond);
+    thrust::transform(
+        tupleForFluxSecondIterator + ny, 
+        tupleForFluxSecondIterator + nx * ny, 
+        U.begin() + ny, 
+        oneStepSecondFunctor()
+    );
+
+    ct.divBClean(bXOld, bYOld, U);
+
+    //これはどうにかすること。保守性が低い
+    boundary.periodicBoundaryX2nd(U);
+    boundary.periodicBoundaryY2nd(U);
+}
+
+
 void IdealMHD2D::save(
     std::string directoryname, 
     std::string filenameWithoutStep, 

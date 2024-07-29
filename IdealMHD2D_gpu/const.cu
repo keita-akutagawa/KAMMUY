@@ -1,6 +1,8 @@
 #include "const.hpp"
 
 
+using namespace IdealMHD2DConst;
+
 void initializeDeviceConstants() {
     cudaMemcpyToSymbol(device_EPS, &EPS, sizeof(double));
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(double));
