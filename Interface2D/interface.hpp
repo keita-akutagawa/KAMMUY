@@ -71,7 +71,8 @@ public:
     void sendMHDtoPIC_particle(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesElectron, 
+        int step
     );
 
     void sendPICtoMHD(
@@ -88,7 +89,8 @@ private:
 
     void deleteParticles(
         thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesElectron, 
+        int step
     );
 };
 

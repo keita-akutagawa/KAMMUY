@@ -236,10 +236,13 @@ void Boundary::openBoundaryParticleY(
         particlesIon.begin(), particlesIon.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
+    cudaDeviceSynchronize();
+    
     thrust::partition(
         particlesElectron.begin(), particlesElectron.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
+    cudaDeviceSynchronize();
 }
 
 //////////

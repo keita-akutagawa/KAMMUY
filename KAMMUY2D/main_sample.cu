@@ -1,17 +1,13 @@
 #include "../IdealMHD2D_gpu/IdealMHD2D.hpp"
 #include "../PIC2D_gpu_single/PIC2D.hpp"
 #include "../Interface2D/interface.hpp"
-#include "main_sample_const.cu"
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <cuda_runtime.h>
+#include "main_sample_const.cu"
 
-
-std::string directoryname = "results_sample";
-std::string filenameWithoutStep = "sample";
-std::ofstream logfile("results_sample/log_sample.txt");
 
 
 void PIC2D::initialize()

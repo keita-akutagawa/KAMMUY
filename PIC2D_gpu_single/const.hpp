@@ -50,6 +50,7 @@ namespace PIC2DConst
     extern const float omegaCi;
 
     extern const float debyeLength;
+    extern const float ionInertialLength; 
 
     extern const float vThIon;
     extern const float vThElectron;
@@ -113,6 +114,7 @@ namespace PIC2DConst
     extern __constant__ float device_omegaCi;
 
     extern __constant__ float device_debyeLength;
+    extern __constant__ float device_ionInertialLength; 
 
     extern __constant__ float device_vThIon;
     extern __constant__ float device_vThElectron;
