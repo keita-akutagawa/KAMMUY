@@ -1,7 +1,7 @@
 #include "flux_solver.hpp"
 
 
-using namespace MHD2DConst;
+using namespace IdealMHD2DConst;
 
 thrust::device_vector<Flux> FluxSolver::getFluxF(
     const thrust::device_vector<ConservationParameter>& U

@@ -5,10 +5,10 @@
 #include <string>
 #include <thrust/extrema.h>
 #include "const.hpp"
-#include "idealMHD_2D.hpp"
+#include "IdealMHD2D.hpp"
 
 
-using namespace MHD2DConst;
+using namespace IdealMHD2DConst;
 
 IdealMHD2D::IdealMHD2D()
     : fluxF(nx * ny),

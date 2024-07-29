@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <cstdio>
-#include "pic2D.hpp"
+#include "PIC2D.hpp"
 
 
 using namespace PIC2DConst;

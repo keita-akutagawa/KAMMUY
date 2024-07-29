@@ -1,7 +1,7 @@
 #include "ct.hpp"
 
 
-using namespace MHD2DConst;
+using namespace IdealMHD2DConst;
 
 CT::CT()
     : oldFluxF(nx * ny), 

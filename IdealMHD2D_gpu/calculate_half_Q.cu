@@ -1,7 +1,7 @@
 #include "calculate_half_Q.hpp"
 
 
-using namespace MHD2DConst;
+using namespace IdealMHD2DConst;
 
 struct GetBasicParamterFunctor {
 

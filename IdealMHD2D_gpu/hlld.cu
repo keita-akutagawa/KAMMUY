@@ -4,7 +4,7 @@
 #include <thrust/tuple.h>
 
 
-using namespace MHD2DConst;
+using namespace IdealMHD2DConst;
 
 HLLD::HLLD()
     : dQCenter(nx * ny),
