@@ -8,32 +8,32 @@
 using namespace PIC2DConst;
 
 PIC2D::PIC2D()
-    : particlesIon(totalNumIon), 
-      particlesElectron(totalNumElectron), 
-      E(nx * ny), 
-      tmpE(nx * ny), 
-      B(nx * ny), 
-      tmpB(nx * ny), 
-      current(nx * ny), 
-      tmpCurrent(nx * ny), 
-      zerothMomentIon(nx * ny), 
-      zerothMomentElectron(nx * ny), 
-      firstMomentIon(nx * ny), 
-      firstMomentElectron(nx * ny), 
-      secondMomentIon(nx * ny), 
-      secondMomentElectron(nx * ny),
+    : particlesIon(totalNumIon_PIC), 
+      particlesElectron(totalNumElectron_PIC), 
+      E(nx_PIC * ny_PIC), 
+      tmpE(nx_PIC * ny_PIC), 
+      B(nx_PIC * ny_PIC), 
+      tmpB(nx_PIC * ny_PIC), 
+      current(nx_PIC * ny_PIC), 
+      tmpCurrent(nx_PIC * ny_PIC), 
+      zerothMomentIon(nx_PIC * ny_PIC), 
+      zerothMomentElectron(nx_PIC * ny_PIC), 
+      firstMomentIon(nx_PIC * ny_PIC), 
+      firstMomentElectron(nx_PIC * ny_PIC), 
+      secondMomentIon(nx_PIC * ny_PIC), 
+      secondMomentElectron(nx_PIC * ny_PIC),
 
-      host_particlesIon(totalNumIon), 
-      host_particlesElectron(totalNumElectron), 
-      host_E(nx * ny), 
-      host_B(nx * ny), 
-      host_current(nx * ny), 
-      host_zerothMomentIon(nx * ny), 
-      host_zerothMomentElectron(nx * ny), 
-      host_firstMomentIon(nx * ny), 
-      host_firstMomentElectron(nx * ny), 
-      host_secondMomentIon(nx * ny), 
-      host_secondMomentElectron(nx * ny)
+      host_particlesIon(totalNumIon_PIC), 
+      host_particlesElectron(totalNumElectron_PIC), 
+      host_E(nx_PIC * ny_PIC), 
+      host_B(nx_PIC * ny_PIC), 
+      host_current(nx_PIC * ny_PIC), 
+      host_zerothMomentIon(nx_PIC * ny_PIC), 
+      host_zerothMomentElectron(nx_PIC * ny_PIC), 
+      host_firstMomentIon(nx_PIC * ny_PIC), 
+      host_firstMomentElectron(nx_PIC * ny_PIC), 
+      host_secondMomentIon(nx_PIC * ny_PIC), 
+      host_secondMomentElectron(nx_PIC * ny_PIC)
 {
 }
 
@@ -46,44 +46,44 @@ __global__ void getCenterBE_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < device_nx) && (0 < j) && (j < device_ny)) {
-        tmpB[j + device_ny * i].bX = 0.5f * (B[j + device_ny * i].bX + B[j - 1 + device_ny * i].bX);
-        tmpB[j + device_ny * i].bY = 0.5f * (B[j + device_ny * i].bY + B[j + device_ny * (i - 1)].bY);
-        tmpB[j + device_ny * i].bZ = 0.25f * (B[j + device_ny * i].bZ + B[j + device_ny * (i - 1)].bZ
-                                   + B[j - 1 + device_ny * i].bZ + B[j - 1 + device_ny * (i - 1)].bZ);
-        tmpE[j + device_ny * i].eX = 0.5f * (E[j + device_ny * i].eX + E[j + device_ny * (i - 1)].eX);
-        tmpE[j + device_ny * i].eY = 0.5f * (E[j + device_ny * i].eY + E[j - 1 + device_ny * i].eY);
-        tmpE[j + device_ny * i].eZ = E[j + device_ny * i].eZ;
+    if ((0 < i) && (i < device_nx_PIC) && (0 < j) && (j < device_ny_PIC)) {
+        tmpB[j + device_ny_PIC * i].bX = 0.5f * (B[j + device_ny_PIC * i].bX + B[j - 1 + device_ny_PIC * i].bX);
+        tmpB[j + device_ny_PIC * i].bY = 0.5f * (B[j + device_ny_PIC * i].bY + B[j + device_ny_PIC * (i - 1)].bY);
+        tmpB[j + device_ny_PIC * i].bZ = 0.25f * (B[j + device_ny_PIC * i].bZ + B[j + device_ny_PIC * (i - 1)].bZ
+                                   + B[j - 1 + device_ny_PIC * i].bZ + B[j - 1 + device_ny_PIC * (i - 1)].bZ);
+        tmpE[j + device_ny_PIC * i].eX = 0.5f * (E[j + device_ny_PIC * i].eX + E[j + device_ny_PIC * (i - 1)].eX);
+        tmpE[j + device_ny_PIC * i].eY = 0.5f * (E[j + device_ny_PIC * i].eY + E[j - 1 + device_ny_PIC * i].eY);
+        tmpE[j + device_ny_PIC * i].eZ = E[j + device_ny_PIC * i].eZ;
     }
 
-    if ((i == 0) && (0 < j) && (j < device_ny)) {
-        tmpB[j + device_ny * i].bX = 0.5f * (B[j + device_ny * i].bX + B[j - 1 + device_ny * i].bX);
-        tmpB[j + device_ny * i].bY = 0.5f * (B[j + device_ny * i].bY + B[j + device_ny * (device_nx - 1)].bY);
-        tmpB[j + device_ny * i].bZ = 0.25f * (B[j + device_ny * i].bZ + B[j + device_ny * (device_nx - 1)].bZ
-                                   + B[j - 1 + device_ny * i].bZ + B[j - 1 + device_ny * (device_nx - 1)].bZ);
-        tmpE[j + device_ny * i].eX = 0.5f * (E[j + device_ny * i].eX + E[j + device_ny * (device_nx - 1)].eX);
-        tmpE[j + device_ny * i].eY = 0.5f * (E[j + device_ny * i].eY + E[j - 1 + device_ny * i].eY);
-        tmpE[j + device_ny * i].eZ = E[j + device_ny * i].eZ;
+    if ((i == 0) && (0 < j) && (j < device_ny_PIC)) {
+        tmpB[j + device_ny_PIC * i].bX = 0.5f * (B[j + device_ny_PIC * i].bX + B[j - 1 + device_ny_PIC * i].bX);
+        tmpB[j + device_ny_PIC * i].bY = 0.5f * (B[j + device_ny_PIC * i].bY + B[j + device_ny_PIC * (device_nx_PIC - 1)].bY);
+        tmpB[j + device_ny_PIC * i].bZ = 0.25f * (B[j + device_ny_PIC * i].bZ + B[j + device_ny_PIC * (device_nx_PIC - 1)].bZ
+                                   + B[j - 1 + device_ny_PIC * i].bZ + B[j - 1 + device_ny_PIC * (device_nx_PIC - 1)].bZ);
+        tmpE[j + device_ny_PIC * i].eX = 0.5f * (E[j + device_ny_PIC * i].eX + E[j + device_ny_PIC * (device_nx_PIC - 1)].eX);
+        tmpE[j + device_ny_PIC * i].eY = 0.5f * (E[j + device_ny_PIC * i].eY + E[j - 1 + device_ny_PIC * i].eY);
+        tmpE[j + device_ny_PIC * i].eZ = E[j + device_ny_PIC * i].eZ;
     }
 
-    if ((0 < i) && (i < device_nx) && (j == 0)) {
-        tmpB[j + device_ny * i].bX = 0.5f * (B[j + device_ny * i].bX + B[device_ny - 1 + device_ny * i].bX);
-        tmpB[j + device_ny * i].bY = 0.5f * (B[j + device_ny * i].bY + B[j + device_ny * (i - 1)].bY);
-        tmpB[j + device_ny * i].bZ = 0.25f * (B[j + device_ny * i].bZ + B[j + device_ny * (i - 1)].bZ
-                                   + B[device_ny - 1 + device_ny * i].bZ + B[device_ny - 1 + device_ny * (i - 1)].bZ);
-        tmpE[j + device_ny * i].eX = 0.5f * (E[j + device_ny * i].eX + E[j + device_ny * (i - 1)].eX);
-        tmpE[j + device_ny * i].eY = 0.5f * (E[j + device_ny * i].eY + E[device_ny - 1 + device_ny * i].eY);
-        tmpE[j + device_ny * i].eZ = E[j + device_ny * i].eZ;
+    if ((0 < i) && (i < device_nx_PIC) && (j == 0)) {
+        tmpB[j + device_ny_PIC * i].bX = 0.5f * (B[j + device_ny_PIC * i].bX + B[device_ny_PIC - 1 + device_ny_PIC * i].bX);
+        tmpB[j + device_ny_PIC * i].bY = 0.5f * (B[j + device_ny_PIC * i].bY + B[j + device_ny_PIC * (i - 1)].bY);
+        tmpB[j + device_ny_PIC * i].bZ = 0.25f * (B[j + device_ny_PIC * i].bZ + B[j + device_ny_PIC * (i - 1)].bZ
+                                   + B[device_ny_PIC - 1 + device_ny_PIC * i].bZ + B[device_ny_PIC - 1 + device_ny_PIC * (i - 1)].bZ);
+        tmpE[j + device_ny_PIC * i].eX = 0.5f * (E[j + device_ny_PIC * i].eX + E[j + device_ny_PIC * (i - 1)].eX);
+        tmpE[j + device_ny_PIC * i].eY = 0.5f * (E[j + device_ny_PIC * i].eY + E[device_ny_PIC - 1 + device_ny_PIC * i].eY);
+        tmpE[j + device_ny_PIC * i].eZ = E[j + device_ny_PIC * i].eZ;
     }
 
     if (i == 0 && j == 0) {
-        tmpB[j + device_ny * i].bX = 0.5f * (B[j + device_ny * i].bX + B[device_ny - 1 + device_ny * i].bX);
-        tmpB[j + device_ny * i].bY = 0.5f * (B[j + device_ny * i].bY + B[j + device_ny * (device_nx - 1)].bY);
-        tmpB[j + device_ny * i].bZ = 0.25f * (B[j + device_ny * i].bZ + B[j + device_ny * (device_nx - 1)].bZ
-                                   + B[device_ny - 1 + device_ny * i].bZ + B[device_ny - 1 + device_ny * (device_nx - 1)].bZ);
-        tmpE[j + device_ny * i].eX = 0.5f * (E[j + device_ny * i].eX + E[j + device_ny * (device_nx - 1)].eX);
-        tmpE[j + device_ny * i].eY = 0.5f * (E[j + device_ny * i].eY + E[device_ny - 1 + device_ny * i].eY);
-        tmpE[j + device_ny * i].eZ = E[j + device_ny * i].eZ;
+        tmpB[j + device_ny_PIC * i].bX = 0.5f * (B[j + device_ny_PIC * i].bX + B[device_ny_PIC - 1 + device_ny_PIC * i].bX);
+        tmpB[j + device_ny_PIC * i].bY = 0.5f * (B[j + device_ny_PIC * i].bY + B[j + device_ny_PIC * (device_nx_PIC - 1)].bY);
+        tmpB[j + device_ny_PIC * i].bZ = 0.25f * (B[j + device_ny_PIC * i].bZ + B[j + device_ny_PIC * (device_nx_PIC - 1)].bZ
+                                   + B[device_ny_PIC - 1 + device_ny_PIC * i].bZ + B[device_ny_PIC - 1 + device_ny_PIC * (device_nx_PIC - 1)].bZ);
+        tmpE[j + device_ny_PIC * i].eX = 0.5f * (E[j + device_ny_PIC * i].eX + E[j + device_ny_PIC * (device_nx_PIC - 1)].eX);
+        tmpE[j + device_ny_PIC * i].eY = 0.5f * (E[j + device_ny_PIC * i].eY + E[device_ny_PIC - 1 + device_ny_PIC * i].eY);
+        tmpE[j + device_ny_PIC * i].eZ = E[j + device_ny_PIC * i].eZ;
     }
 }
 
@@ -94,41 +94,41 @@ __global__ void getHalfCurrent_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < device_nx - 1 && j < device_ny - 1) {
-        current[j + device_ny * i].jX = 0.5f * (tmpCurrent[j + device_ny * i].jX + tmpCurrent[j + device_ny * (i + 1)].jX);
-        current[j + device_ny * i].jY = 0.5f * (tmpCurrent[j + device_ny * i].jY + tmpCurrent[j + 1 + device_ny * i].jY);
-        current[j + device_ny * i].jZ = tmpCurrent[j + device_ny * i].jZ;
+    if (i < device_nx_PIC - 1 && j < device_ny_PIC - 1) {
+        current[j + device_ny_PIC * i].jX = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jX + tmpCurrent[j + device_ny_PIC * (i + 1)].jX);
+        current[j + device_ny_PIC * i].jY = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jY + tmpCurrent[j + 1 + device_ny_PIC * i].jY);
+        current[j + device_ny_PIC * i].jZ = tmpCurrent[j + device_ny_PIC * i].jZ;
     }
 
-    if (i == device_nx - 1 && j < device_ny - 1) {
-        current[j + device_ny * i].jX = 0.5f * (tmpCurrent[j + device_ny * i].jX + tmpCurrent[j + device_ny * 0].jX);
-        current[j + device_ny * i].jY = 0.5f * (tmpCurrent[j + device_ny * i].jY + tmpCurrent[j + 1 + device_ny * i].jY);
-        current[j + device_ny * i].jZ = tmpCurrent[j + device_ny * i].jZ;
+    if (i == device_nx_PIC - 1 && j < device_ny_PIC - 1) {
+        current[j + device_ny_PIC * i].jX = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jX + tmpCurrent[j + device_ny_PIC * 0].jX);
+        current[j + device_ny_PIC * i].jY = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jY + tmpCurrent[j + 1 + device_ny_PIC * i].jY);
+        current[j + device_ny_PIC * i].jZ = tmpCurrent[j + device_ny_PIC * i].jZ;
     }
 
-    if (i < device_nx - 1 && j == device_ny - 1) {
-        current[j + device_ny * i].jX = 0.5f * (tmpCurrent[j + device_ny * i].jX + tmpCurrent[j + device_ny * (i + 1)].jX);
-        current[j + device_ny * i].jY = 0.5f * (tmpCurrent[j + device_ny * i].jY + tmpCurrent[0 + device_ny * i].jY);
-        current[j + device_ny * i].jZ = tmpCurrent[j + device_ny * i].jZ;
+    if (i < device_nx_PIC - 1 && j == device_ny_PIC - 1) {
+        current[j + device_ny_PIC * i].jX = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jX + tmpCurrent[j + device_ny_PIC * (i + 1)].jX);
+        current[j + device_ny_PIC * i].jY = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jY + tmpCurrent[0 + device_ny_PIC * i].jY);
+        current[j + device_ny_PIC * i].jZ = tmpCurrent[j + device_ny_PIC * i].jZ;
     }
 
-    if (i == device_nx - 1 && j == device_ny - 1) {
-        current[j + device_ny * i].jX = 0.5f * (tmpCurrent[j + device_ny * i].jX + tmpCurrent[j + device_ny * 0].jX);
-        current[j + device_ny * i].jY = 0.5f * (tmpCurrent[j + device_ny * i].jY + tmpCurrent[0 + device_ny * i].jY);
-        current[j + device_ny * i].jZ = tmpCurrent[j + device_ny * i].jZ;
+    if (i == device_nx_PIC - 1 && j == device_ny_PIC - 1) {
+        current[j + device_ny_PIC * i].jX = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jX + tmpCurrent[j + device_ny_PIC * 0].jX);
+        current[j + device_ny_PIC * i].jY = 0.5f * (tmpCurrent[j + device_ny_PIC * i].jY + tmpCurrent[0 + device_ny_PIC * i].jY);
+        current[j + device_ny_PIC * i].jZ = tmpCurrent[j + device_ny_PIC * i].jZ;
     }
 }
 
 
 void PIC2D::oneStepSymmetricXWallY()
 {
-    fieldSolver.timeEvolutionB(B, E, dt/2.0f);
+    fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0f);
     boundary.symmetricBoundaryBX(B);
     boundary.conductingWallBoundaryBY(B);
     
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
     getCenterBE_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(tmpB.data()), 
         thrust::raw_pointer_cast(tmpE.data()), 
@@ -143,12 +143,12 @@ void PIC2D::oneStepSymmetricXWallY()
 
 
     particlePush.pushVelocity(
-        particlesIon, particlesElectron, tmpB, tmpE, dt
+        particlesIon, particlesElectron, tmpB, tmpE, dt_PIC
     );
 
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, dt/2.0f
+        particlesIon, particlesElectron, dt_PIC/2.0f
     );
     boundary.conductingWallBoundaryParticleX(
         particlesIon, particlesElectron
@@ -171,19 +171,19 @@ void PIC2D::oneStepSymmetricXWallY()
     boundary.symmetricBoundaryCurrentX(current);
     boundary.conductingWallBoundaryCurrentY(current);
 
-    fieldSolver.timeEvolutionB(B, E, dt/2.0f);
+    fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0f);
     boundary.symmetricBoundaryBX(B);
     boundary.conductingWallBoundaryBY(B);
 
-    fieldSolver.timeEvolutionE(E, B, current, dt);
+    fieldSolver.timeEvolutionE(E, B, current, dt_PIC);
     boundary.symmetricBoundaryEX(E);
     boundary.conductingWallBoundaryEY(E);
-    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, dt);
+    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, dt_PIC);
     boundary.symmetricBoundaryEX(E);
     boundary.conductingWallBoundaryEY(E);
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, dt/2.0f
+        particlesIon, particlesElectron, dt_PIC/2.0f
     );
     boundary.conductingWallBoundaryParticleX(
         particlesIon, particlesElectron
@@ -196,13 +196,13 @@ void PIC2D::oneStepSymmetricXWallY()
 
 void PIC2D::oneStepWallXFreeY()
 {
-    fieldSolver.timeEvolutionB(B, E, dt/2.0f);
+    fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0f);
     boundary.symmetricBoundaryBX(B);
     boundary.conductingWallBoundaryBY(B);
     
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
     getCenterBE_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(tmpB.data()), 
         thrust::raw_pointer_cast(tmpE.data()), 
@@ -217,12 +217,12 @@ void PIC2D::oneStepWallXFreeY()
 
 
     particlePush.pushVelocity(
-        particlesIon, particlesElectron, tmpB, tmpE, dt
+        particlesIon, particlesElectron, tmpB, tmpE, dt_PIC
     );
 
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, dt/2.0f
+        particlesIon, particlesElectron, dt_PIC/2.0f
     );
     boundary.conductingWallBoundaryParticleX(
         particlesIon, particlesElectron
@@ -245,19 +245,19 @@ void PIC2D::oneStepWallXFreeY()
     boundary.symmetricBoundaryCurrentX(current);
     boundary.conductingWallBoundaryCurrentY(current);
 
-    fieldSolver.timeEvolutionB(B, E, dt/2.0f);
+    fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0f);
     boundary.symmetricBoundaryBX(B);
     boundary.conductingWallBoundaryBY(B);
 
-    fieldSolver.timeEvolutionE(E, B, current, dt);
+    fieldSolver.timeEvolutionE(E, B, current, dt_PIC);
     boundary.symmetricBoundaryEX(E);
     boundary.conductingWallBoundaryEY(E);
-    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, dt);
+    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, dt_PIC);
     boundary.symmetricBoundaryEX(E);
     boundary.conductingWallBoundaryEY(E);
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, dt/2.0f
+        particlesIon, particlesElectron, dt_PIC/2.0f
     );
     boundary.conductingWallBoundaryParticleX(
         particlesIon, particlesElectron
@@ -306,39 +306,39 @@ void PIC2D::saveFields(
 
     std::ofstream ofsB(filenameB, std::ios::binary);
     ofsB << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny * i].bX), sizeof(float));
-            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny * i].bY), sizeof(float));
-            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny * i].bZ), sizeof(float));
-            BEnergy += host_B[j + ny * i].bX * host_B[j + ny * i].bX 
-                     + host_B[j + ny * i].bY * host_B[j + ny * i].bY
-                     + host_B[j + ny * i].bZ * host_B[j + ny * i].bZ;
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
+            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny_PIC * i].bX), sizeof(float));
+            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny_PIC * i].bY), sizeof(float));
+            ofsB.write(reinterpret_cast<const char*>(&host_B[j + ny_PIC * i].bZ), sizeof(float));
+            BEnergy += host_B[j + ny_PIC * i].bX * host_B[j + ny_PIC * i].bX 
+                     + host_B[j + ny_PIC * i].bY * host_B[j + ny_PIC * i].bY
+                     + host_B[j + ny_PIC * i].bZ * host_B[j + ny_PIC * i].bZ;
         }
     }
-    BEnergy *= 0.5f / mu0;
+    BEnergy *= 0.5f / mu0_PIC;
 
     std::ofstream ofsE(filenameE, std::ios::binary);
     ofsE << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny * i].eX), sizeof(float));
-            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny * i].eY), sizeof(float));
-            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny * i].eZ), sizeof(float));
-            EEnergy += host_E[j + ny * i].eX * host_E[j + ny * i].eX
-                     + host_E[j + ny * i].eY * host_E[j + ny * i].eY
-                     + host_E[j + ny * i].eZ * host_E[j + ny * i].eZ;
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
+            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny_PIC * i].eX), sizeof(float));
+            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny_PIC * i].eY), sizeof(float));
+            ofsE.write(reinterpret_cast<const char*>(&host_E[j + ny_PIC * i].eZ), sizeof(float));
+            EEnergy += host_E[j + ny_PIC * i].eX * host_E[j + ny_PIC * i].eX
+                     + host_E[j + ny_PIC * i].eY * host_E[j + ny_PIC * i].eY
+                     + host_E[j + ny_PIC * i].eZ * host_E[j + ny_PIC * i].eZ;
         }
     }
-    EEnergy *= 0.5f * epsilon0;
+    EEnergy *= 0.5f * epsilon0_PIC;
 
     std::ofstream ofsCurrent(filenameCurrent, std::ios::binary);
     ofsCurrent << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny * i].jX), sizeof(float));
-            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny * i].jY), sizeof(float));
-            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny * i].jZ), sizeof(float));
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
+            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny_PIC * i].jX), sizeof(float));
+            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny_PIC * i].jY), sizeof(float));
+            ofsCurrent.write(reinterpret_cast<const char*>(&host_current[j + ny_PIC * i].jZ), sizeof(float));
         }
     }
 
@@ -363,10 +363,10 @@ void PIC2D::calculateFullMoments()
 void PIC2D::calculateZerothMoments()
 {
     momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentIon, particlesIon, existNumIon
+        zerothMomentIon, particlesIon, existNumIon_PIC
     );
     momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentElectron, particlesElectron, existNumElectron
+        zerothMomentElectron, particlesElectron, existNumElectron_PIC
     );
 }
 
@@ -374,10 +374,10 @@ void PIC2D::calculateZerothMoments()
 void PIC2D::calculateFirstMoments()
 {
     momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentIon, particlesIon, existNumIon
+        firstMomentIon, particlesIon, existNumIon_PIC
     );
     momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentElectron, particlesElectron, existNumElectron
+        firstMomentElectron, particlesElectron, existNumElectron_PIC
     );
 }
 
@@ -385,10 +385,10 @@ void PIC2D::calculateFirstMoments()
 void PIC2D::calculateSecondMoments()
 {
     momentCalculater.calculateSecondMomentOfOneSpecies(
-        secondMomentIon, particlesIon, existNumIon
+        secondMomentIon, particlesIon, existNumIon_PIC
     );
     momentCalculater.calculateSecondMomentOfOneSpecies(
-        secondMomentElectron, particlesElectron, existNumElectron
+        secondMomentElectron, particlesElectron, existNumElectron_PIC
     );
 }
 
@@ -428,20 +428,20 @@ void PIC2D::saveZerothMoments(
 
     std::ofstream ofsZerothMomentIon(filenameZerothMomentIon, std::ios::binary);
     ofsZerothMomentIon << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsZerothMomentIon.write(reinterpret_cast<const char*>(
-                &host_zerothMomentIon[j + ny * i].n), sizeof(float)
+                &host_zerothMomentIon[j + ny_PIC * i].n), sizeof(float)
             );
         }
     }
 
     std::ofstream ofsZerothMomentElectron(filenameZerothMomentElectron, std::ios::binary);
     ofsZerothMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsZerothMomentElectron.write(reinterpret_cast<const char*>(
-                &host_zerothMomentElectron[j + ny * i].n), sizeof(float)
+                &host_zerothMomentElectron[j + ny_PIC * i].n), sizeof(float)
             );
         }
     }
@@ -471,32 +471,32 @@ void PIC2D::saveFirstMoments(
 
     std::ofstream ofsFirstMomentIon(filenameFirstMomentIon, std::ios::binary);
     ofsFirstMomentIon << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsFirstMomentIon.write(reinterpret_cast<const char*>(
-                &host_firstMomentIon[j + ny * i].x), sizeof(float)
+                &host_firstMomentIon[j + ny_PIC * i].x), sizeof(float)
             );
             ofsFirstMomentIon.write(reinterpret_cast<const char*>(
-                &host_firstMomentIon[j + ny * i].y), sizeof(float)
+                &host_firstMomentIon[j + ny_PIC * i].y), sizeof(float)
             );
             ofsFirstMomentIon.write(reinterpret_cast<const char*>(
-                &host_firstMomentIon[j + ny * i].z), sizeof(float)
+                &host_firstMomentIon[j + ny_PIC * i].z), sizeof(float)
             );
         }
     }
 
     std::ofstream ofsFirstMomentElectron(filenameFirstMomentElectron, std::ios::binary);
     ofsFirstMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsFirstMomentElectron.write(reinterpret_cast<const char*>(
-                &host_firstMomentElectron[j + ny * i].x), sizeof(float)
+                &host_firstMomentElectron[j + ny_PIC * i].x), sizeof(float)
             );
             ofsFirstMomentElectron.write(reinterpret_cast<const char*>(
-                &host_firstMomentElectron[j + ny * i].y), sizeof(float)
+                &host_firstMomentElectron[j + ny_PIC * i].y), sizeof(float)
             );
             ofsFirstMomentElectron.write(reinterpret_cast<const char*>(
-                &host_firstMomentElectron[j + ny * i].z), sizeof(float)
+                &host_firstMomentElectron[j + ny_PIC * i].z), sizeof(float)
             );
         }
     }
@@ -526,50 +526,50 @@ void PIC2D::saveSecondMoments(
 
     std::ofstream ofsSecondMomentIon(filenameSecondMomentIon, std::ios::binary);
     ofsSecondMomentIon << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].xx), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].xx), sizeof(float)
             );
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].yy), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].yy), sizeof(float)
             );
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].zz), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].zz), sizeof(float)
             );
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].xy), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].xy), sizeof(float)
             );
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].xz), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].xz), sizeof(float)
             );
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
-                &host_secondMomentIon[j + ny * i].yz), sizeof(float)
+                &host_secondMomentIon[j + ny_PIC * i].yz), sizeof(float)
             );
         }
     }
 
     std::ofstream ofsSecondMomentElectron(filenameSecondMomentElectron, std::ios::binary);
     ofsSecondMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
+    for (int i = 0; i < nx_PIC; i++) {
+        for (int j = 0; j < ny_PIC; j++) {
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].xx), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].xx), sizeof(float)
             );
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].yy), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].yy), sizeof(float)
             );
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].zz), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].zz), sizeof(float)
             );
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].xy), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].xy), sizeof(float)
             );
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].xz), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].xz), sizeof(float)
             );
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
-                &host_secondMomentElectron[j + ny * i].yz), sizeof(float)
+                &host_secondMomentElectron[j + ny_PIC * i].yz), sizeof(float)
             );
         }
     }
@@ -608,7 +608,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsXIon(filenameXIon, std::ios::binary);
     ofsXIon << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < existNumIon; i++) {
+    for (unsigned long long i = 0; i < existNumIon_PIC; i++) {
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].x), sizeof(float));
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].y), sizeof(float));
         ofsXIon.write(reinterpret_cast<const char*>(&host_particlesIon[i].z), sizeof(float));
@@ -616,7 +616,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsXElectron(filenameXElectron, std::ios::binary);
     ofsXElectron << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < existNumElectron; i++) {
+    for (unsigned long long i = 0; i < existNumElectron_PIC; i++) {
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].x), sizeof(float));
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].y), sizeof(float));
         ofsXElectron.write(reinterpret_cast<const char*>(&host_particlesElectron[i].z), sizeof(float));
@@ -627,7 +627,7 @@ void PIC2D::saveParticle(
 
     std::ofstream ofsVIon(filenameVIon, std::ios::binary);
     ofsVIon << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < existNumIon; i++) {
+    for (unsigned long long i = 0; i < existNumIon_PIC; i++) {
         vx = host_particlesIon[i].vx;
         vy = host_particlesIon[i].vy;
         vz = host_particlesIon[i].vz;
@@ -636,12 +636,12 @@ void PIC2D::saveParticle(
         ofsVIon.write(reinterpret_cast<const char*>(&vy), sizeof(float));
         ofsVIon.write(reinterpret_cast<const char*>(&vz), sizeof(float));
 
-        KineticEnergy += 0.5f * mIon * (vx * vx + vy * vy + vz * vz);
+        KineticEnergy += 0.5f * mIon_PIC * (vx * vx + vy * vy + vz * vz);
     }
 
     std::ofstream ofsVElectron(filenameVElectron, std::ios::binary);
     ofsVElectron << std::fixed << std::setprecision(6);
-    for (unsigned long long i = 0; i < existNumElectron; i++) {
+    for (unsigned long long i = 0; i < existNumElectron_PIC; i++) {
         vx = host_particlesElectron[i].vx;
         vy = host_particlesElectron[i].vy;
         vz = host_particlesElectron[i].vz;
@@ -650,7 +650,7 @@ void PIC2D::saveParticle(
         ofsVElectron.write(reinterpret_cast<const char*>(&vy), sizeof(float));
         ofsVElectron.write(reinterpret_cast<const char*>(&vz), sizeof(float));
         
-        KineticEnergy += 0.5f * mElectron * (vx * vx + vy * vy + vz * vz);
+        KineticEnergy += 0.5f * mElectron_PIC * (vx * vx + vy * vy + vz * vz);
     }
 
     std::ofstream ofsKineticEnergy(filenameKineticEnergy, std::ios::binary);

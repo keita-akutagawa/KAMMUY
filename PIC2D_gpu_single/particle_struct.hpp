@@ -1,3 +1,6 @@
+#ifndef CONST_Particle_STRUCT_H
+#define CONST_Particle_STRUCT_H
+
 
 struct Particle
 {
@@ -51,3 +54,4 @@ struct ParticleField
 };
 
 
+#endif

@@ -58,25 +58,25 @@ struct CalculateZerothMomentOfOneSpeciesFunctor {
         unsigned long long yIndex1, yIndex2;
         float yOverDy;
 
-        xOverDx = particlesSpecies[i].x / device_dx;
-        yOverDy = particlesSpecies[i].y / device_dy;
+        xOverDx = particlesSpecies[i].x / device_dx_PIC;
+        yOverDy = particlesSpecies[i].y / device_dy_PIC;
 
         xIndex1 = floorf(xOverDx);
         xIndex2 = xIndex1 + 1;
-        xIndex2 = (xIndex2 == device_nx) ? 0 : xIndex2;
+        xIndex2 = (xIndex2 == device_nx_PIC) ? 0 : xIndex2;
         yIndex1 = floorf(yOverDy);
         yIndex2 = yIndex1 + 1;
-        yIndex2 = (yIndex2 == device_ny) ? 0 : yIndex2;
+        yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
         cy1 = yOverDy - yIndex1;
         cy2 = 1.0f - cy1;
 
-        atomicAdd(&(zerothMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].n), cx2 * cy2);
-        atomicAdd(&(zerothMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].n), cx2 * cy1);
-        atomicAdd(&(zerothMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].n), cx1 * cy2);
-        atomicAdd(&(zerothMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].n), cx1 * cy1);
+        atomicAdd(&(zerothMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].n), cx2 * cy2);
+        atomicAdd(&(zerothMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].n), cx2 * cy1);
+        atomicAdd(&(zerothMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].n), cx1 * cy2);
+        atomicAdd(&(zerothMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].n), cx1 * cy1);
     }
 };
 
@@ -119,15 +119,15 @@ struct CalculateFirstMomentOfOneSpeciesFunctor {
         float yOverDy;
         float vx, vy, vz;
 
-        xOverDx = particlesSpecies[i].x / device_dx;
-        yOverDy = particlesSpecies[i].y / device_dy;
+        xOverDx = particlesSpecies[i].x / device_dx_PIC;
+        yOverDy = particlesSpecies[i].y / device_dy_PIC;
 
         xIndex1 = floorf(xOverDx);
         xIndex2 = xIndex1 + 1;
-        xIndex2 = (xIndex2 == device_nx) ? 0 : xIndex2;
+        xIndex2 = (xIndex2 == device_nx_PIC) ? 0 : xIndex2;
         yIndex1 = floorf(yOverDy);
         yIndex2 = yIndex1 + 1;
-        yIndex2 = (yIndex2 == device_ny) ? 0 : yIndex2;
+        yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
@@ -138,20 +138,20 @@ struct CalculateFirstMomentOfOneSpeciesFunctor {
         vy = particlesSpecies[i].vy;
         vz = particlesSpecies[i].vz;
 
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].x), vx * cx2 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].x), vx * cx2 * cy1);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].x), vx * cx1 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].x), vx * cx1 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].x), vx * cx2 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].x), vx * cx2 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].x), vx * cx1 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].x), vx * cx1 * cy1);
 
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].y), vy * cx2 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].y), vy * cx2 * cy1);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].y), vy * cx1 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].y), vy * cx1 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].y), vy * cx2 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].y), vy * cx2 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].y), vy * cx1 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].y), vy * cx1 * cy1);
 
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].z), vz * cx2 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].z), vz * cx2 * cy1);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].z), vz * cx1 * cy2);
-        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].z), vz * cx1 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].z), vz * cx2 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].z), vz * cx2 * cy1);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].z), vz * cx1 * cy2);
+        atomicAdd(&(firstMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].z), vz * cx1 * cy1);
     }
 };
 
@@ -194,15 +194,15 @@ struct CalculateSecondMomentOfOneSpeciesFunctor {
         float yOverDy;
         float vx, vy, vz;
 
-        xOverDx = particlesSpecies[i].x / device_dx;
-        yOverDy = particlesSpecies[i].y / device_dy;
+        xOverDx = particlesSpecies[i].x / device_dx_PIC;
+        yOverDy = particlesSpecies[i].y / device_dy_PIC;
 
         xIndex1 = floorf(xOverDx);
         xIndex2 = xIndex1 + 1;
-        xIndex2 = (xIndex2 == device_nx) ? 0 : xIndex2;
+        xIndex2 = (xIndex2 == device_nx_PIC) ? 0 : xIndex2;
         yIndex1 = floorf(yOverDy);
         yIndex2 = yIndex1 + 1;
-        yIndex2 = (yIndex2 == device_ny) ? 0 : yIndex2;
+        yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
@@ -213,35 +213,35 @@ struct CalculateSecondMomentOfOneSpeciesFunctor {
         vy = particlesSpecies[i].vy;
         vz = particlesSpecies[i].vz;
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].xx), vx * vx * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].xx), vx * vx * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].xx), vx * vx * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].xx), vx * vx * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].xx), vx * vx * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].xx), vx * vx * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].xx), vx * vx * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].xx), vx * vx * cx1 * cy1);
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].yy), vy * vy * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].yy), vy * vy * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].yy), vy * vy * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].yy), vy * vy * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].yy), vy * vy * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].yy), vy * vy * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].yy), vy * vy * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].yy), vy * vy * cx1 * cy1);
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].zz), vz * vz * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].zz), vz * vz * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].zz), vz * vz * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].zz), vz * vz * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].zz), vz * vz * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].zz), vz * vz * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].zz), vz * vz * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].zz), vz * vz * cx1 * cy1);
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].xy), vx * vy * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].xy), vx * vy * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].xy), vx * vy * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].xy), vx * vy * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].xy), vx * vy * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].xy), vx * vy * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].xy), vx * vy * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].xy), vx * vy * cx1 * cy1);
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].xz), vx * vz * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].xz), vx * vz * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].xz), vx * vz * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].xz), vx * vz * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].xz), vx * vz * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].xz), vx * vz * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].xz), vx * vz * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].xz), vx * vz * cx1 * cy1);
 
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex1].yz), vy * vz * cx2 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex1].yz), vy * vz * cx2 * cy1);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny * xIndex2].yz), vy * vz * cx1 * cy2);
-        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny * xIndex2].yz), vy * vz * cx1 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].yz), vy * vz * cx2 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].yz), vy * vz * cx2 * cy1);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex2].yz), vy * vz * cx1 * cy2);
+        atomicAdd(&(secondMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex2].yz), vy * vz * cx1 * cy1);
     }
 };
 

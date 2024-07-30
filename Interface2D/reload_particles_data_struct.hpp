@@ -1,3 +1,6 @@
+#ifndef CONST_INTERFACE_STRUCT_H
+#define CONST_INTERFACE_STRUCT_H
+
 
 struct ReloadParticlesData
 {
@@ -19,4 +22,6 @@ struct ReloadParticlesData
     
 };
 
+
+#endif
 

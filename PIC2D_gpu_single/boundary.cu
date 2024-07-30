@@ -12,13 +12,13 @@ __global__ void conductingWallBoundaryParticleX_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
-        if (particlesSpecies[i].x <= device_xmin) {
-            particlesSpecies[i].x = 2.0f * device_xmin - particlesSpecies[i].x + device_EPS;
+        if (particlesSpecies[i].x <= device_xmin_PIC) {
+            particlesSpecies[i].x = 2.0f * device_xmin_PIC - particlesSpecies[i].x + device_EPS_PIC;
             particlesSpecies[i].vx = -1.0f * particlesSpecies[i].vx;
         }
 
-        if (particlesSpecies[i].x >= device_xmax) {
-            particlesSpecies[i].x = 2.0f * device_xmax - particlesSpecies[i].x - device_EPS;
+        if (particlesSpecies[i].x >= device_xmax_PIC) {
+            particlesSpecies[i].x = 2.0f * device_xmax_PIC - particlesSpecies[i].x - device_EPS_PIC;
             particlesSpecies[i].vx = -1.0f * particlesSpecies[i].vx;
         }
     }
@@ -30,19 +30,19 @@ void Boundary::conductingWallBoundaryParticleX(
 )
 {
     dim3 threadsPerBlockForIon(256);
-    dim3 blocksPerGridForIon((existNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+    dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
 
     conductingWallBoundaryParticleX_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC
     );
 
     cudaDeviceSynchronize();
 
     dim3 threadsPerBlockForElectron(256);
-    dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+    dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
 
     conductingWallBoundaryParticleX_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC
     );
 
     cudaDeviceSynchronize();
@@ -56,13 +56,13 @@ __global__ void conductingWallBoundaryParticleY_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
-        if (particlesSpecies[i].y <= device_ymin) {
-            particlesSpecies[i].y = 2.0f * device_ymin - particlesSpecies[i].y + device_EPS;
+        if (particlesSpecies[i].y <= device_ymin_PIC) {
+            particlesSpecies[i].y = 2.0f * device_ymin_PIC - particlesSpecies[i].y + device_EPS_PIC;
             particlesSpecies[i].vy = -1.0f * particlesSpecies[i].vy;
         }
 
-        if (particlesSpecies[i].y >= device_ymax) {
-            particlesSpecies[i].y = 2.0f * device_ymax - particlesSpecies[i].y - device_EPS;
+        if (particlesSpecies[i].y >= device_ymax_PIC) {
+            particlesSpecies[i].y = 2.0f * device_ymax_PIC - particlesSpecies[i].y - device_EPS_PIC;
             particlesSpecies[i].vy = -1.0f * particlesSpecies[i].vy;
         }
     }
@@ -74,19 +74,19 @@ void Boundary::conductingWallBoundaryParticleY(
 )
 {
     dim3 threadsPerBlockForIon(256);
-    dim3 blocksPerGridForIon((existNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+    dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
 
     conductingWallBoundaryParticleY_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC
     );
 
     cudaDeviceSynchronize();
 
     dim3 threadsPerBlockForElectron(256);
-    dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+    dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
 
     conductingWallBoundaryParticleY_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC
     );
 
     cudaDeviceSynchronize();
@@ -102,12 +102,12 @@ __global__ void openBoundaryParticleY_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
-        if (particlesSpecies[i].y <= device_ymin) {
+        if (particlesSpecies[i].y <= device_ymin_PIC) {
             particlesSpecies[i].isExist = false;
             return;
         }
 
-        if (particlesSpecies[i].y >= device_ymax) {
+        if (particlesSpecies[i].y >= device_ymax_PIC) {
             particlesSpecies[i].isExist = false;
             return;
         }
@@ -127,25 +127,25 @@ void Boundary::openBoundaryParticleY(
     existNumElectronNext = 0;
 
     dim3 threadsPerBlockForIon(256);
-    dim3 blocksPerGridForIon((existNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+    dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
 
     openBoundaryParticleY_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon, existNumIonNext
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC, existNumIonNext
     );
 
     cudaDeviceSynchronize();
 
     dim3 threadsPerBlockForElectron(256);
-    dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+    dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
 
     openBoundaryParticleY_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron, existNumElectronNext
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC, existNumElectronNext
     );
 
     cudaDeviceSynchronize();
 
-    existNumIon = existNumIonNext;
-    existNumElectron = existNumElectronNext;
+    existNumIon_PIC = existNumIonNext;
+    existNumElectron_PIC = existNumElectronNext;
 
 
     thrust::partition(
@@ -183,16 +183,16 @@ __global__ void symmetricBoundaryBX_kernel(
 {
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (j < device_ny) {
-        B[j + device_ny * 0].bX = B[j + device_ny * 1].bX;
-        B[j + device_ny * 0].bY = 0.0f;
-        B[j + device_ny * 0].bZ = B[j + device_ny * 1].bZ;
+    if (j < device_ny_PIC) {
+        B[j + device_ny_PIC * 0].bX = B[j + device_ny_PIC * 1].bX;
+        B[j + device_ny_PIC * 0].bY = 0.0f;
+        B[j + device_ny_PIC * 0].bZ = B[j + device_ny_PIC * 1].bZ;
 
-        B[j + device_ny * (device_nx - 1)].bX = B[j + device_ny * (device_nx - 2)].bX;
-        B[j + device_ny * (device_nx - 2)].bY = 0.0f;
-        B[j + device_ny * (device_nx - 1)].bY = 0.0f;
-        B[j + device_ny * (device_nx - 2)].bZ = B[j + device_ny * (device_nx - 3)].bZ;
-        B[j + device_ny * (device_nx - 1)].bZ = B[j + device_ny * (device_nx - 2)].bZ;
+        B[j + device_ny_PIC * (device_nx_PIC - 1)].bX = B[j + device_ny_PIC * (device_nx_PIC - 2)].bX;
+        B[j + device_ny_PIC * (device_nx_PIC - 2)].bY = 0.0f;
+        B[j + device_ny_PIC * (device_nx_PIC - 1)].bY = 0.0f;
+        B[j + device_ny_PIC * (device_nx_PIC - 2)].bZ = B[j + device_ny_PIC * (device_nx_PIC - 3)].bZ;
+        B[j + device_ny_PIC * (device_nx_PIC - 1)].bZ = B[j + device_ny_PIC * (device_nx_PIC - 2)].bZ;
     }
 }
 
@@ -201,8 +201,8 @@ void Boundary::symmetricBoundaryBX(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     symmetricBoundaryBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data())
@@ -226,17 +226,17 @@ __global__ void conductingWallBoundaryBY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        B[0 + device_ny * i].bX = B[1 + device_ny * i].bX;
-        B[1 + device_ny * i].bY = 0.0f;
-        B[0 + device_ny * i].bY = 0.0f;
-        B[0 + device_ny * i].bZ = B[1 + device_ny * i].bZ;
+    if (i < device_nx_PIC) {
+        B[0 + device_ny_PIC * i].bX = B[1 + device_ny_PIC * i].bX;
+        B[1 + device_ny_PIC * i].bY = 0.0f;
+        B[0 + device_ny_PIC * i].bY = 0.0f;
+        B[0 + device_ny_PIC * i].bZ = B[1 + device_ny_PIC * i].bZ;
 
-        B[device_ny - 2 + device_ny * i].bX = B[device_ny - 3 + device_ny * i].bX;
-        B[device_ny - 1 + device_ny * i].bX = B[device_ny - 2 + device_ny * i].bX;
-        B[device_ny - 1 + device_ny * i].bY = -1.0f * B[device_ny - 2 + device_ny * i].bY;
-        B[device_ny - 2 + device_ny * i].bZ = B[device_ny - 3 + device_ny * i].bZ;
-        B[device_ny - 1 + device_ny * i].bZ = B[device_ny - 2 + device_ny * i].bZ;
+        B[device_ny_PIC - 2 + device_ny_PIC * i].bX = B[device_ny_PIC - 3 + device_ny_PIC * i].bX;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bX = B[device_ny_PIC - 2 + device_ny_PIC * i].bX;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bY = -1.0f * B[device_ny_PIC - 2 + device_ny_PIC * i].bY;
+        B[device_ny_PIC - 2 + device_ny_PIC * i].bZ = B[device_ny_PIC - 3 + device_ny_PIC * i].bZ;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bZ = B[device_ny_PIC - 2 + device_ny_PIC * i].bZ;
     }
 }
 
@@ -246,8 +246,8 @@ void Boundary::conductingWallBoundaryBY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     conductingWallBoundaryBY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data())
@@ -271,14 +271,14 @@ __global__ void freeBoundaryBY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        B[0 + device_ny * i].bX = B[1 + device_ny * i].bX;
-        B[0 + device_ny * i].bY = B[2 + device_ny * i].bY;
-        B[0 + device_ny * i].bZ = B[1 + device_ny * i].bZ;
+    if (i < device_nx_PIC) {
+        B[0 + device_ny_PIC * i].bX = B[1 + device_ny_PIC * i].bX;
+        B[0 + device_ny_PIC * i].bY = B[2 + device_ny_PIC * i].bY;
+        B[0 + device_ny_PIC * i].bZ = B[1 + device_ny_PIC * i].bZ;
 
-        B[device_ny - 1 + device_ny * i].bX = B[device_ny - 3 + device_ny * i].bX;
-        B[device_ny - 1 + device_ny * i].bY = B[device_ny - 2 + device_ny * i].bY;
-        B[device_ny - 1 + device_ny * i].bZ = B[device_ny - 3 + device_ny * i].bZ;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bX = B[device_ny_PIC - 3 + device_ny_PIC * i].bX;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bY = B[device_ny_PIC - 2 + device_ny_PIC * i].bY;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bZ = B[device_ny_PIC - 3 + device_ny_PIC * i].bZ;
     }
 }
 
@@ -287,8 +287,8 @@ void Boundary::freeBoundaryBY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     freeBoundaryBY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data())
@@ -322,15 +322,15 @@ __global__ void symmetricBoundaryEX_kernel(
 {
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (j < device_ny) {
-        E[j + device_ny * 0].eX = 0.0f;
-        E[j + device_ny * 0].eY = E[j + device_ny * 1].eY;
-        E[j + device_ny * 0].eZ = E[j + device_ny * 1].eZ;
+    if (j < device_ny_PIC) {
+        E[j + device_ny_PIC * 0].eX = 0.0f;
+        E[j + device_ny_PIC * 0].eY = E[j + device_ny_PIC * 1].eY;
+        E[j + device_ny_PIC * 0].eZ = E[j + device_ny_PIC * 1].eZ;
 
-        E[j + device_ny * (device_nx - 1)].eX = 0.0f;
-        E[j + device_ny * (device_nx - 2)].eX = 0.0f;
-        E[j + device_ny * (device_nx - 1)].eY = E[j + device_ny * (device_nx - 2)].eY;
-        E[j + device_ny * (device_nx - 1)].eZ = E[j + device_ny * (device_nx - 2)].eZ;
+        E[j + device_ny_PIC * (device_nx_PIC - 1)].eX = 0.0f;
+        E[j + device_ny_PIC * (device_nx_PIC - 2)].eX = 0.0f;
+        E[j + device_ny_PIC * (device_nx_PIC - 1)].eY = E[j + device_ny_PIC * (device_nx_PIC - 2)].eY;
+        E[j + device_ny_PIC * (device_nx_PIC - 1)].eZ = E[j + device_ny_PIC * (device_nx_PIC - 2)].eZ;
     }
 }
 
@@ -340,8 +340,8 @@ void Boundary::symmetricBoundaryEX(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     symmetricBoundaryEX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data())
@@ -365,17 +365,17 @@ __global__ void conductingWallBoundaryEY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        E[0 + device_ny * i].eX = 0.0f;
-        E[1 + device_ny * i].eX = 0.0f;
-        E[0 + device_ny * i].eY = -1.0f * E[1 + device_ny * i].eY;
-        E[0 + device_ny * i].eZ = 0.0f;
-        E[1 + device_ny * i].eZ = 0.0f;
+    if (i < device_nx_PIC) {
+        E[0 + device_ny_PIC * i].eX = 0.0f;
+        E[1 + device_ny_PIC * i].eX = 0.0f;
+        E[0 + device_ny_PIC * i].eY = -1.0f * E[1 + device_ny_PIC * i].eY;
+        E[0 + device_ny_PIC * i].eZ = 0.0f;
+        E[1 + device_ny_PIC * i].eZ = 0.0f;
 
-        E[device_ny - 1 + device_ny * i].eX = -1.0f * E[device_ny - 2 + device_ny * i].eX;
-        E[device_ny - 1 + device_ny * i].eY = 0.0f;
-        E[device_ny - 2 + device_ny * i].eY = 0.0f;
-        E[device_ny - 1 + device_ny * i].eZ = -1.0f * E[device_ny - 2 + device_ny * i].eZ;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0f;
+        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0f;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
     }
 }
 
@@ -385,8 +385,8 @@ void Boundary::conductingWallBoundaryEY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     conductingWallBoundaryEY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data())
@@ -410,17 +410,17 @@ __global__ void freeBoundaryEY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        E[0 + device_ny * i].eX = 0.0f;
-        E[1 + device_ny * i].eX = 0.0f;
-        E[0 + device_ny * i].eY = -1.0f * E[1 + device_ny * i].eY;
-        E[0 + device_ny * i].eZ = 0.0f;
-        E[1 + device_ny * i].eZ = 0.0f;
+    if (i < device_nx_PIC) {
+        E[0 + device_ny_PIC * i].eX = 0.0f;
+        E[1 + device_ny_PIC * i].eX = 0.0f;
+        E[0 + device_ny_PIC * i].eY = -1.0f * E[1 + device_ny_PIC * i].eY;
+        E[0 + device_ny_PIC * i].eZ = 0.0f;
+        E[1 + device_ny_PIC * i].eZ = 0.0f;
 
-        E[device_ny - 1 + device_ny * i].eX = -1.0f * E[device_ny - 2 + device_ny * i].eX;
-        E[device_ny - 1 + device_ny * i].eY = 0.0f;
-        E[device_ny - 2 + device_ny * i].eY = 0.0f;
-        E[device_ny - 1 + device_ny * i].eZ = -1.0f * E[device_ny - 2 + device_ny * i].eZ;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0f;
+        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0f;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
     }
 }
 
@@ -429,8 +429,8 @@ void Boundary::freeBoundaryEY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     freeBoundaryEY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data())
@@ -463,13 +463,13 @@ __global__ void symmetricBoundaryCurrentX_kernel(
 {
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (j < device_ny) {
-        current[j + device_ny * 0].jX = 0.0f;
-        current[j + device_ny * 0].jY = current[j + device_ny * 1].jY;
-        current[j + device_ny * 0].jZ = current[j + device_ny * 1].jZ;
-        current[j + device_ny * (device_nx - 1)].jX = 0.0f;
-        current[j + device_ny * (device_nx - 1)].jY = current[j + device_ny * (device_nx - 2)].jY;
-        current[j + device_ny * (device_nx - 1)].jZ = current[j + device_ny * (device_nx - 2)].jZ;
+    if (j < device_ny_PIC) {
+        current[j + device_ny_PIC * 0].jX = 0.0f;
+        current[j + device_ny_PIC * 0].jY = current[j + device_ny_PIC * 1].jY;
+        current[j + device_ny_PIC * 0].jZ = current[j + device_ny_PIC * 1].jZ;
+        current[j + device_ny_PIC * (device_nx_PIC - 1)].jX = 0.0f;
+        current[j + device_ny_PIC * (device_nx_PIC - 1)].jY = current[j + device_ny_PIC * (device_nx_PIC - 2)].jY;
+        current[j + device_ny_PIC * (device_nx_PIC - 1)].jZ = current[j + device_ny_PIC * (device_nx_PIC - 2)].jZ;
     }
 }
 
@@ -479,8 +479,8 @@ void Boundary::symmetricBoundaryCurrentX(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     symmetricBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data())
@@ -504,18 +504,18 @@ __global__ void conductingWallBoundaryCurrentY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        current[0 + device_ny * i].jX = 0.0f;
-        current[1 + device_ny * i].jX = 0.0f;
-        current[0 + device_ny * i].jY = 0.0f;
-        current[0 + device_ny * i].jZ = 0.0f;
-        current[1 + device_ny * i].jZ = 0.0f;
-        current[device_ny - 1 + device_ny * i].jX = 0.0f;
-        current[device_ny - 2 + device_ny * i].jX = 0.0f;
-        current[device_ny - 1 + device_ny * i].jY = 0.0f;
-        current[device_ny - 2 + device_ny * i].jY = 0.0f;
-        current[device_ny - 1 + device_ny * i].jZ = 0.0f;
-        current[device_ny - 2 + device_ny * i].jZ = 0.0f;
+    if (i < device_nx_PIC) {
+        current[0 + device_ny_PIC * i].jX = 0.0f;
+        current[1 + device_ny_PIC * i].jX = 0.0f;
+        current[0 + device_ny_PIC * i].jY = 0.0f;
+        current[0 + device_ny_PIC * i].jZ = 0.0f;
+        current[1 + device_ny_PIC * i].jZ = 0.0f;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jX = 0.0f;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jX = 0.0f;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jY = 0.0f;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jY = 0.0f;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jZ = 0.0f;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jZ = 0.0f;
     }
 }
 
@@ -525,8 +525,8 @@ void Boundary::conductingWallBoundaryCurrentY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     conductingWallBoundaryCurrentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data())
@@ -550,14 +550,14 @@ __global__ void freeBoundaryCurrentY_kernel(
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < device_nx) {
-        current[0 + device_ny * i].jX = current[2 + device_ny * i].jX;
-        current[0 + device_ny * i].jY = current[1 + device_ny * i].jY;
-        current[0 + device_ny * i].jZ = current[2 + device_ny * i].jZ;
+    if (i < device_nx_PIC) {
+        current[0 + device_ny_PIC * i].jX = current[2 + device_ny_PIC * i].jX;
+        current[0 + device_ny_PIC * i].jY = current[1 + device_ny_PIC * i].jY;
+        current[0 + device_ny_PIC * i].jZ = current[2 + device_ny_PIC * i].jZ;
 
-        current[device_ny - 1 + device_ny * i].jX = current[device_ny - 2 + device_ny * i].jX;
-        current[device_ny - 1 + device_ny * i].jY = current[device_ny - 3 + device_ny * i].jY;
-        current[device_ny - 1 + device_ny * i].jZ = current[device_ny - 2 + device_ny * i].jZ;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jX = current[device_ny_PIC - 2 + device_ny_PIC * i].jX;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jY = current[device_ny_PIC - 3 + device_ny_PIC * i].jY;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jZ = current[device_ny_PIC - 2 + device_ny_PIC * i].jZ;
     }
 }
 
@@ -566,8 +566,8 @@ void Boundary::freeBoundaryCurrentY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     freeBoundaryCurrentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data())

@@ -1,3 +1,6 @@
+#ifndef CONST_INTERFACE_H
+#define CONST_INTERFACE_H
+
 
 namespace Interface2DConst
 {
@@ -20,3 +23,5 @@ namespace Interface2DConst
 
 }
 
+
+#endif

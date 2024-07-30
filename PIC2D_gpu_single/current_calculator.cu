@@ -20,10 +20,10 @@ void CurrentCalculator::calculateCurrent(
 )
 {
     calculateCurrentOfOneSpecies(
-        current, particlesIon, qIon, existNumIon
+        current, particlesIon, qIon_PIC, existNumIon_PIC
     );
     calculateCurrentOfOneSpecies(
-        current, particlesElectron, qElectron, existNumElectron
+        current, particlesElectron, qElectron_PIC, existNumElectron_PIC
     );
 }
 
@@ -46,15 +46,15 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
         float yOverDy;
         float qOverGamma, qVxOverGamma, qVyOverGamma, qVzOverGamma;
 
-        xOverDx = particlesSpecies[i].x / device_dx;
-        yOverDy = particlesSpecies[i].y / device_dy;
+        xOverDx = particlesSpecies[i].x / device_dx_PIC;
+        yOverDy = particlesSpecies[i].y / device_dy_PIC;
 
         xIndex1 = floorf(xOverDx);
         xIndex2 = xIndex1 + 1;
-        xIndex2 = (xIndex2 == device_nx) ? 0 : xIndex2;
+        xIndex2 = (xIndex2 == device_nx_PIC) ? 0 : xIndex2;
         yIndex1 = floorf(yOverDy);
         yIndex2 = yIndex1 + 1;
-        yIndex2 = (yIndex2 == device_ny) ? 0 : yIndex2;
+        yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
@@ -66,20 +66,20 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
         qVyOverGamma = qOverGamma * particlesSpecies[i].vy;
         qVzOverGamma = qOverGamma * particlesSpecies[i].vz;
 
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex1].jX), qVxOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex1].jX), qVxOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex2].jX), qVxOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex2].jX), qVxOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jX), qVxOverGamma * cx2 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jX), qVxOverGamma * cx2 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy1);
 
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex1].jY), qVyOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex1].jY), qVyOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex2].jY), qVyOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex2].jY), qVyOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jY), qVyOverGamma * cx2 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jY), qVyOverGamma * cx2 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy1);
 
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex1].jZ), qVzOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex1].jZ), qVzOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny * xIndex2].jZ), qVzOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny * xIndex2].jZ), qVzOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jZ), qVzOverGamma * cx2 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jZ), qVzOverGamma * cx2 * cy1);
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy2);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy1);
     }
 };
 

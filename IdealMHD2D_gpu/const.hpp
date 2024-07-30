@@ -1,5 +1,5 @@
-#ifndef CONST_MHD_STRUCT_H
-#define CONST_MHD_STRUCT_H
+#ifndef CONST_MHD_H
+#define CONST_MHD_H
 
 namespace IdealMHD2DConst
 {

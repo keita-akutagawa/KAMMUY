@@ -1,6 +1,9 @@
 #include "const.hpp"
 
 
+using namespace Interface2DConst;
+
+
 void initializeDeviceConstants()
 {
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(float));
