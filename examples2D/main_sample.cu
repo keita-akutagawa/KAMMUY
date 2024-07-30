@@ -42,12 +42,12 @@ int main()
     std::cout << "Total memory: " << total_mem / (1024 * 1024) << " MB" << std::endl;
 
 
-    for (int step = 0; step < IdealMHD2DConst::totalStep; step++) {
+    for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
 
         idealMHD2D.oneStepRK2_predictor();
 
-        int substeps = round(sqrt(PIC2DConst::mRatio));
-        PIC2DConst::dt = IdealMHD2DConst::dt / substeps;
+        int substeps = round(sqrt(PIC2DConst::mRatio_PIC));
+        PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
         
         for (int substep = 0; substep < substeps; substep++) {
             pIC2D.oneStepWallXFreeY();
