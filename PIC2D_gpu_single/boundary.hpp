@@ -10,19 +10,11 @@ private:
 
 public:
 
-    void periodicBoundaryParticleX(
-        thrust::device_vector<Particle>& particlesIon,
-        thrust::device_vector<Particle>& particlesElectron
-    );
     void conductingWallBoundaryParticleX(
         thrust::device_vector<Particle>& particlesIon,
         thrust::device_vector<Particle>& particlesElectron
     );
 
-    void periodicBoundaryParticleY(
-        thrust::device_vector<Particle>& particlesIon,
-        thrust::device_vector<Particle>& particlesElectron
-    );
     void conductingWallBoundaryParticleY(
         thrust::device_vector<Particle>& particlesIon,
         thrust::device_vector<Particle>& particlesElectron

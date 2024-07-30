@@ -4,47 +4,6 @@
 
 using namespace PIC2DConst;
 
-__global__ void periodicBoundaryParticleX_kernel(
-    Particle* particlesSpecies, unsigned long long existNumSpecies
-)
-{
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (i < existNumSpecies) {
-        if (particlesSpecies[i].x <= device_xmin) {
-            particlesSpecies[i].x += device_xmax - device_xmin - device_EPS;
-        }
-
-        if (particlesSpecies[i].x >= device_xmax) {
-            particlesSpecies[i].x -= device_xmax - device_xmin + device_EPS;
-        }
-    }
-}
-
-void Boundary::periodicBoundaryParticleX(
-    thrust::device_vector<Particle>& particlesIon,
-    thrust::device_vector<Particle>& particlesElectron
-)
-{
-    dim3 threadsPerBlockForIon(256);
-    dim3 blocksPerGridForIon((existNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
-
-    periodicBoundaryParticleX_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon
-    );
-
-    cudaDeviceSynchronize();
-
-    dim3 threadsPerBlockForElectron(256);
-    dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
-
-    periodicBoundaryParticleX_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron
-    );
-
-    cudaDeviceSynchronize();
-}
-
 
 __global__ void conductingWallBoundaryParticleX_kernel(
     Particle* particlesSpecies, unsigned long long existNumSpecies
@@ -83,49 +42,6 @@ void Boundary::conductingWallBoundaryParticleX(
     dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
 
     conductingWallBoundaryParticleX_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron
-    );
-
-    cudaDeviceSynchronize();
-}
-
-
-
-__global__ void periodicBoundaryParticleY_kernel(
-    Particle* particlesSpecies, unsigned long long existNumSpecies
-)
-{
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (i < existNumSpecies) {
-        if (particlesSpecies[i].y <= device_ymin) {
-            particlesSpecies[i].y += device_ymax - device_ymin - device_EPS;
-        }
-
-        if (particlesSpecies[i].y >= device_ymax) {
-            particlesSpecies[i].y -= device_ymax - device_ymin + device_EPS;
-        }
-    }
-}
-
-void Boundary::periodicBoundaryParticleY(
-    thrust::device_vector<Particle>& particlesIon,
-    thrust::device_vector<Particle>& particlesElectron
-)
-{
-    dim3 threadsPerBlockForIon(256);
-    dim3 blocksPerGridForIon((existNumIon + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
-
-    periodicBoundaryParticleY_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon
-    );
-
-    cudaDeviceSynchronize();
-
-    dim3 threadsPerBlockForElectron(256);
-    dim3 blocksPerGridForElectron((existNumElectron + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
-
-    periodicBoundaryParticleY_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
         thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron
     );
 

@@ -21,7 +21,7 @@ struct GetBasicParamterFunctor {
         bY = conservationParameter.bY;
         bZ = conservationParameter.bZ;
         e = conservationParameter.e;
-        p = (device_gamma_mhd - 1.0)
+        p = (device_gamma_MHD - 1.0)
           * (e - 0.5 * (rho * (u * u + v * v + w * w))
           - 0.5 * (bX * bX + bY * bY + bZ * bZ));
         
@@ -47,8 +47,8 @@ void CalculateHalfQ::setPhysicalParameterX(
 {
     thrust::transform(
         U.begin(), 
-        U.end() - ny,  
-        U.begin() + ny,
+        U.end() - ny_MHD,  
+        U.begin() + ny_MHD,
         dQCenter.begin(),
         GetBasicParamterFunctor()
     );

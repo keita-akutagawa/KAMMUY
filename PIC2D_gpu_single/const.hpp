@@ -18,7 +18,7 @@ namespace PIC2DConst
     extern const float ymin; 
     extern const float ymax;
 
-    extern const float dt;
+    extern float dt;
 
     extern const int numberDensityIon;
     extern const int numberDensityElectron;
@@ -82,7 +82,7 @@ namespace PIC2DConst
     extern __constant__ float device_ymin; 
     extern __constant__ float device_ymax;
 
-    extern __constant__ float device_dt;
+    extern __device__ float device_dt;
 
     extern __constant__ int device_numberDensityIon;
     extern __constant__ int device_numberDensityElectron;
@@ -91,8 +91,8 @@ namespace PIC2DConst
     extern __constant__ unsigned long long device_totalNumElectron;
     extern __constant__ unsigned long long device_totalNumParticles;
 
-    extern unsigned long long device_existNumIon;
-    extern unsigned long long device_existNumElectron;
+    extern __device__ unsigned long long device_existNumIon;
+    extern __device__ unsigned long long device_existNumElectron;
 
     extern __constant__ float device_B0;
 

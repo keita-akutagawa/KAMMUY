@@ -1,3 +1,5 @@
+#ifndef CONSERVATION_PARAMETER_STRUCT_H
+#define CONSERVATION_PARAMETER_STRUCT_H
 
 struct ConservationParameter
 {
@@ -23,3 +25,4 @@ struct ConservationParameter
         {}
 };
 
+#endif

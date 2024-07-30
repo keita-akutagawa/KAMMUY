@@ -4,9 +4,9 @@
 using namespace IdealMHD2DConst;
 
 CT::CT()
-    : oldFluxF(nx * ny), 
-      oldFluxG(nx * ny), 
-      eZVector(nx * ny)
+    : oldFluxF(nx_MHD * ny_MHD), 
+      oldFluxG(nx_MHD * ny_MHD), 
+      eZVector(nx_MHD * ny_MHD)
 {
 }
 
@@ -30,15 +30,15 @@ __global__ void getEZVector_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < device_nx - 1 && j < device_ny - 1) {
+    if (i < device_nx_MHD - 1 && j < device_ny_MHD - 1) {
         double eZF1, eZF2, eZG1, eZG2, eZ;
 
-        eZG1 = fluxG[j + i * device_ny].f4;
-        eZG2 = fluxG[j + (i + 1) * device_ny].f4;
-        eZF1 = -1.0 * fluxF[j + i * device_ny].f5;
-        eZF2 = -1.0 * fluxF[j + 1 + i * device_ny].f5;
+        eZG1 = fluxG[j + i * device_ny_MHD].f4;
+        eZG2 = fluxG[j + (i + 1) * device_ny_MHD].f4;
+        eZF1 = -1.0 * fluxF[j + i * device_ny_MHD].f5;
+        eZF2 = -1.0 * fluxF[j + 1 + i * device_ny_MHD].f5;
         eZ = 0.25 * (eZG1 + eZG2 + eZF1 + eZF2);
-        eZVector[j + i * device_ny] = eZ;
+        eZVector[j + i * device_ny_MHD] = eZ;
     }
 }
 
@@ -52,11 +52,11 @@ __global__ void CT_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < device_nx) && (0 < j) && (j < device_ny)) {
-        U[j + i * device_ny].bX = bXOld[j + i * device_ny]
-                                - device_dt / device_dy * (eZVector[j + i * device_ny] - eZVector[j - 1 + i * device_ny]);
-        U[j + i * device_ny].bY = bYOld[j + i * device_ny]
-                                + device_dt / device_dx * (eZVector[j + i * device_ny] - eZVector[j + (i - 1) * device_ny]);
+    if ((0 < i) && (i < device_nx_MHD) && (0 < j) && (j < device_ny_MHD)) {
+        U[j + i * device_ny_MHD].bX = bXOld[j + i * device_ny_MHD]
+                                - device_dt_MHD / device_dy_MHD * (eZVector[j + i * device_ny_MHD] - eZVector[j - 1 + i * device_ny_MHD]);
+        U[j + i * device_ny_MHD].bY = bYOld[j + i * device_ny_MHD]
+                                + device_dt_MHD / device_dx_MHD * (eZVector[j + i * device_ny_MHD] - eZVector[j + (i - 1) * device_ny_MHD]);
     }
 }
 
@@ -68,8 +68,8 @@ void CT::divBClean(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     getEZVector_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(oldFluxF.data()), 

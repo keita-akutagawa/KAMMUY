@@ -1,50 +1,52 @@
+#ifndef CONST_MHD_STRUCT_H
+#define CONST_MHD_STRUCT_H
 
 namespace IdealMHD2DConst
 {
-    extern const double EPS;
-    extern const double PI;
+    extern const double EPS_MHD;
+    extern const double PI_MHD;
 
-    extern const double dx;
-    extern const double xmin;
-    extern const double xmax;
-    extern const int nx;
+    extern const double dx_MHD;
+    extern const double xmin_MHD;
+    extern const double xmax_MHD;
+    extern const int nx_MHD;
 
-    extern const double dy;
-    extern const double ymin;
-    extern const double ymax;
-    extern const int ny;
+    extern const double dy_MHD;
+    extern const double ymin_MHD;
+    extern const double ymax_MHD;
+    extern const int ny_MHD;
 
-    extern const double CFL;
-    extern const double gamma_mhd;
+    extern const double CFL_MHD;
+    extern const double gamma_MHD;
 
-    extern double dt;
+    extern double dt_MHD;
 
-    extern const int totalStep;
-    extern double totalTime;
+    extern const int totalStep_MHD;
+    extern double totalTime_MHD;
 
 
-    extern __constant__ double device_EPS;
-    extern __constant__ double device_PI;
+    extern __constant__ double device_EPS_MHD;
+    extern __constant__ double device_PI_MHD;
 
-    extern __constant__ double device_dx;
-    extern __constant__ double device_xmin;
-    extern __constant__ double device_xmax;
-    extern __constant__ int device_nx;
+    extern __constant__ double device_dx_MHD;
+    extern __constant__ double device_xmin_MHD;
+    extern __constant__ double device_xmax_MHD;
+    extern __constant__ int device_nx_MHD;
 
-    extern __constant__ double device_dy;
-    extern __constant__ double device_ymin;
-    extern __constant__ double device_ymax;
-    extern __constant__ int device_ny;
+    extern __constant__ double device_dy_MHD;
+    extern __constant__ double device_ymin_MHD;
+    extern __constant__ double device_ymax_MHD;
+    extern __constant__ int device_ny_MHD;
 
-    extern __constant__ double device_CFL;
-    extern __constant__ double device_gamma_mhd;
+    extern __constant__ double device_CFL_MHD;
+    extern __constant__ double device_gamma_MHD;
 
-    extern __device__ double device_dt;
+    extern __device__ double device_dt_MHD;
 
 
 void initializeDeviceConstants();
 
 }
 
-
+#endif
 

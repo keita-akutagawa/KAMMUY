@@ -4,23 +4,24 @@
 #include <iomanip>
 #include <string>
 #include <thrust/extrema.h>
-#include "const.hpp"
 #include "IdealMHD2D.hpp"
 
 
 using namespace IdealMHD2DConst;
 
+
 IdealMHD2D::IdealMHD2D()
-    : fluxF(nx * ny),
-      fluxG(nx * ny),
-      U(nx * ny),
-      UBar(nx * ny), 
-      tmpU(nx * ny), 
-      dtVector(nx * ny),
-      bXOld(nx * ny), 
-      bYOld(nx * ny), 
-      tmpVector(nx * ny), 
-      hU(nx * ny)
+    : fluxF(nx_MHD * ny_MHD),
+      fluxG(nx_MHD * ny_MHD),
+      U(nx_MHD * ny_MHD),
+      UBar(nx_MHD * ny_MHD), 
+      tmpU(nx_MHD * ny_MHD), 
+      UPast(nx_MHD * ny_MHD), 
+      dtVector(nx_MHD * ny_MHD),
+      bXOld(nx_MHD * ny_MHD), 
+      bYOld(nx_MHD * ny_MHD), 
+      tmpVector(nx_MHD * ny_MHD), 
+      hU(nx_MHD * ny_MHD)
 {
 }
 
@@ -34,8 +35,8 @@ __global__ void copyBX_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < device_nx && j < device_ny) {
-        tmp[j + i * device_ny] = U[j + i * device_ny].bX;
+    if (i < device_nx_MHD && j < device_ny_MHD) {
+        tmp[j + i * device_ny_MHD] = U[j + i * device_ny_MHD].bX;
     }
 }
 
@@ -47,8 +48,8 @@ __global__ void copyBY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < device_nx && j < device_ny) {
-        tmp[j + i * device_ny] = U[j + i * device_ny].bY;
+    if (i < device_nx_MHD && j < device_ny_MHD) {
+        tmp[j + i * device_ny_MHD] = U[j + i * device_ny_MHD].bY;
     }
 }
 
@@ -67,22 +68,22 @@ struct oneStepFirstFunctor {
         Flux fluxGMinus1        = thrust::get<4>(tupleForOneStep1);
         ConservationParameter UNext;
 
-        UNext.rho  = U.rho  - device_dt / device_dx * (fluxF.f0 - fluxFMinusNy.f0)
-                            - device_dt / device_dy * (fluxG.f0 - fluxGMinus1.f0);
-        UNext.rhoU = U.rhoU - device_dt / device_dx * (fluxF.f1 - fluxFMinusNy.f1)
-                            - device_dt / device_dy * (fluxG.f1 - fluxGMinus1.f1);
-        UNext.rhoV = U.rhoV - device_dt / device_dx * (fluxF.f2 - fluxFMinusNy.f2)
-                            - device_dt / device_dy * (fluxG.f2 - fluxGMinus1.f2);
-        UNext.rhoW = U.rhoW - device_dt / device_dx * (fluxF.f3 - fluxFMinusNy.f3)
-                            - device_dt / device_dy * (fluxG.f3 - fluxGMinus1.f3);
-        UNext.bX   = U.bX   - device_dt / device_dx * (fluxF.f4 - fluxFMinusNy.f4)
-                            - device_dt / device_dy * (fluxG.f4 - fluxGMinus1.f4);
-        UNext.bY   = U.bY   - device_dt / device_dx * (fluxF.f5 - fluxFMinusNy.f5)
-                            - device_dt / device_dy * (fluxG.f5 - fluxGMinus1.f5);
-        UNext.bZ   = U.bZ   - device_dt / device_dx * (fluxF.f6 - fluxFMinusNy.f6)
-                            - device_dt / device_dy * (fluxG.f6 - fluxGMinus1.f6);
-        UNext.e    = U.e    - device_dt / device_dx * (fluxF.f7 - fluxFMinusNy.f7)
-                            - device_dt / device_dy * (fluxG.f7 - fluxGMinus1.f7);
+        UNext.rho  = U.rho  - device_dt_MHD / device_dx_MHD * (fluxF.f0 - fluxFMinusNy.f0)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f0 - fluxGMinus1.f0);
+        UNext.rhoU = U.rhoU - device_dt_MHD / device_dx_MHD * (fluxF.f1 - fluxFMinusNy.f1)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f1 - fluxGMinus1.f1);
+        UNext.rhoV = U.rhoV - device_dt_MHD / device_dx_MHD * (fluxF.f2 - fluxFMinusNy.f2)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f2 - fluxGMinus1.f2);
+        UNext.rhoW = U.rhoW - device_dt_MHD / device_dx_MHD * (fluxF.f3 - fluxFMinusNy.f3)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f3 - fluxGMinus1.f3);
+        UNext.bX   = U.bX   - device_dt_MHD / device_dx_MHD * (fluxF.f4 - fluxFMinusNy.f4)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f4 - fluxGMinus1.f4);
+        UNext.bY   = U.bY   - device_dt_MHD / device_dx_MHD * (fluxF.f5 - fluxFMinusNy.f5)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f5 - fluxGMinus1.f5);
+        UNext.bZ   = U.bZ   - device_dt_MHD / device_dx_MHD * (fluxF.f6 - fluxFMinusNy.f6)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f6 - fluxGMinus1.f6);
+        UNext.e    = U.e    - device_dt_MHD / device_dx_MHD * (fluxF.f7 - fluxFMinusNy.f7)
+                            - device_dt_MHD / device_dy_MHD * (fluxG.f7 - fluxGMinus1.f7);
 
         return UNext;
     }
@@ -104,29 +105,29 @@ struct oneStepSecondFunctor {
         ConservationParameter UNext;
 
         UNext.rho   = 0.5 * (U.rho + UBar.rho
-                    - device_dt / device_dx * (fluxF.f0 - fluxFMinusNy.f0)
-                    - device_dt / device_dy * (fluxG.f0 - fluxGMinus1.f0));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f0 - fluxFMinusNy.f0)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f0 - fluxGMinus1.f0));
         UNext.rhoU  = 0.5 * (U.rhoU + UBar.rhoU
-                    - device_dt / device_dx * (fluxF.f1 - fluxFMinusNy.f1)
-                    - device_dt / device_dy * (fluxG.f1 - fluxGMinus1.f1));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f1 - fluxFMinusNy.f1)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f1 - fluxGMinus1.f1));
         UNext.rhoV  = 0.5 * (U.rhoV + UBar.rhoV
-                    - device_dt / device_dx * (fluxF.f2 - fluxFMinusNy.f2)
-                    - device_dt / device_dy * (fluxG.f2 - fluxGMinus1.f2));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f2 - fluxFMinusNy.f2)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f2 - fluxGMinus1.f2));
         UNext.rhoW  = 0.5 * (U.rhoW + UBar.rhoW
-                    - device_dt / device_dx * (fluxF.f3 - fluxFMinusNy.f3)
-                    - device_dt / device_dy * (fluxG.f3 - fluxGMinus1.f3));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f3 - fluxFMinusNy.f3)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f3 - fluxGMinus1.f3));
         UNext.bX    = 0.5 * (U.bX + UBar.bX
-                    - device_dt / device_dx * (fluxF.f4 - fluxFMinusNy.f4)
-                    - device_dt / device_dy * (fluxG.f4 - fluxGMinus1.f4));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f4 - fluxFMinusNy.f4)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f4 - fluxGMinus1.f4));
         UNext.bY    = 0.5 * (U.bY + UBar.bY
-                    - device_dt / device_dx * (fluxF.f5 - fluxFMinusNy.f5)
-                    - device_dt / device_dy * (fluxG.f5 - fluxGMinus1.f5));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f5 - fluxFMinusNy.f5)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f5 - fluxGMinus1.f5));
         UNext.bZ    = 0.5 * (U.bZ + UBar.bZ
-                    - device_dt / device_dx * (fluxF.f6 - fluxFMinusNy.f6)
-                    - device_dt / device_dy * (fluxG.f6 - fluxGMinus1.f6));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f6 - fluxFMinusNy.f6)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f6 - fluxGMinus1.f6));
         UNext.e     = 0.5 * (U.e + UBar.e
-                    - device_dt / device_dx * (fluxF.f7 - fluxFMinusNy.f7)
-                    - device_dt / device_dy * (fluxG.f7 - fluxGMinus1.f7));
+                    - device_dt_MHD / device_dx_MHD * (fluxF.f7 - fluxFMinusNy.f7)
+                    - device_dt_MHD / device_dy_MHD * (fluxG.f7 - fluxGMinus1.f7));
 
         return UNext;
     }
@@ -136,8 +137,8 @@ struct oneStepSecondFunctor {
 void IdealMHD2D::oneStepRK2()
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(bXOld.data()), 
@@ -157,22 +158,21 @@ void IdealMHD2D::oneStepRK2()
     backUToCenterHalfForCT(U);
 
     auto tupleForFluxFirst = thrust::make_tuple(
-        U.begin(), fluxF.begin(), fluxF.begin() - ny, fluxG.begin(), fluxG.begin() - 1
+        U.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
     );
     auto tupleForFluxFirstIterator = thrust::make_zip_iterator(tupleForFluxFirst);
     thrust::transform(
-        tupleForFluxFirstIterator + ny, 
-        tupleForFluxFirstIterator + nx * ny, 
-        UBar.begin() + ny, 
+        tupleForFluxFirstIterator + ny_MHD, 
+        tupleForFluxFirstIterator + nx_MHD * ny_MHD, 
+        UBar.begin() + ny_MHD, 
         oneStepFirstFunctor()
     );
 
     ct.setOldFlux2D(fluxF, fluxG);
     ct.divBClean(bXOld, bYOld, UBar);
 
-    //これはどうにかすること。保守性が低い
-    boundary.periodicBoundaryX2nd(UBar);
-    boundary.periodicBoundaryY2nd(UBar);
+    boundary.freeBoundaryX2nd(UBar);
+    boundary.freeBoundaryY2nd(UBar);
 
     shiftUToCenterForCT(UBar);
     fluxF = fluxSolver.getFluxF(UBar);
@@ -181,21 +181,20 @@ void IdealMHD2D::oneStepRK2()
 
     thrust::copy(U.begin(), U.end(), tmpU.begin());
     auto tupleForFluxSecond = thrust::make_tuple(
-        tmpU.begin(), UBar.begin(), fluxF.begin(), fluxF.begin() - ny, fluxG.begin(), fluxG.begin() - 1
+        tmpU.begin(), UBar.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
     );
     auto tupleForFluxSecondIterator = thrust::make_zip_iterator(tupleForFluxSecond);
     thrust::transform(
-        tupleForFluxSecondIterator + ny, 
-        tupleForFluxSecondIterator + nx * ny, 
-        U.begin() + ny, 
+        tupleForFluxSecondIterator + ny_MHD, 
+        tupleForFluxSecondIterator + nx_MHD * ny_MHD, 
+        U.begin() + ny_MHD, 
         oneStepSecondFunctor()
     );
 
     ct.divBClean(bXOld, bYOld, U);
 
-    //これはどうにかすること。保守性が低い
-    boundary.periodicBoundaryX2nd(U);
-    boundary.periodicBoundaryY2nd(U);
+    boundary.freeBoundaryX2nd(U);
+    boundary.freeBoundaryY2nd(U);
 }
 
 
@@ -204,37 +203,38 @@ void IdealMHD2D::oneStepRK2_predictor()
     oneStepRK2();
 }
 
-// 未完成
+
+// dtの計算はしないこと。
 void IdealMHD2D::oneStepRK2_corrector(
-    const thrust::device_vector<ConservationParameter>& UHalf
+    thrust::device_vector<ConservationParameter>& UHalf
 )
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    shiftUToCenterForCT(UBar);
-    fluxF = fluxSolver.getFluxF(UBar);
-    fluxG = fluxSolver.getFluxG(UBar);
-    backUToCenterHalfForCT(UBar);
+    shiftUToCenterForCT(UHalf);
+    fluxF = fluxSolver.getFluxF(UHalf);
+    fluxG = fluxSolver.getFluxG(UHalf);
+    backUToCenterHalfForCT(UHalf);
 
-    thrust::copy(U.begin(), U.end(), tmpU.begin());
-    auto tupleForFluxSecond = thrust::make_tuple(
-        tmpU.begin(), UBar.begin(), fluxF.begin(), fluxF.begin() - ny, fluxG.begin(), fluxG.begin() - 1
+    auto tupleForFluxFirst = thrust::make_tuple(
+        UPast.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
     );
-    auto tupleForFluxSecondIterator = thrust::make_zip_iterator(tupleForFluxSecond);
+    auto tupleForFluxFirstIterator = thrust::make_zip_iterator(tupleForFluxFirst);
     thrust::transform(
-        tupleForFluxSecondIterator + ny, 
-        tupleForFluxSecondIterator + nx * ny, 
-        U.begin() + ny, 
-        oneStepSecondFunctor()
+        tupleForFluxFirstIterator + ny_MHD, 
+        tupleForFluxFirstIterator + nx_MHD * ny_MHD, 
+        U.begin() + ny_MHD, 
+        oneStepFirstFunctor()
     );
 
+    ct.setOldFlux2D(fluxF, fluxG);
     ct.divBClean(bXOld, bYOld, U);
 
-    //これはどうにかすること。保守性が低い
-    boundary.periodicBoundaryX2nd(U);
-    boundary.periodicBoundaryY2nd(U);
+    boundary.freeBoundaryX2nd(U);
+    boundary.freeBoundaryY2nd(U);
+
 }
 
 
@@ -254,36 +254,36 @@ void IdealMHD2D::save(
     std::ofstream ofs(filename, std::ios::binary);
     ofs << std::fixed << std::setprecision(6);
 
-    for (int i = 0; i < nx - 1; i++) {
-        for (int j = 0; j < ny; j++) {
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].rho), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].rhoU), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].rhoV), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].rhoW), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].bX), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].bY), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].bZ), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny].e), sizeof(double));
+    for (int i = 0; i < nx_MHD - 1; i++) {
+        for (int j = 0; j < ny_MHD; j++) {
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].rho), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].rhoU), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].rhoV), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].rhoW), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].bX), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].bY), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].bZ), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&hU[j + i * ny_MHD].e), sizeof(double));
         }
     }
-    for (int j = 0; j < ny - 1; j++) {
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].rho), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].rhoU), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].rhoV), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].rhoW), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].bX), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].bY), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].bZ), sizeof(double));
-        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx - 1) * ny].e), sizeof(double));
+    for (int j = 0; j < ny_MHD - 1; j++) {
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].rho), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].rhoU), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].rhoV), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].rhoW), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].bX), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].bY), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].bZ), sizeof(double));
+        ofs.write(reinterpret_cast<const char*>(&hU[j + (nx_MHD - 1) * ny_MHD].e), sizeof(double));
     }
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].rho), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].rhoU), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].rhoV), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].rhoW), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].bX), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].bY), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].bZ), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&hU[ny - 1 + (nx - 1) * ny].e), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].rho), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].rhoU), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].rhoV), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].rhoW), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].bX), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].bY), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].bZ), sizeof(double));
+    ofs.write(reinterpret_cast<const char*>(&hU[ny_MHD - 1 + (nx_MHD - 1) * ny_MHD].e), sizeof(double));
 }
 
 
@@ -302,17 +302,17 @@ struct calculateDtFunctor {
         bY = conservationParameter.bY;
         bZ = conservationParameter.bZ;
         e = conservationParameter.e;
-        p = (device_gamma_mhd - 1.0)
+        p = (device_gamma_MHD - 1.0)
           * (e - 0.5 * rho * (u * u + v * v + w * w)
           - 0.5 * (bX * bX + bY * bY + bZ * bZ));
         
-        cs = sqrt(device_gamma_mhd * p / rho);
+        cs = sqrt(device_gamma_MHD * p / rho);
         ca = sqrt((bX * bX + bY * bY + bZ * bZ) / rho);
 
         maxSpeedX = std::abs(u) + sqrt(cs * cs + ca * ca);
         maxSpeedY = std::abs(v) + sqrt(cs * cs + ca * ca);
 
-        return 1.0 / (maxSpeedX / device_dx + maxSpeedY / device_dy + device_EPS);
+        return 1.0 / (maxSpeedX / device_dx_MHD + maxSpeedY / device_dy_MHD + device_EPS_MHD);
     }
 };
 
@@ -328,8 +328,8 @@ void IdealMHD2D::calculateDt()
 
     thrust::device_vector<double>::iterator dtMin = thrust::min_element(dtVector.begin(), dtVector.end());
     
-    dt = (*dtMin) * CFL;
-    cudaMemcpyToSymbol(device_dt, &dt, sizeof(double));
+    dt = (*dtMin) * CFL_MHD;
+    cudaMemcpyToSymbol(device_dt_MHD, &dt, sizeof(double));
 }
 
 
@@ -360,8 +360,8 @@ __global__ void shiftBXToCenterForCT_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < device_nx) && (j < device_ny)) {
-        U[j + i * device_ny].bX = 0.5 * (tmp[j + i * device_ny] + tmp[j + (i - 1) * device_ny]);
+    if ((0 < i) && (i < device_nx_MHD) && (j < device_ny_MHD)) {
+        U[j + i * device_ny_MHD].bX = 0.5 * (tmp[j + i * device_ny_MHD] + tmp[j + (i - 1) * device_ny_MHD]);
     }
 }
 
@@ -373,8 +373,8 @@ __global__ void shiftBYToCenterForCT_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((i < device_nx) && (0 < j) && (j < device_ny)) {
-        U[j + i * device_ny].bY = 0.5 * (tmp[j + i * device_ny] + tmp[j - 1 + i * device_ny]);
+    if ((i < device_nx_MHD) && (0 < j) && (j < device_ny_MHD)) {
+        U[j + i * device_ny_MHD].bY = 0.5 * (tmp[j + i * device_ny_MHD] + tmp[j - 1 + i * device_ny_MHD]);
     }
 }
 
@@ -384,8 +384,8 @@ void IdealMHD2D::shiftUToCenterForCT(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
 
     copyBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -418,8 +418,8 @@ __global__ void backBXToCenterForCT_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((i < device_nx - 1) && (j < device_ny)) {
-        U[j + i * device_ny].bX = 0.5 * (tmp[j + i * device_ny] + tmp[j + (i + 1) * device_ny]);
+    if ((i < device_nx_MHD - 1) && (j < device_ny_MHD)) {
+        U[j + i * device_ny_MHD].bX = 0.5 * (tmp[j + i * device_ny_MHD] + tmp[j + (i + 1) * device_ny_MHD]);
     }
 }
 
@@ -431,8 +431,8 @@ __global__ void backBYToCenterForCT_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((i < device_nx) && (j < device_ny - 1)) {
-        U[j + i * device_ny].bY = 0.5 * (tmp[j + i * device_ny] + tmp[j + 1 + i * device_ny]);
+    if ((i < device_nx_MHD) && (j < device_ny_MHD - 1)) {
+        U[j + i * device_ny_MHD].bY = 0.5 * (tmp[j + i * device_ny_MHD] + tmp[j + 1 + i * device_ny_MHD]);
     }
 }
 
@@ -442,8 +442,8 @@ void IdealMHD2D::backUToCenterHalfForCT(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
 
     copyBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(

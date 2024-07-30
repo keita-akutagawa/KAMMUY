@@ -60,14 +60,10 @@ public:
     PIC2D();
     
     virtual void initialize();
-    
-    void oneStepPeriodicXY();
-
-    void oneStepPeriodicXWallY();
 
     void oneStepSymmetricXWallY();
 
-    void oneStepPeriodicXFreeWallY();
+    void oneStepWallXFreeY();
 
     void sortParticle();
 

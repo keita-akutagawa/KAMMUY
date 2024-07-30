@@ -36,13 +36,13 @@ void MUSCL::getLeftQX(
     thrust::device_vector<BasicParameter>& dQLeft
 )
 {
-    auto tupleForLeft = thrust::make_tuple(dQ.begin() - ny, dQ.begin(), dQ.begin() + ny);
+    auto tupleForLeft = thrust::make_tuple(dQ.begin() - ny_MHD, dQ.begin(), dQ.begin() + ny_MHD);
     auto tupleForLeftIterator = thrust::make_zip_iterator(tupleForLeft);
 
     thrust::transform(
-        tupleForLeftIterator + ny, 
-        tupleForLeftIterator + nx * ny - ny, 
-        dQLeft.begin() + ny,
+        tupleForLeftIterator + ny_MHD, 
+        tupleForLeftIterator + nx_MHD * ny_MHD - ny_MHD, 
+        dQLeft.begin() + ny_MHD,
         LeftParameterFunctor()
     );
 }
@@ -58,7 +58,7 @@ void MUSCL::getLeftQY(
 
     thrust::transform(
         tupleForLeftIterator + 1, 
-        tupleForLeftIterator + nx * ny - 1, 
+        tupleForLeftIterator + nx_MHD * ny_MHD - 1, 
         dQLeft.begin() + 1,
         LeftParameterFunctor()
     );
@@ -98,12 +98,12 @@ void MUSCL::getRightQX(
 )
 {
     //thrust::tuple<thrust::device_vector<double>::iterator, thrust::device_vector<double>::iterator, thrust::device_vector<double>::iterator>
-    auto tupleForRight = thrust::make_tuple(dQ.begin(), dQ.begin() + ny, dQ.begin() + 2 * ny);
+    auto tupleForRight = thrust::make_tuple(dQ.begin(), dQ.begin() + ny_MHD, dQ.begin() + 2 * ny_MHD);
     auto tupleForRightIterator = thrust::make_zip_iterator(tupleForRight);
 
     thrust::transform(
         tupleForRightIterator, 
-        tupleForRightIterator + nx * ny - 2 * ny, 
+        tupleForRightIterator + nx_MHD * ny_MHD - 2 * ny_MHD, 
         dQRight.begin(),
         RightParameterFunctor()
     );
@@ -121,7 +121,7 @@ void MUSCL::getRightQY(
 
     thrust::transform(
         tupleForRightIterator, 
-        tupleForRightIterator + nx * ny - 2, 
+        tupleForRightIterator + nx_MHD * ny_MHD - 2, 
         dQRight.begin(),
         RightParameterFunctor()
     );

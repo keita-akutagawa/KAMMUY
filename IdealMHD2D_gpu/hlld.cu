@@ -7,20 +7,20 @@
 using namespace IdealMHD2DConst;
 
 HLLD::HLLD()
-    : dQCenter(nx * ny),
-      dQLeft(nx * ny),
-      dQRight(nx * ny),
-      hLLDParameter(nx * ny),
+    : dQCenter(nx_MHD * ny_MHD),
+      dQLeft(nx_MHD * ny_MHD),
+      dQRight(nx_MHD * ny_MHD),
+      hLLDParameter(nx_MHD * ny_MHD),
 
-      flux(nx * ny),
-      fluxOuterLeft(nx * ny),
-      fluxMiddleLeft(nx * ny),
-      fluxInnerLeft(nx * ny),
-      fluxOuterRight(nx * ny),
-      fluxMiddleRight(nx * ny),
-      fluxInnerRight(nx * ny), 
+      flux(nx_MHD * ny_MHD),
+      fluxOuterLeft(nx_MHD * ny_MHD),
+      fluxMiddleLeft(nx_MHD * ny_MHD),
+      fluxInnerLeft(nx_MHD * ny_MHD),
+      fluxOuterRight(nx_MHD * ny_MHD),
+      fluxMiddleRight(nx_MHD * ny_MHD),
+      fluxInnerRight(nx_MHD * ny_MHD), 
 
-      tmpUForFluxG(nx * ny)
+      tmpUForFluxG(nx_MHD * ny_MHD)
 {
 }
 
@@ -126,7 +126,7 @@ void HLLD::calculateFluxF(
 
     thrust::transform(
         tupleForFluxIterator, 
-        tupleForFluxIterator + nx * ny, 
+        tupleForFluxIterator + nx_MHD * ny_MHD, 
         flux.begin(), 
         CalculateFluxFunctor()
     );
@@ -141,15 +141,15 @@ __global__ void shuffleForTmpUForFluxG_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < device_nx && j < device_ny) {
-        tmpU[j + i * device_ny].rho  = U[j + i * device_ny].rho;
-        tmpU[j + i * device_ny].rhoU = U[j + i * device_ny].rhoV;
-        tmpU[j + i * device_ny].rhoV = U[j + i * device_ny].rhoW;
-        tmpU[j + i * device_ny].rhoW = U[j + i * device_ny].rhoU;
-        tmpU[j + i * device_ny].bX   = U[j + i * device_ny].bY;
-        tmpU[j + i * device_ny].bY   = U[j + i * device_ny].bZ;
-        tmpU[j + i * device_ny].bZ   = U[j + i * device_ny].bX;
-        tmpU[j + i * device_ny].e    = U[j + i * device_ny].e;
+    if (i < device_nx_MHD && j < device_ny_MHD) {
+        tmpU[j + i * device_ny_MHD].rho  = U[j + i * device_ny_MHD].rho;
+        tmpU[j + i * device_ny_MHD].rhoU = U[j + i * device_ny_MHD].rhoV;
+        tmpU[j + i * device_ny_MHD].rhoV = U[j + i * device_ny_MHD].rhoW;
+        tmpU[j + i * device_ny_MHD].rhoW = U[j + i * device_ny_MHD].rhoU;
+        tmpU[j + i * device_ny_MHD].bX   = U[j + i * device_ny_MHD].bY;
+        tmpU[j + i * device_ny_MHD].bY   = U[j + i * device_ny_MHD].bZ;
+        tmpU[j + i * device_ny_MHD].bZ   = U[j + i * device_ny_MHD].bX;
+        tmpU[j + i * device_ny_MHD].e    = U[j + i * device_ny_MHD].e;
     }
 }
 
@@ -158,8 +158,8 @@ void HLLD::shuffleForTmpUForFluxG(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     shuffleForTmpUForFluxG_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), thrust::raw_pointer_cast(tmpUForFluxG.data())
@@ -178,28 +178,28 @@ __global__ void shuffleForFluxG_kernel(
 
     double f1, f2, f3, f4, f5, f6;
 
-    if (i < device_nx && j < device_ny) {
-        f1 = flux[j + i * device_ny].f1;
-        f2 = flux[j + i * device_ny].f2;
-        f3 = flux[j + i * device_ny].f3;
-        f4 = flux[j + i * device_ny].f4;
-        f5 = flux[j + i * device_ny].f5;
-        f6 = flux[j + i * device_ny].f6;
+    if (i < device_nx_MHD && j < device_ny_MHD) {
+        f1 = flux[j + i * device_ny_MHD].f1;
+        f2 = flux[j + i * device_ny_MHD].f2;
+        f3 = flux[j + i * device_ny_MHD].f3;
+        f4 = flux[j + i * device_ny_MHD].f4;
+        f5 = flux[j + i * device_ny_MHD].f5;
+        f6 = flux[j + i * device_ny_MHD].f6;
 
-        flux[j + i * device_ny].f1 = f3;
-        flux[j + i * device_ny].f2 = f1;
-        flux[j + i * device_ny].f3 = f2;
-        flux[j + i * device_ny].f4 = f6;
-        flux[j + i * device_ny].f5 = f4;
-        flux[j + i * device_ny].f6 = f5;
+        flux[j + i * device_ny_MHD].f1 = f3;
+        flux[j + i * device_ny_MHD].f2 = f1;
+        flux[j + i * device_ny_MHD].f3 = f2;
+        flux[j + i * device_ny_MHD].f4 = f6;
+        flux[j + i * device_ny_MHD].f5 = f4;
+        flux[j + i * device_ny_MHD].f6 = f5;
     }
 }
 
 void HLLD::shuffleFluxG()
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     shuffleForFluxG_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(flux.data()));
 
@@ -226,7 +226,7 @@ void HLLD::calculateFluxG(
 
     thrust::transform(
         tupleForFluxIterator, 
-        tupleForFluxIterator + nx * ny, 
+        tupleForFluxIterator + nx_MHD * ny_MHD, 
         flux.begin(), 
         CalculateFluxFunctor()
     );
@@ -280,7 +280,7 @@ struct calculateHLLDParameterFunctor {
         bYL  = dQLeft.bY;
         bZL  = dQLeft.bZ;
         pL   = dQLeft.p;
-        eL   = pL / (device_gamma_mhd - 1.0)
+        eL   = pL / (device_gamma_MHD - 1.0)
              + 0.5 * rhoL * (uL * uL + vL * vL + wL * wL)
              + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL); 
         pTL  = pL + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL);
@@ -293,20 +293,20 @@ struct calculateHLLDParameterFunctor {
         bYR  = dQRight.bY;
         bZR  = dQRight.bZ;
         pR   = dQRight.p;
-        eR   = pR / (device_gamma_mhd - 1.0)
+        eR   = pR / (device_gamma_MHD - 1.0)
              + 0.5 * rhoR * (uR * uR + vR * vR + wR * wR)
              + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR); 
         pTR  = pR + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR);
 
 
-        csL = sqrt(device_gamma_mhd * pL / rhoL);
+        csL = sqrt(device_gamma_MHD * pL / rhoL);
         caL = sqrt((bXL * bXL + bYL * bYL + bZL * bZL) / rhoL);
         vaL = sqrt(bXL * bXL / rhoL);
         cfL = sqrt(0.5 * (csL * csL + caL * caL
             + sqrt((csL * csL + caL * caL) * (csL * csL + caL * caL)
             - 4.0 * csL * csL * vaL * vaL)));
         
-        csR = sqrt(device_gamma_mhd * pR / rhoR);
+        csR = sqrt(device_gamma_MHD * pR / rhoR);
         caR = sqrt((bXR * bXR + bYR * bYR + bZR * bZR) / rhoR);
         vaR = sqrt(bXR * bXR / rhoR);
         cfR = sqrt(0.5 * (csR * csR + caR * caR
@@ -320,40 +320,40 @@ struct calculateHLLDParameterFunctor {
         SR = thrust::max(SR, 0.0);
 
         SM = ((SR - uR) * rhoR * uR - (SL - uL) * rhoL * uL - pTR + pTL)
-           / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS);
+           / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS_MHD);
 
         pT1  = ((SR - uR) * rhoR * pTL - (SL - uL) * rhoL * pTR
              + rhoL * rhoR * (SR - uR) * (SL - uL) * (uR - uL))
-             / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS);
+             / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS_MHD);
         pT1L = pT1;
         pT1R = pT1;
 
 
-        rho1L = rhoL * (SL - uL) / (SL - SM + device_EPS);
+        rho1L = rhoL * (SL - uL) / (SL - SM + device_EPS_MHD);
         u1L   = SM;
-        v1L   = vL - bXL * bYL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
-        w1L   = wL - bXL * bZL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+        v1L   = vL - bXL * bYL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS_MHD);
+        w1L   = wL - bXL * bZL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS_MHD);
         bX1L  = bXL;
         bY1L  = bYL * (rhoL * (SL - uL) * (SL - uL) - bXL * bXL)
-              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS_MHD);
         bZ1L  = bZL * (rhoL * (SL - uL) * (SL - uL) - bXL * bXL)
-              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS_MHD);
         e1L   = ((SL - uL) * eL - pTL * uL + pT1 * SM
               + bXL * ((uL * bXL + vL * bYL + wL * bZL) - (u1L * bX1L + v1L * bY1L + w1L * bZ1L)))
-              / (SL - SM + device_EPS);
+              / (SL - SM + device_EPS_MHD);
         
-        rho1R = rhoR * (SR - uR) / (SR - SM + device_EPS);
+        rho1R = rhoR * (SR - uR) / (SR - SM + device_EPS_MHD);
         u1R   = SM;
-        v1R   = vR - bXR * bYR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
-        w1R   = wR - bXR * bZR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+        v1R   = vR - bXR * bYR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS_MHD);
+        w1R   = wR - bXR * bZR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS_MHD);
         bX1R  = bXR;
         bY1R  = bYR * (rhoR * (SR - uR) * (SR - uR) - bXR * bXR)
-              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS_MHD);
         bZ1R  = bZR * (rhoR * (SR - uR) * (SR - uR) - bXR * bXR)
-              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS_MHD);
         e1R   = ((SR - uR) * eR - pTR * uR + pT1 * SM
               + bXR * ((uR * bXR + vR * bYR + wR * bZR) - (u1R * bX1R + v1R * bY1R + w1R * bZ1R)))
-              / (SR - SM + device_EPS);
+              / (SR - SM + device_EPS_MHD);
         
         S1L = SM - sqrt(bX1L * bX1L / rho1L);
         S1R = SM + sqrt(bX1R * bX1R / rho1R);
@@ -363,13 +363,13 @@ struct calculateHLLDParameterFunctor {
         rho2R = rho1R;
         u2 = SM;
         v2 = (sqrt(rho1L) * v1L + sqrt(rho1R) * v1R + (bY1R - bY1L) * sign(bX1L))
-            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS_MHD);
         w2 = (sqrt(rho1L) * w1L + sqrt(rho1R) * w1R + (bZ1R - bZ1L) * sign(bX1L))
-            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS_MHD);
         bY2 = (sqrt(rho1L) * bY1R + sqrt(rho1R) * bY1L + sqrt(rho1L * rho1R) * (v1R - v1L) * sign(bX1L))
-             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS_MHD);
         bZ2 = (sqrt(rho1L) * bZ1R + sqrt(rho1R) * bZ1L + sqrt(rho1L * rho1R) * (w1R - w1L) * sign(bX1L))
-             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS_MHD);
         e2L = e1L - sqrt(rho1L)
             * ((u1L * bX1L + v1L * bY1L + w1L * bZ1L) - (u2 * bXL + v2 * bY2 + w2 * bZ2))
             * sign(bXL);
@@ -557,7 +557,7 @@ void HLLD::setFlux()
 
     thrust::transform(
         tupleForFluxIterator, 
-        tupleForFluxIterator + nx * ny, 
+        tupleForFluxIterator + nx_MHD * ny_MHD, 
         thrust::make_zip_iterator(
             thrust::make_tuple(fluxOuterLeft.begin(), fluxMiddleLeft.begin(), fluxInnerLeft.begin(), 
                                fluxOuterRight.begin(), fluxMiddleRight.begin(), fluxInnerRight.begin())

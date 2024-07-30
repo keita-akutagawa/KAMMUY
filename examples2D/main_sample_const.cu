@@ -56,7 +56,7 @@ const int PIC2DConst::numberDensityElectron = 100;
 
 const float PIC2DConst::B0 = sqrt(static_cast<float>(numberDensityElectron)) / 1.0;
 
-const float PIC2DConst::mRatio = 25.0f;
+const float PIC2DConst::mRatio = 100.0f;
 const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = mRatio * mElectron;
 
@@ -87,7 +87,7 @@ const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 1.0f * dy; 
 const float PIC2DConst::ymax = ny * dy - 1.5f * dy;
 
-const float PIC2DConst::dt = 0.5f;
+float PIC2DConst::dt = 0.0f;
 
 const unsigned long long PIC2DConst::totalNumIon = static_cast<unsigned long long>(nx * ny * numberDensityIon);
 const unsigned long long PIC2DConst::totalNumElectron = static_cast<unsigned long long>(nx * ny * numberDensityElectron);
@@ -180,7 +180,7 @@ __constant__ float PIC2DConst::device_dy;
 __constant__ float PIC2DConst::device_ymin;
 __constant__ float PIC2DConst::device_ymax;
 
-__constant__ float PIC2DConst::device_dt;
+__device__ float PIC2DConst::device_dt;
 
 __constant__ unsigned long long PIC2DConst::device_totalNumIon;
 __constant__ unsigned long long PIC2DConst::device_totalNumElectron;

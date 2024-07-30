@@ -1,6 +1,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <string>
+#include "const.hpp"
 #include "flux_solver.hpp"
 #include "ct.hpp"
 #include "boundary.hpp"
@@ -15,6 +16,7 @@ private:
     thrust::device_vector<ConservationParameter> U;
     thrust::device_vector<ConservationParameter> UBar;
     thrust::device_vector<ConservationParameter> tmpU;
+    thrust::device_vector<ConservationParameter> UPast;
     thrust::device_vector<double> dtVector;
     Boundary boundary;
     CT ct;
@@ -33,7 +35,7 @@ public:
     void oneStepRK2_predictor();
 
     void oneStepRK2_corrector(
-        const thrust::device_vector<ConservationParameter>& UHalf
+        thrust::device_vector<ConservationParameter>& UHalf
     );
 
     void save(

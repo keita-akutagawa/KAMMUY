@@ -13,7 +13,15 @@ public:
         thrust::device_vector<ConservationParameter>& U
     );
 
+    void freeBoundaryX2nd(
+        thrust::device_vector<ConservationParameter>& U
+    );
+
     void periodicBoundaryY2nd(
+        thrust::device_vector<ConservationParameter>& U
+    );
+
+    void freeBoundaryY2nd(
         thrust::device_vector<ConservationParameter>& U
     );
 
