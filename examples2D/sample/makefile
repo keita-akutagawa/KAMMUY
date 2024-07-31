@@ -1,26 +1,27 @@
 CC = nvcc
-CFLAGS = -O3 -arch=sm_89 -rdc=true -Xcompiler "/wd 4819"
+CFLAGS = -O3 -arch=sm_89 -rdc=true --extended-lambda -Xcompiler "/wd 4819"
 SRCDIRS = ../../lib_pic2D_gpu_single ../../IdealMHD2D_gpu ../../Interface2D
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
-OBJS = $(patsubst $(SRCDIR)/%.cu, $(SRCDIR)/%.o, $(SOURCES))
-MAIN = main_sample.o
+OBJS = $(patsubst %.cu,%.o,$(SOURCES))
+MAIN = main_sample.cu
 EXECUTABLE = program.exe
 
-.PHONY: all clean
+
+.PHONY: all clean run
 
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJS) $(MAIN)
-	$(CC) $(CFLAGS) $(OBJS) $(MAIN) -o $(EXECUTABLE)
+$(EXECUTABLE): $(OBJS) $(MAIN:.cu=.o)
+	$(CC) $(CFLAGS) $(OBJS) $(MAIN:.cu=.o) -o $(EXECUTABLE)
 
-$(SRCDIR)/%.o: $(SRCDIR)/%.cu
+%.o: %.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(MAIN): main_sample.cu 
+$(MAIN:.cu=.o): $(MAIN)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)
-	$(EXECUTABLE)
+	./$(EXECUTABLE)
 
 clean:
-	rm -f $(OBJS) $(MAIN) $(EXECUTABLE)
+	rm -f $(OBJS) $(MAIN:.cu=.o) $(EXECUTABLE)
