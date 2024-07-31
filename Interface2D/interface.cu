@@ -11,7 +11,7 @@ using namespace Interface2DConst;
 
 __global__ void initializeReloadParticlesSource_kernel(
     Particle* reloadParticlesSourceSpecies, 
-    int reloadParticlesNumSpecies, 
+    unsigned long long reloadParticlesNumSpecies, 
     int seed
 )
 {
@@ -354,7 +354,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     const FirstMoment* firstMomentIon, 
     const FirstMoment* firstMomentElectron, 
     const ConservationParameter* U, 
-    int reloadParticlesNumIon, int reloadParticlesNumElectron, 
+    unsigned long long& reloadParticlesNumIon, 
+    unsigned long long& reloadParticlesNumElectron, 
     ReloadParticlesData* reloadParticlesDataIon, 
     ReloadParticlesData* reloadParticlesDataElectron, 
     int* reloadParticlesIndexIon, 
@@ -450,7 +451,7 @@ __global__ void reloadParticles_kernel(
     const int* reloadParticlesIndexSpecies, 
     const Particle* reloadParticlesSpecies, 
     Particle* particlesSpecies, 
-    int reloadParticlesNumSpecies, 
+    unsigned long long reloadParticlesNumSpecies, 
     int restartParticlesIndexSpecies, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
@@ -463,7 +464,7 @@ __global__ void reloadParticles_kernel(
 
     if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
         int index = j + i * PIC2DConst::device_ny_PIC;
-        int reloadNum = reloadParticlesDataSpecies[index].number;
+        //int reloadNum = reloadParticlesDataSpecies[index].number;
         float u = reloadParticlesDataSpecies[index].u;
         float v = reloadParticlesDataSpecies[index].v;
         float w = reloadParticlesDataSpecies[index].w;
@@ -632,7 +633,7 @@ __global__ void deleteParticles_kernel(
     const int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
     const unsigned long long existNumSpecies, 
-    unsigned long long existNumParticleAfterDeleteSpecies, 
+    unsigned long long& existNumParticleAfterDeleteSpecies, 
     int step
 )
 {
@@ -662,8 +663,6 @@ void Interface2D::deleteParticles(
     int step
 )
 {
-    unsigned long long existNumParticleAfterDeleteIon;
-    unsigned long long existNumParticleAfterDeleteElectron;
     existNumParticleAfterDeleteIon = 0;
     existNumParticleAfterDeleteElectron = 0;
 

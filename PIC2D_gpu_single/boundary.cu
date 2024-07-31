@@ -121,9 +121,7 @@ void BoundaryPIC::openBoundaryParticleY(
     thrust::device_vector<Particle>& particlesElectron
 )
 {
-    unsigned long long existNumIonNext;
-    unsigned long long existNumElectronNext;
-    existNumElectronNext = 0;
+    existNumIonNext = 0;
     existNumElectronNext = 0;
 
     dim3 threadsPerBlockForIon(256);

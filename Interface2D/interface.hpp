@@ -31,10 +31,12 @@ private:
     thrust::device_vector<FirstMoment> firstMomentIon;
     thrust::device_vector<FirstMoment> firstMomentElectron;
 
-    int reloadParticlesNumIon;
-    int reloadParticlesNumElectron;
+    unsigned long long reloadParticlesNumIon;
+    unsigned long long reloadParticlesNumElectron;
     int restartParticlesIndexIon;
     int restartParticlesIndexElectron;
+    unsigned long long existNumParticleAfterDeleteIon;
+    unsigned long long existNumParticleAfterDeleteElectron;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
     thrust::device_vector<Particle> reloadParticlesSourceIon;
