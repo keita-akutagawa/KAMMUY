@@ -5,25 +5,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "../IdealMHD2D_gpu/const.hpp"
-#include "../IdealMHD2D_gpu/flux_solver.hpp"
-#include "../IdealMHD2D_gpu/ct.hpp"
-#include "../IdealMHD2D_gpu/boundary.hpp"
-
-#include "../PIC2D_gpu_single/const.hpp"
-#include "../PIC2D_gpu_single/initialize_particle.hpp"
-#include "../PIC2D_gpu_single/particle_push.hpp"
-#include "../PIC2D_gpu_single/field_solver.hpp"
-#include "../PIC2D_gpu_single/current_calculator.hpp"
-#include "../PIC2D_gpu_single/boundary.hpp"
-#include "../PIC2D_gpu_single/sort_particle.hpp"
-#include "../PIC2D_gpu_single/moment_calculater.hpp"
-#include "../PIC2D_gpu_single/filter.hpp"
-#include "../PIC2D_gpu_single/particle_struct.hpp"
-#include "../PIC2D_gpu_single/field_parameter_struct.hpp"
-#include "../PIC2D_gpu_single/moment_struct.hpp"
-
-#include "../Interface2D/interface.hpp"
+#include "../../IdealMHD2D_gpu/const.hpp"
+#include "../../PIC2D_gpu_single/const.hpp"
+#include "../../Interface2D/const.hpp"
 
 
 std::string directoryname = "results_sample";

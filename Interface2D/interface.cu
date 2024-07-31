@@ -720,7 +720,7 @@ void Interface2D::deleteParticles(
 ///////////////////////////////////////////////////////
 
 
-__global__ void sendPICtoMHD_kernel(
+__global__ void setUHalf_kernel(
     const ConservationParameter* UPast, 
     const ConservationParameter* UNext, 
     ConservationParameter* UHalf
@@ -729,10 +729,17 @@ __global__ void sendPICtoMHD_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::nx_MHD && j < IdealMHD2DConst::ny_MHD) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+    if (i < IdealMHD2DConst::device_nx_MHD && j < IdealMHD2DConst::device_ny_MHD) {
+        int index = j + i * IdealMHD2DConst::device_ny_MHD;
 
-        UHalf[index] = 0.5 * (UPast[index] + UNext[index]);
+        UHalf[index].rho = 0.5 * (UPast[index].rho + UNext[index].rho);
+        UHalf[index].rhoU = 0.5 * (UPast[index].rhoU + UNext[index].rhoU);
+        UHalf[index].rhoV = 0.5 * (UPast[index].rhoV + UNext[index].rhoV);
+        UHalf[index].rhoW = 0.5 * (UPast[index].rhoW + UNext[index].rhoW);
+        UHalf[index].bX = 0.5 * (UPast[index].bX + UNext[index].bX);
+        UHalf[index].bY = 0.5 * (UPast[index].bY + UNext[index].bY);
+        UHalf[index].bZ = 0.5 * (UPast[index].bZ + UNext[index].bZ);
+        UHalf[index].e = 0.5 * (UPast[index].e + UNext[index].e);
     }
 }
 
@@ -853,7 +860,7 @@ void Interface2D::sendPICtoMHD(
 }
 
 
-thrust::device_vector<ConservationParameter>& getUHalfRef()
+thrust::device_vector<ConservationParameter>& Interface2D::getUHalfRef()
 {
     return UHalf;
 }
@@ -875,13 +882,20 @@ __global__ void calculateSubU_kernel(
     if (i < IdealMHD2DConst::device_nx_MHD && j < IdealMHD2DConst::device_ny_MHD) {
         int index = j + i * IdealMHD2DConst::device_ny_MHD;
 
-        USub[index] = mixingRatio * UPast[index] + (1.0 - mixingRatio) * UNext[index];
+        USub[index].rho = mixingRatio * UPast[index].rho + (1.0 - mixingRatio) * UNext[index].rho;
+        USub[index].rhoU = mixingRatio * UPast[index].rhoU + (1.0 - mixingRatio) * UNext[index].rhoU;
+        USub[index].rhoV = mixingRatio * UPast[index].rhoV + (1.0 - mixingRatio) * UNext[index].rhoV;
+        USub[index].rhoW = mixingRatio * UPast[index].rhoW + (1.0 - mixingRatio) * UNext[index].rhoW;
+        USub[index].bX = mixingRatio * UPast[index].bX + (1.0 - mixingRatio) * UNext[index].bX;
+        USub[index].bY = mixingRatio * UPast[index].bY + (1.0 - mixingRatio) * UNext[index].bY;
+        USub[index].bZ = mixingRatio * UPast[index].bZ + (1.0 - mixingRatio) * UNext[index].bZ;
+        USub[index].e = mixingRatio * UPast[index].e + (1.0 - mixingRatio) * UNext[index].e;
     }
 }
 
 thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
-    cosnt thrust::device_vector<ConservationParameter>& UPast, 
-    cosnt thrust::device_vector<ConservationParameter>& UNext, 
+    const thrust::device_vector<ConservationParameter>& UPast, 
+    const thrust::device_vector<ConservationParameter>& UNext, 
     float mixingRatio
 )
 {
@@ -943,7 +957,7 @@ void Interface2D::sumUpTimeAveParameters(
 {
     thrust::transform(
         B_timeAve.begin(), B_timeAve.end(), B.begin(), 
-        B_timeAve.begin(), thrust::plus<MagnteticField>()
+        B_timeAve.begin(), thrust::plus<MagneticField>()
     );
     
     setMoments(particlesIon, particlesElectron);
@@ -981,11 +995,17 @@ __global__ void calculateTimeAveParameters_kernel(
     if (i < PIC2DConst::device_nx_PIC && j < PIC2DConst::device_ny_PIC) {
         int index = j + i * PIC2DConst::device_ny_PIC;
 
-        B_timeAve[index] /= static_cast<float>(substeps);
-        zerothMomentIon_timeAve[index] /= static_cast<float>(substeps);
-        zerothMomentElectron_timeAve[index] /= static_cast<float>(substeps);
-        firstMomentIon_timeAve[index] /= static_cast<float>(substeps);
-        firstMomentElectron_timeAve[index] /= static_cast<float>(substeps);
+        B_timeAve[index].bX /= static_cast<float>(substeps);
+        B_timeAve[index].bY /= static_cast<float>(substeps);
+        B_timeAve[index].bZ /= static_cast<float>(substeps);
+        zerothMomentIon_timeAve[index].n /= static_cast<float>(substeps);
+        zerothMomentElectron_timeAve[index].n /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].x /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].y /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].z /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].x /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].y /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].z /= static_cast<float>(substeps);
     }
 }
 

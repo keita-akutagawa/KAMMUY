@@ -3,7 +3,7 @@
 #include "conservation_parameter_struct.hpp"
 
 
-class Boundary
+class BoundaryMHD
 {
 private:
 

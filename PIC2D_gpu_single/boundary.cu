@@ -24,7 +24,7 @@ __global__ void conductingWallBoundaryParticleX_kernel(
     }
 }
 
-void Boundary::conductingWallBoundaryParticleX(
+void BoundaryPIC::conductingWallBoundaryParticleX(
     thrust::device_vector<Particle>& particlesIon,
     thrust::device_vector<Particle>& particlesElectron
 )
@@ -68,7 +68,7 @@ __global__ void conductingWallBoundaryParticleY_kernel(
     }
 }
 
-void Boundary::conductingWallBoundaryParticleY(
+void BoundaryPIC::conductingWallBoundaryParticleY(
     thrust::device_vector<Particle>& particlesIon,
     thrust::device_vector<Particle>& particlesElectron
 )
@@ -116,7 +116,7 @@ __global__ void openBoundaryParticleY_kernel(
     }
 }
 
-void Boundary::openBoundaryParticleY(
+void BoundaryPIC::openBoundaryParticleY(
     thrust::device_vector<Particle>& particlesIon,
     thrust::device_vector<Particle>& particlesElectron
 )
@@ -163,14 +163,14 @@ void Boundary::openBoundaryParticleY(
 
 //////////
 
-void Boundary::periodicBoundaryBX(
+void BoundaryPIC::periodicBoundaryBX(
     thrust::device_vector<MagneticField>& B
 )
 {
     return;
 }
 
-void Boundary::conductingWallBoundaryBX(
+void BoundaryPIC::conductingWallBoundaryBX(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -196,7 +196,7 @@ __global__ void symmetricBoundaryBX_kernel(
     }
 }
 
-void Boundary::symmetricBoundaryBX(
+void BoundaryPIC::symmetricBoundaryBX(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -212,7 +212,7 @@ void Boundary::symmetricBoundaryBX(
 }
 
 
-void Boundary::periodicBoundaryBY(
+void BoundaryPIC::periodicBoundaryBY(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -241,7 +241,7 @@ __global__ void conductingWallBoundaryBY_kernel(
 }
 
 
-void Boundary::conductingWallBoundaryBY(
+void BoundaryPIC::conductingWallBoundaryBY(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -257,7 +257,7 @@ void Boundary::conductingWallBoundaryBY(
 }
 
 
-void Boundary::symmetricBoundaryBY(
+void BoundaryPIC::symmetricBoundaryBY(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -282,7 +282,7 @@ __global__ void freeBoundaryBY_kernel(
     }
 }
 
-void Boundary::freeBoundaryBY(
+void BoundaryPIC::freeBoundaryBY(
     thrust::device_vector<MagneticField>& B
 )
 {
@@ -300,7 +300,7 @@ void Boundary::freeBoundaryBY(
 //////////
 
 
-void Boundary::periodicBoundaryEX(
+void BoundaryPIC::periodicBoundaryEX(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -308,7 +308,7 @@ void Boundary::periodicBoundaryEX(
 }
 
 
-void Boundary::conductingWallBoundaryEX(
+void BoundaryPIC::conductingWallBoundaryEX(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -335,7 +335,7 @@ __global__ void symmetricBoundaryEX_kernel(
 }
 
 
-void Boundary::symmetricBoundaryEX(
+void BoundaryPIC::symmetricBoundaryEX(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -351,7 +351,7 @@ void Boundary::symmetricBoundaryEX(
 }
 
 
-void Boundary::periodicBoundaryEY(
+void BoundaryPIC::periodicBoundaryEY(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -380,7 +380,7 @@ __global__ void conductingWallBoundaryEY_kernel(
 }
 
 
-void Boundary::conductingWallBoundaryEY(
+void BoundaryPIC::conductingWallBoundaryEY(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -396,7 +396,7 @@ void Boundary::conductingWallBoundaryEY(
 }
 
 
-void Boundary::symmetricBoundaryEY(
+void BoundaryPIC::symmetricBoundaryEY(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -424,7 +424,7 @@ __global__ void freeBoundaryEY_kernel(
     }
 }
 
-void Boundary::freeBoundaryEY(
+void BoundaryPIC::freeBoundaryEY(
     thrust::device_vector<ElectricField>& E
 )
 {
@@ -441,7 +441,7 @@ void Boundary::freeBoundaryEY(
 
 //////////
 
-void Boundary::periodicBoundaryCurrentX(
+void BoundaryPIC::periodicBoundaryCurrentX(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -449,7 +449,7 @@ void Boundary::periodicBoundaryCurrentX(
 }
 
 
-void Boundary::conductingWallBoundaryCurrentX(
+void BoundaryPIC::conductingWallBoundaryCurrentX(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -474,7 +474,7 @@ __global__ void symmetricBoundaryCurrentX_kernel(
 }
 
 
-void Boundary::symmetricBoundaryCurrentX(
+void BoundaryPIC::symmetricBoundaryCurrentX(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -490,7 +490,7 @@ void Boundary::symmetricBoundaryCurrentX(
 }
 
 
-void Boundary::periodicBoundaryCurrentY(
+void BoundaryPIC::periodicBoundaryCurrentY(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -520,7 +520,7 @@ __global__ void conductingWallBoundaryCurrentY_kernel(
 }
 
 
-void Boundary::conductingWallBoundaryCurrentY(
+void BoundaryPIC::conductingWallBoundaryCurrentY(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -536,7 +536,7 @@ void Boundary::conductingWallBoundaryCurrentY(
 }
 
 
-void Boundary::symmetricBoundaryCurrentY(
+void BoundaryPIC::symmetricBoundaryCurrentY(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -561,7 +561,7 @@ __global__ void freeBoundaryCurrentY_kernel(
     }
 }
 
-void Boundary::freeBoundaryCurrentY(
+void BoundaryPIC::freeBoundaryCurrentY(
     thrust::device_vector<CurrentField>& current
 )
 {

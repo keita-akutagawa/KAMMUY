@@ -38,7 +38,7 @@ private:
     ParticlePush particlePush;
     FieldSolver fieldSolver;
     CurrentCalculator currentCalculator;
-    Boundary boundary;
+    BoundaryPIC boundaryPIC;
     ParticleSorter particleSorter;
     MomentCalculater momentCalculater;
     Filter filter;

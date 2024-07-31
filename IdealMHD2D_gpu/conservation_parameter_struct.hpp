@@ -23,6 +23,7 @@ struct ConservationParameter
         bZ(0.0), 
         e(0.0)
         {}
+    
 };
 
 #endif

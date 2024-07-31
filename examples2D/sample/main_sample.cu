@@ -1,16 +1,12 @@
-#include "../IdealMHD2D_gpu/IdealMHD2D.hpp"
-#include "../IdealMHD2D_gpu/IdealMHD2D.cu"
-#include "../PIC2D_gpu_single/PIC2D.hpp"
-#include "../PIC2D_gpu_single/PIC2D.cu"
-#include "../Interface2D/interface.hpp"
-#include "../Interface2D/interface.cu"
-#include "main_sample_const.cu"
+#include "../../IdealMHD2D_gpu/IdealMHD2D.hpp"
+#include "../../PIC2D_gpu_single/PIC2D.hpp"
+#include "../../Interface2D/interface.hpp"
+#include "main_sample_const.hpp"
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <cuda_runtime.h>
-#include "main_sample_const.cu"
 
 
 
@@ -62,18 +58,18 @@ int main()
             thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
 
             float mixingRatio = (substeps - substep) / substeps;
-            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateSubU(UPast, UNext, mixingRatio);
+            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
 
             interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
             interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
             interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
             interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
 
-            interface2D.sumUpTimeAveParameters(B, partilcesIon, particlesElectron);
+            interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
         }
         interface2D.calculateTimeAveParameters(substeps);
 
-        interface2D.sendPICtoMHD();
+        interface2D.sendPICtoMHD(UPast, UNext);
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
         idealMHD2D.oneStepRK2_corrector(UHalf);

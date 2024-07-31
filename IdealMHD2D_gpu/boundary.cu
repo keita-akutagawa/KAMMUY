@@ -60,7 +60,7 @@ void periodicBoundaryX2nd_kernel(ConservationParameter* U)
     }
 }
 
-void Boundary::periodicBoundaryX2nd(
+void BoundaryMHD::periodicBoundaryX2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -130,7 +130,7 @@ void periodicBoundaryY2nd_kernel(ConservationParameter* U)
     }
 }
 
-void Boundary::periodicBoundaryY2nd(
+void BoundaryMHD::periodicBoundaryY2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -159,7 +159,7 @@ void freeBoundaryX2nd_kernel(ConservationParameter* U)
     }
 }
 
-void Boundary::freeBoundaryX2nd(
+void BoundaryMHD::freeBoundaryX2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -185,7 +185,7 @@ void freeBoundaryY2nd_kernel(ConservationParameter* U)
     }
 }
 
-void Boundary::freeBoundaryY2nd(
+void BoundaryMHD::freeBoundaryY2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {

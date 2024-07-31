@@ -4,6 +4,9 @@
 #include "const.hpp"
 
 
+#ifndef MOMENT_CALCULATER_STRUCT_H
+#define MOMENT_CALCULATER_STRUCT_H
+
 class MomentCalculater
 {
 private:
@@ -42,5 +45,5 @@ private:
     );
 };
 
-
+#endif
 

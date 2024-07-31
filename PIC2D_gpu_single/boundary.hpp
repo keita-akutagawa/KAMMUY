@@ -4,7 +4,7 @@
 #include "field_parameter_struct.hpp"
 
 
-class Boundary
+class BoundaryPIC
 {
 private:
 

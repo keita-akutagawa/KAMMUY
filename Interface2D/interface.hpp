@@ -89,11 +89,12 @@ public:
 
 
     void sendPICtoMHD(
-        thrust::device_vector<ConservationParameter>& U
+        const thrust::device_vector<ConservationParameter>& UPast, 
+        const thrust::device_vector<ConservationParameter>& UNext
     );
 
 
-    thrust::device_vector<ConservationParameter>& calculateSubU(
+    thrust::device_vector<ConservationParameter>& calculateAndGetSubU(
         const thrust::device_vector<ConservationParameter>& UPast, 
         const thrust::device_vector<ConservationParameter>& UNext, 
         float mixingRatio

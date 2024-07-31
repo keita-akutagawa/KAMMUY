@@ -18,7 +18,7 @@ private:
     thrust::device_vector<ConservationParameter> tmpU;
     thrust::device_vector<ConservationParameter> UPast;
     thrust::device_vector<double> dtVector;
-    Boundary boundary;
+    BoundaryMHD boundaryMHD;
     CT ct;
     thrust::device_vector<double> bXOld;
     thrust::device_vector<double> bYOld;
