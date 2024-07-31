@@ -13,6 +13,19 @@ struct MagneticField
         bY(0.0f),
         bZ(0.0f)
         {}
+    
+    __host__ __device__
+    MagneticField(float x, float y, float z) :
+        bX(x),
+        bY(y),
+        bZ(z)
+    {}
+
+    __host__ __device__
+    MagneticField operator+(const MagneticField& other) const
+    {
+        return MagneticField(bX + other.bX, bY + other.bY, bZ + other.bZ);
+    }
 };
 
 
@@ -28,6 +41,19 @@ struct ElectricField
         eY(0.0f),
         eZ(0.0f)
         {}
+    
+    __host__ __device__
+    ElectricField(float x, float y, float z) :
+        eX(x),
+        eY(y),
+        eZ(z)
+    {}
+
+    __host__ __device__
+    ElectricField operator+(const ElectricField& other) const
+    {
+        return ElectricField(eX + other.eX, eY + other.eY, eZ + other.eZ);
+    }
 };
 
 
@@ -43,6 +69,19 @@ struct CurrentField
         jY(0.0f),
         jZ(0.0f)
         {}
+    
+    __host__ __device__
+    CurrentField(float x, float y, float z) :
+        jX(x),
+        jY(y),
+        jZ(z)
+    {}
+
+    __host__ __device__
+    CurrentField operator+(const CurrentField& other) const
+    {
+        return CurrentField(jX + other.jX, jY + other.jY, jZ + other.jZ);
+    }
 };
 
 
@@ -54,6 +93,17 @@ struct RhoField
     RhoField() : 
         rho(0.0f)
         {}
+    
+    __host__ __device__
+    RhoField(float x) :
+        rho(x)
+    {}
+
+    __host__ __device__
+    RhoField operator+(const RhoField& other) const
+    {
+        return RhoField(rho + other.rho);
+    }
 };
 
 

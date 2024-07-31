@@ -47,11 +47,15 @@ private:
 
     MomentCalculater momentCalculater;
 
+    thrust::device_vector<ConservationParameter> USub;
+
     thrust::device_vector<MagneticField> B_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
     thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
     thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
+
+    thrust::device_vector<ConservationParameter> UHalf;
 
     
 public:
@@ -85,18 +89,27 @@ public:
 
 
     void sendPICtoMHD(
-        const thrust::device_vector<MagneticField>& B, 
         thrust::device_vector<ConservationParameter>& U
     );
 
 
+    thrust::device_vector<ConservationParameter>& calculateSubU(
+        const thrust::device_vector<ConservationParameter>& UPast, 
+        const thrust::device_vector<ConservationParameter>& UNext, 
+        float mixingRatio
+    );
+
     void resetTimeAveParameters();
 
-    void calculateTimeAveParameters(
+    void sumUpTimeAveParameters(
         const thrust::device_vector<MagneticField>& B, 
         const thrust::device_vector<Particle>& particlesIon, 
         const thrust::device_vector<Particle>& particlesElectron
     );
+
+    void calculateTimeAveParameters(int substeps);
+
+    thrust::device_vector<ConservationParameter>& getUHalfRef();
 
 private:
 

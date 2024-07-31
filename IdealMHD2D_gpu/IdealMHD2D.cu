@@ -470,7 +470,7 @@ void IdealMHD2D::backUToCenterHalfForCT(
 
 
 // getter
-thrust::device_vector<ConservationParameter> IdealMHD2D::getU()
+thrust::device_vector<ConservationParameter>& IdealMHD2D::getURef()
 {
     return U;
 }

@@ -103,11 +103,15 @@ public:
         int step
     );
 
-    void getBRef();
+    thrust::device_vector<MagneticField>& getBRef();
 
-    void getParticlesIonRef();
+    thrust::device_vector<ElectricField>& getERef();
 
-    void getParticlesElectronRef();
+    thrust::device_vector<CurrentField>& getCurrentRef();
+
+    thrust::device_vector<Particle>& getParticlesIonRef();
+
+    thrust::device_vector<Particle>& getParticlesElectronRef();
 
 private:
     void calculateFullMoments();

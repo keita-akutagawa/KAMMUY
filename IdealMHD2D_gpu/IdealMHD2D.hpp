@@ -50,6 +50,8 @@ public:
 
     bool checkCalculationIsCrashed();
 
+    thrust::device_vector<ConservationParameter>& getURef();
+
 private:
     void shiftUToCenterForCT(
         thrust::device_vector<ConservationParameter>& U

@@ -658,3 +658,37 @@ void PIC2D::saveParticle(
     ofsKineticEnergy.write(reinterpret_cast<const char*>(&KineticEnergy), sizeof(float));
 }
 
+
+//////////////////////////////////////////////////
+
+
+thrust::device_vector<MagneticField>& PIC2D::getBRef()
+{
+    return B;
+}
+
+
+thrust::device_vector<ElectricField>& PIC2D::getERef()
+{
+    return E;
+}
+
+
+thrust::device_vector<CurrentField>& PIC2D::getCurrentRef()
+{
+    return current;
+}
+
+
+thrust::device_vector<Particle>& PIC2D::getParticlesIonRef()
+{
+    return particlesIon;
+}
+
+
+thrust::device_vector<Particle>& PIC2D::getParticlesElectronRef()
+{
+    return particlesElectron;
+}
+
+
