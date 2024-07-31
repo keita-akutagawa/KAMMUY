@@ -3,7 +3,7 @@
 
 using namespace PIC2DConst;
 
-void initializeDeviceConstants()
+void initializeDeviceConstants_PIC()
 {
     cudaMemcpyToSymbol(device_c_PIC, &c_PIC, sizeof(float));
     cudaMemcpyToSymbol(device_epsilon0_PIC, &epsilon0_PIC, sizeof(float));

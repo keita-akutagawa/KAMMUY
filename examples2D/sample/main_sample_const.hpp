@@ -10,6 +10,11 @@
 #include "../../Interface2D/const.hpp"
 
 
+using namespace IdealMHD2DConst;
+using namespace PIC2DConst;
+using namespace Interface2DConst;
+
+
 std::string directoryname = "results_sample";
 std::string filenameWithoutStep = "sample";
 std::ofstream logfile("results_sample/log_sample.txt");
@@ -34,11 +39,12 @@ const float PIC2DConst::c_PIC = 1.0f;
 const float PIC2DConst::epsilon0_PIC = 1.0f;
 const float PIC2DConst::mu0_PIC = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection_PIC = 0.001f;
+const float PIC2DConst::EPS_PIC = 1e-20f;
 
 const int PIC2DConst::numberDensityIon_PIC = 100;
 const int PIC2DConst::numberDensityElectron_PIC = 100;
 
-const float PIC2DConst::B0_PIC = sqrt(static_cast<float>(numberDensityElectron_PIC)) / 1.0;
+const float PIC2DConst::B0_PIC = sqrt(static_cast<float>(PIC2DConst::numberDensityElectron_PIC)) / 1.0;
 
 const float PIC2DConst::mRatio_PIC = 100.0f;
 const float PIC2DConst::mElectron_PIC = 1.0f;
@@ -75,6 +81,8 @@ float PIC2DConst::dt_PIC = 0.0f;
 const unsigned long long PIC2DConst::totalNumIon_PIC = static_cast<unsigned long long>(nx_PIC * ny_PIC * numberDensityIon_PIC);
 const unsigned long long PIC2DConst::totalNumElectron_PIC = static_cast<unsigned long long>(nx_PIC * ny_PIC * numberDensityElectron_PIC);
 const unsigned long long PIC2DConst::totalNumParticles_PIC = totalNumIon_PIC + totalNumElectron_PIC;
+unsigned long long existNumIon_PIC = totalNumIon_PIC;
+unsigned long long existNumElectron_PIC = totalNumElectron_PIC;
 
 const float PIC2DConst::vThIon_PIC = sqrt(2.0f * tIon_PIC / mIon_PIC);
 const float PIC2DConst::vThElectron_PIC = sqrt(2.0f * tElectron_PIC / mElectron_PIC);
@@ -127,6 +135,7 @@ __constant__ float PIC2DConst::device_c_PIC;
 __constant__ float PIC2DConst::device_epsilon0_PIC;
 __constant__ float PIC2DConst::device_mu0_PIC;
 __constant__ float PIC2DConst::device_dOfLangdonMarderTypeCorrection_PIC;
+__constant__ float PIC2DConst::device_EPS_PIC;
 
 __constant__ int PIC2DConst::device_numberDensityIon_PIC;
 __constant__ int PIC2DConst::device_numberDensityElectron_PIC;
@@ -168,6 +177,9 @@ __device__ float PIC2DConst::device_dt_PIC;
 __constant__ unsigned long long PIC2DConst::device_totalNumIon_PIC;
 __constant__ unsigned long long PIC2DConst::device_totalNumElectron_PIC;
 __constant__ unsigned long long PIC2DConst::device_totalNumParticles_PIC;
+
+__device__ unsigned long long device_existNumIon_PIC;
+__device__ unsigned long long device_existNumElectron_PIC;
 
 __constant__ float PIC2DConst::device_vThIon_PIC;
 __constant__ float PIC2DConst::device_vThElectron_PIC;

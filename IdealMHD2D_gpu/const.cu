@@ -3,7 +3,7 @@
 
 using namespace IdealMHD2DConst;
 
-void initializeDeviceConstants() {
+void initializeDeviceConstants_MHD() {
     cudaMemcpyToSymbol(device_EPS_MHD, &EPS_MHD, sizeof(double));
     cudaMemcpyToSymbol(device_PI_MHD, &PI_MHD, sizeof(double));
 
