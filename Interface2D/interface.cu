@@ -69,7 +69,13 @@ Interface2D::Interface2D(
        reloadParticlesIndexIon(PIC2DConst::nx_PIC * interfaceLength), 
        reloadParticlesIndexElectron(PIC2DConst::nx_PIC * interfaceLength), 
        host_reloadParticlesIndexIon(PIC2DConst::nx_PIC * interfaceLength), 
-       host_reloadParticlesIndexElectron(PIC2DConst::nx_PIC * interfaceLength)
+       host_reloadParticlesIndexElectron(PIC2DConst::nx_PIC * interfaceLength), 
+
+       B_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
+       zerothMomentIon_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
+       zerothMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
+       firstMomentIon_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
+       firstMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC)
 {
     indexOfInterfaceEndInMHD = indexOfInterfaceStartInMHD + interfaceLength;
     indexOfInterfaceEndInPIC = indexOfInterfaceStartInPIC + interfaceLength;
@@ -818,4 +824,48 @@ void Interface2D::sendPICtoMHD(
 
 }
 
+
+//////////////////////////////
+
+
+void Interface2D::resetTimeAveParameters()
+{
+    thrust::fill(
+        B_timeAve.begin(), 
+        B_timeAve.end(), 
+        MagneticField()
+    );
+
+    thrust::fill(
+        zerothMomentIon_timeAve.begin(), 
+        zerothMomentIon_timeAve.end(), 
+        ZerothMoment()
+    );
+    thrust::fill(
+        zerothMomentElectron_timeAve.begin(), 
+        zerothMomentElectron_timeAve.end(), 
+        ZerothMoment()
+    );
+
+    thrust::fill(
+        firstMomentIon_timeAve.begin(), 
+        firstMomentIon_timeAve.end(), 
+        FirstMoment()
+    );
+    thrust::fill(
+        firstMomentElectron_timeAve.begin(), 
+        firstMomentElectron_timeAve.end(), 
+        FirstMoment()
+    );
+}
+
+
+void Interface2D::calculateTimeAveParameters(
+    const thrust::device_vector<MagneticField>& B, 
+    const thrust::device_vector<Particle>& particlesIon, 
+    const thrust::device_vector<Particle>& particlesElectron
+)
+{
+
+}
 

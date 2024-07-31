@@ -47,6 +47,12 @@ private:
 
     MomentCalculater momentCalculater;
 
+    thrust::device_vector<MagneticField> B_timeAve;
+    thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
+    thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
+    thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
+    thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
+
     
 public:
     Interface2D(
@@ -77,9 +83,19 @@ public:
         int step
     );
 
+
     void sendPICtoMHD(
         const thrust::device_vector<MagneticField>& B, 
         thrust::device_vector<ConservationParameter>& U
+    );
+
+
+    void resetTimeAveParameters();
+
+    void calculateTimeAveParameters(
+        const thrust::device_vector<MagneticField>& B, 
+        const thrust::device_vector<Particle>& particlesIon, 
+        const thrust::device_vector<Particle>& particlesElectron
     );
 
 private:

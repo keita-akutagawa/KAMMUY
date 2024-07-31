@@ -30,7 +30,7 @@ public:
 
     virtual void initializeU(); 
 
-    void oneStepRK2();
+    void setPastU();
 
     void oneStepRK2_predictor();
 

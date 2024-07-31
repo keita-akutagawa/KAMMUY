@@ -103,6 +103,12 @@ public:
         int step
     );
 
+    void getBRef();
+
+    void getParticlesIonRef();
+
+    void getParticlesElectronRef();
+
 private:
     void calculateFullMoments();
 

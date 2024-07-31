@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <string>
 #include <thrust/extrema.h>
+#include <thrust/copy.h>
 #include "IdealMHD2D.hpp"
 
 
@@ -25,6 +26,11 @@ IdealMHD2D::IdealMHD2D()
 {
 }
 
+
+void IdealMHD2D::setPastU()
+{
+    thrust::copy(U.begin(), U.end(), UPast.begin());
+}
 
 
 __global__ void copyBX_kernel(
@@ -134,7 +140,7 @@ struct oneStepSecondFunctor {
 };
 
 
-void IdealMHD2D::oneStepRK2()
+void IdealMHD2D::oneStepRK2_predictor()
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -198,20 +204,14 @@ void IdealMHD2D::oneStepRK2()
 }
 
 
-void IdealMHD2D::oneStepRK2_predictor()
-{
-    oneStepRK2();
-}
-
-
 // dtの計算はしないこと。
 void IdealMHD2D::oneStepRK2_corrector(
     thrust::device_vector<ConservationParameter>& UHalf
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     shiftUToCenterForCT(UHalf);
     fluxF = fluxSolver.getFluxF(UHalf);
@@ -328,8 +328,8 @@ void IdealMHD2D::calculateDt()
 
     thrust::device_vector<double>::iterator dtMin = thrust::min_element(dtVector.begin(), dtVector.end());
     
-    dt = (*dtMin) * CFL_MHD;
-    cudaMemcpyToSymbol(device_dt_MHD, &dt, sizeof(double));
+    dt_MHD = (*dtMin) * CFL_MHD;
+    cudaMemcpyToSymbol(device_dt_MHD, &dt_MHD, sizeof(double));
 }
 
 

@@ -43,7 +43,8 @@ int main()
 
 
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
-
+        
+        idealMHD2D.setPastU();
         idealMHD2D.oneStepRK2_predictor();
 
         int substeps = round(sqrt(PIC2DConst::mRatio_PIC));
@@ -53,7 +54,7 @@ int main()
             pIC2D.oneStepWallXFreeY();
         }
 
-        idealMHD2D.oneStepRK2_corrector();
+        idealMHD2D.oneStepRK2_corrector(UHalf);
 
     }
 
