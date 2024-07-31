@@ -10,7 +10,13 @@
 
 
 
-void initialize()
+void IdealMHD2D::initializeU()
+{
+
+}
+
+
+void PIC2D::initialize()
 {
 
 }
@@ -19,8 +25,8 @@ void initialize()
 
 int main()
 {
-    PIC2DConst::initializeDeviceConstants_PIC();
-    IdealMHD2DConst::initializeDeviceConstants_MHD();
+    initializeDeviceConstants_PIC();
+    initializeDeviceConstants_MHD();
 
     IdealMHD2D idealMHD2D;
     PIC2D pIC2D;

@@ -81,8 +81,8 @@ float PIC2DConst::dt_PIC = 0.0f;
 const unsigned long long PIC2DConst::totalNumIon_PIC = static_cast<unsigned long long>(nx_PIC * ny_PIC * numberDensityIon_PIC);
 const unsigned long long PIC2DConst::totalNumElectron_PIC = static_cast<unsigned long long>(nx_PIC * ny_PIC * numberDensityElectron_PIC);
 const unsigned long long PIC2DConst::totalNumParticles_PIC = totalNumIon_PIC + totalNumElectron_PIC;
-unsigned long long existNumIon_PIC = totalNumIon_PIC;
-unsigned long long existNumElectron_PIC = totalNumElectron_PIC;
+unsigned long long PIC2DConst::existNumIon_PIC = totalNumIon_PIC;
+unsigned long long PIC2DConst::existNumElectron_PIC = totalNumElectron_PIC;
 
 const float PIC2DConst::vThIon_PIC = sqrt(2.0f * tIon_PIC / mIon_PIC);
 const float PIC2DConst::vThElectron_PIC = sqrt(2.0f * tElectron_PIC / mElectron_PIC);
@@ -178,8 +178,8 @@ __constant__ unsigned long long PIC2DConst::device_totalNumIon_PIC;
 __constant__ unsigned long long PIC2DConst::device_totalNumElectron_PIC;
 __constant__ unsigned long long PIC2DConst::device_totalNumParticles_PIC;
 
-__device__ unsigned long long device_existNumIon_PIC;
-__device__ unsigned long long device_existNumElectron_PIC;
+__device__ unsigned long long PIC2DConst::device_existNumIon_PIC;
+__device__ unsigned long long PIC2DConst::device_existNumElectron_PIC;
 
 __constant__ float PIC2DConst::device_vThIon_PIC;
 __constant__ float PIC2DConst::device_vThElectron_PIC;

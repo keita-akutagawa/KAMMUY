@@ -43,10 +43,9 @@ namespace IdealMHD2DConst
 
     extern __device__ double device_dt_MHD;
 
+}
 
 void initializeDeviceConstants_MHD();
-
-}
 
 #endif
 

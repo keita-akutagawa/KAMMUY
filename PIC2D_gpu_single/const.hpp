@@ -129,10 +129,10 @@ namespace PIC2DConst
     extern __constant__ int device_totalStep_PIC;
     extern __device__ float device_totalTime_PIC;
 
-
-    void initializeDeviceConstants_PIC();
-
 }
+
+void initializeDeviceConstants_PIC();
+
 
 #endif
 

@@ -19,9 +19,9 @@ namespace Interface2DConst
     extern __constant__ unsigned long long device_reloadParticlesTotalNumIon;
     extern __constant__ unsigned long long device_reloadParticlesTotalNumElectron;
 
-    void initializeDeviceConstants();
-
 }
+
+void initializeDeviceConstants_Interface();
 
 
 #endif

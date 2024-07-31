@@ -4,7 +4,7 @@
 using namespace Interface2DConst;
 
 
-void initializeDeviceConstants()
+void initializeDeviceConstants_Interface()
 {
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(float));
 
