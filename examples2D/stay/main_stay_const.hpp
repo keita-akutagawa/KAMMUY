@@ -51,11 +51,11 @@ const float PIC2DConst::mElectron_PIC = 1.0f;
 const float PIC2DConst::mIon_PIC = mRatio_PIC * mElectron_PIC;
 
 const float PIC2DConst::tRatio_PIC = 1.0f;
-const float PIC2DConst::tElectron_PIC = (B0_PIC * B0_PIC / 2.0 / mu0_PIC) / (numberDensityIon_PIC + numberDensityElectron_PIC * tRatio_PIC);
+const float PIC2DConst::tElectron_PIC = 0.5f * mIon_PIC * pow(0.1f * c_PIC, 2);
 const float PIC2DConst::tIon_PIC = tRatio_PIC * tElectron_PIC;
 
 const float PIC2DConst::qRatio_PIC = -1.0f;
-const float PIC2DConst::qElectron_PIC = -1.0f * sqrt(epsilon0_PIC * tElectron_PIC / static_cast<float>(numberDensityElectron_PIC)) / 1.0f;
+const float PIC2DConst::qElectron_PIC = -1.0f * sqrt(epsilon0_PIC * tElectron_PIC / static_cast<float>(numberDensityElectron_PIC));
 const float PIC2DConst::qIon_PIC = qRatio_PIC * qElectron_PIC;
 
 const float PIC2DConst::omegaPe_PIC = sqrt(static_cast<float>(numberDensityElectron_PIC) * pow(qElectron_PIC, 2) / mElectron_PIC / epsilon0_PIC);
@@ -66,12 +66,12 @@ const float PIC2DConst::omegaCi_PIC = qIon_PIC * B0_PIC / mIon_PIC;
 const float PIC2DConst::debyeLength_PIC = sqrt(epsilon0_PIC * tElectron_PIC / static_cast<float>(numberDensityElectron_PIC) / pow(qElectron_PIC, 2));
 const float PIC2DConst::ionInertialLength_PIC = c_PIC / omegaPi_PIC;
 
-const int PIC2DConst::nx_PIC = int(100.0f * ionInertialLength_PIC);
+const int PIC2DConst::nx_PIC = 100;
 const float PIC2DConst::dx_PIC = 1.0f;
 const float PIC2DConst::xmin_PIC = 0.0f * dx_PIC; 
 const float PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0f * dx_PIC;
 
-const int PIC2DConst::ny_PIC = int(20.0f * ionInertialLength_PIC);
+const int PIC2DConst::ny_PIC = 200;
 const float PIC2DConst::dy_PIC = 1.0f;
 const float PIC2DConst::ymin_PIC = 1.0f * dy_PIC; 
 const float PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 1.5f * dy_PIC;
@@ -99,15 +99,27 @@ const float PIC2DConst::bulkVzIon_PIC = 0.0f;
 const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
+const double IdealMHD2DConst::rho0_MHD = mIon_PIC * numberDensityIon_PIC + mElectron_PIC * numberDensityElectron_PIC;
+const double IdealMHD2DConst::u0_MHD = (mIon_PIC * bulkVxIon_PIC + mElectron_PIC * bulkVxElectron_PIC) / rho0_MHD;
+const double IdealMHD2DConst::v0_MHD = (mIon_PIC * bulkVyIon_PIC + mElectron_PIC * bulkVyElectron_PIC) / rho0_MHD;
+const double IdealMHD2DConst::w0_MHD = (mIon_PIC * bulkVzIon_PIC + mElectron_PIC * bulkVzElectron_PIC) / rho0_MHD;
+const double IdealMHD2DConst::bX0_MHD = 0.0;
+const double IdealMHD2DConst::bY0_MHD = 0.0;
+const double IdealMHD2DConst::bZ0_MHD = 0.0;
+const double IdealMHD2DConst::p0_MHD = numberDensityIon_PIC * tIon_PIC + numberDensityElectron_PIC * tElectron_PIC;
+const double IdealMHD2DConst::e0_MHD = p0_MHD / (gamma_MHD - 1.0)
+                                     + 0.5 * rho0_MHD * (u0_MHD * u0_MHD + v0_MHD * v0_MHD + w0_MHD * w0_MHD)
+                                     + 0.5 * (bX0_MHD * bX0_MHD + bY0_MHD * bY0_MHD + bZ0_MHD * bZ0_MHD);
+
+const int IdealMHD2DConst::nx_MHD = PIC2DConst::nx_PIC;
 const double IdealMHD2DConst::dx_MHD = 1.0;
 const double IdealMHD2DConst::xmin_MHD = 0.0;
-const double IdealMHD2DConst::xmax_MHD = 100.0;
-const int IdealMHD2DConst::nx_MHD = int((xmax_MHD - xmin_MHD) / dx_MHD);
+const double IdealMHD2DConst::xmax_MHD = nx_MHD * dx_MHD;
 
+const int IdealMHD2DConst::ny_MHD = 200;
 const double IdealMHD2DConst::dy_MHD = 1.0;
 const double IdealMHD2DConst::ymin_MHD = 0.0;
-const double IdealMHD2DConst::ymax_MHD = 100.0;
-const int IdealMHD2DConst::ny_MHD = int((ymax_MHD - ymin_MHD) / dy_MHD);
+const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD;
 
 const double IdealMHD2DConst::CFL_MHD = 0.7;
 const double IdealMHD2DConst::gamma_MHD = 5.0 / 3.0;
@@ -196,6 +208,16 @@ __constant__ float PIC2DConst::device_bulkVzIon_PIC;
 
 __constant__ double IdealMHD2DConst::device_EPS_MHD;
 __constant__ double IdealMHD2DConst::device_PI_MHD;
+
+__constant__ double IdealMHD2DConst::device_rho0_MHD;
+__constant__ double IdealMHD2DConst::device_u0_MHD;
+__constant__ double IdealMHD2DConst::device_v0_MHD;
+__constant__ double IdealMHD2DConst::device_w0_MHD;
+__constant__ double IdealMHD2DConst::device_bX0_MHD;
+__constant__ double IdealMHD2DConst::device_bY0_MHD;
+__constant__ double IdealMHD2DConst::device_bZ0_MHD;
+__constant__ double IdealMHD2DConst::device_p0_MHD;
+__constant__ double IdealMHD2DConst::device_e0_MHD;
 
 __constant__ double IdealMHD2DConst::device_dx_MHD;
 __constant__ double IdealMHD2DConst::device_xmin_MHD;

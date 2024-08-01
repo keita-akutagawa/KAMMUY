@@ -3,9 +3,9 @@ CFLAGS = -O3 -arch=sm_89 -rdc=true --extended-lambda -Xcompiler "/wd 4819"
 SRCDIRS = ../../PIC2D_gpu_single ../../IdealMHD2D_gpu ../../Interface2D
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
-MAIN = main_sample.cu
+MAIN = main_stay.cu
 EXECUTABLE = program.exe
-
+ADITIONALFILES = program.exp program.lib
 
 .PHONY: all clean run
 
@@ -24,4 +24,4 @@ run: $(EXECUTABLE)
 	./$(EXECUTABLE)
 
 clean:
-	rm -f $(OBJS) $(MAIN:.cu=.o) $(EXECUTABLE)
+	rm -f $(OBJS) $(MAIN:.cu=.o) $(EXECUTABLE) $(ADITIONALFILES)
