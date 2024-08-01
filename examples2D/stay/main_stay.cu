@@ -122,14 +122,40 @@ int main()
     idealMHD2D.initializeU();
     pIC2D.initialize();
 
+    const int substeps = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
+        if (step % fieldRecordStep == 0) {
+            std::cout << std::to_string(step) << " step done : total time is "
+                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
+                      << " [Omega_ci * t]"
+                      << std::endl;
+            logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
+            pIC2D.saveFields(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveZerothMoments(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveFirstMoments(
+                directoryname, filenameWithoutStep, step
+            );
+            idealMHD2D.save(
+                directoryname, filenameWithoutStep, step
+            );
+        }
+        if (isParticleRecord && step % particleRecordStep == 0) {
+            pIC2D.saveParticle(
+                directoryname, filenameWithoutStep, step
+            );
+        }
         
+
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getURef();
         idealMHD2D.oneStepRK2_predictor();
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
-        int substeps = round(sqrt(PIC2DConst::mRatio_PIC));
+        
         PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
         interface2D.resetTimeAveParameters();
         for (int substep = 0; substep < substeps; substep++) {
@@ -143,21 +169,25 @@ int main()
 
             float mixingRatio = (substeps - substep) / substeps;
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
-
+            
             interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
             interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
             interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
             interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
-
             interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
         }
+
         interface2D.calculateTimeAveParameters(substeps);
+        
 
         interface2D.sendPICtoMHD(UPast, UNext);
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
+
         idealMHD2D.oneStepRK2_corrector(UHalf);
 
+
+        IdealMHD2DConst::totalTime_MHD += IdealMHD2DConst::dt_MHD;
     }
 
     return 0;
