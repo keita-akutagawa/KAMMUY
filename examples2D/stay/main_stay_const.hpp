@@ -15,9 +15,9 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "/cfca-work/akutagawakt/KAMMUY/results_stay";
+std::string directoryname = "results_stay";
 std::string filenameWithoutStep = "stay";
-std::ofstream logfile("/cfca-work/akutagawakt/KAMMUY/results_stay/log_stay.txt");
+std::ofstream logfile("results_stay/log_stay.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 100;
 const int PIC2DConst::totalStep_PIC = -1;
