@@ -96,7 +96,7 @@ void BoundaryPIC::conductingWallBoundaryParticleY(
 __global__ void openBoundaryParticleY_kernel(
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
-    unsigned long long existNumSpeciesNext
+    unsigned long long& existNumSpeciesNext
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
