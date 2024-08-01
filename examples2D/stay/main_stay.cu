@@ -124,7 +124,8 @@ int main()
 
     const int substeps = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
-        if (step % fieldRecordStep == 0) {
+        std::cout << step << std::endl;
+        if (step % recordStep == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
                       << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
                       << " [Omega_ci * t]"
@@ -158,7 +159,7 @@ int main()
         
         PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
         interface2D.resetTimeAveParameters();
-        for (int substep = 0; substep < substeps; substep++) {
+        for (int substep = 0; substep < substeps + 1; substep++) {
             pIC2D.oneStepWallXFreeY();
 
             thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
@@ -185,6 +186,11 @@ int main()
 
 
         idealMHD2D.oneStepRK2_corrector(UHalf);
+
+        if (idealMHD2D.checkCalculationIsCrashed()) {
+            std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
+            return 0;
+        }
 
 
         IdealMHD2DConst::totalTime_MHD += IdealMHD2DConst::dt_MHD;
