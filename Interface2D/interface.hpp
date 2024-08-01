@@ -37,6 +37,7 @@ private:
     int restartParticlesIndexElectron;
     unsigned long long existNumParticleAfterDeleteIon;
     unsigned long long existNumParticleAfterDeleteElectron;
+
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
     thrust::device_vector<Particle> reloadParticlesSourceIon;
@@ -47,19 +48,18 @@ private:
     thrust::host_vector<int> host_reloadParticlesIndexIon;
     thrust::host_vector<int> host_reloadParticlesIndexElectron;
 
-    MomentCalculater momentCalculater;
-
-    thrust::device_vector<ConservationParameter> USub;
-
     thrust::device_vector<MagneticField> B_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
     thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
     thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
 
+    thrust::device_vector<ConservationParameter> USub;
     thrust::device_vector<ConservationParameter> UHalf;
 
-    
+    MomentCalculater momentCalculater;
+
+
 public:
     Interface2D(
         int indexStartMHD, 

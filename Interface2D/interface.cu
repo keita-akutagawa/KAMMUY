@@ -45,8 +45,12 @@ Interface2D::Interface2D(
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 
        interfaceLength(length), 
+       indexOfInterfaceEndInMHD(indexStartMHD + length), 
+       indexOfInterfaceEndInPIC(indexStartPIC + length), 
+
        interlockingFunctionY(interfaceLength), 
        interlockingFunctionYHalf(interfaceLength - 1),
+
        host_interlockingFunctionY(interfaceLength), 
        host_interlockingFunctionYHalf(interfaceLength - 1),
 
@@ -59,10 +63,11 @@ Interface2D::Interface2D(
        reloadParticlesNumElectron(0), 
        restartParticlesIndexIon(0), 
        restartParticlesIndexElectron(0), 
+       existNumParticleAfterDeleteIon(0), 
+       existNumParticleAfterDeleteElectron(0), 
 
        reloadParticlesDataIon(PIC2DConst::nx_PIC * interfaceLength), 
        reloadParticlesDataElectron(PIC2DConst::nx_PIC * interfaceLength), 
-
        reloadParticlesSourceIon(Interface2DConst::reloadParticlesTotalNumIon), 
        reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNumElectron), 
 
@@ -75,17 +80,18 @@ Interface2D::Interface2D(
        zerothMomentIon_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        zerothMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        firstMomentIon_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
-       firstMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC)
-{
-    indexOfInterfaceEndInMHD = indexOfInterfaceStartInMHD + interfaceLength;
-    indexOfInterfaceEndInPIC = indexOfInterfaceStartInPIC + interfaceLength;
+       firstMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
 
-    for(int i = 0; interfaceLength; i++) {
+       USub(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
+       UHalf(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD)  
+{
+
+    for(int i = 0; i < interfaceLength; i++) {
         host_interlockingFunctionY[i] = 0.5f * (
             1.0f + cos(Interface2DConst::PI  * (i - 0.0f) / (interfaceLength - 0.0f))
         );
     }
-    for(int i = 0; interfaceLength - 1; i++) {
+    for(int i = 0; i < interfaceLength - 1; i++) {
         host_interlockingFunctionY[i] = 0.5f * (
             1.0f + cos(Interface2DConst::PI  * (i + 0.5f - 0.0f) / (interfaceLength - 0.0f))
         );

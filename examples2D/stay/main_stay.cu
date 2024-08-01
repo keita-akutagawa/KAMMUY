@@ -101,6 +101,7 @@ int main()
 {
     initializeDeviceConstants_PIC();
     initializeDeviceConstants_MHD();
+    initializeDeviceConstants_Interface();
 
     IdealMHD2D idealMHD2D;
     PIC2D pIC2D;
