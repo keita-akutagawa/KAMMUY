@@ -15,13 +15,13 @@ struct Particle
 
     __host__ __device__
     Particle() : 
-        x(0.0f), 
-        y(0.0f), 
-        z(0.0f), 
-        vx(0.0f), 
-        vy(0.0f), 
-        vz(0.0f), 
-        gamma(0.0f), 
+        x(-1.0f), 
+        y(-1.0f), 
+        z(-1.0f), 
+        vx(-1.0f), 
+        vy(-1.0f), 
+        vz(-1.0f), 
+        gamma(-1.0f), 
         isExist(false)
         {}
     
@@ -29,6 +29,15 @@ struct Particle
     bool operator<(const Particle& other) const
     {
         return y < other.y;
+    }
+};
+
+
+struct IsExistTransform
+{
+    __host__ __device__
+    float operator()(const Particle& p) const {
+        return p.isExist ? 1 : 0;
     }
 };
 

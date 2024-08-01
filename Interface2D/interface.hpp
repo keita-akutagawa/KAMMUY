@@ -31,22 +31,18 @@ private:
     thrust::device_vector<FirstMoment> firstMomentIon;
     thrust::device_vector<FirstMoment> firstMomentElectron;
 
-    unsigned long long reloadParticlesNumIon;
-    unsigned long long reloadParticlesNumElectron;
-    int restartParticlesIndexIon;
-    int restartParticlesIndexElectron;
-    unsigned long long existNumParticleAfterDeleteIon;
-    unsigned long long existNumParticleAfterDeleteElectron;
+    unsigned long long restartParticlesIndexIon;
+    unsigned long long restartParticlesIndexElectron;
 
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
     thrust::device_vector<Particle> reloadParticlesSourceIon;
     thrust::device_vector<Particle> reloadParticlesSourceElectron;
 
-    thrust::device_vector<int> reloadParticlesIndexIon;
-    thrust::device_vector<int> reloadParticlesIndexElectron;
-    thrust::host_vector<int> host_reloadParticlesIndexIon;
-    thrust::host_vector<int> host_reloadParticlesIndexElectron;
+    thrust::device_vector<unsigned long long> reloadParticlesIndexIon;
+    thrust::device_vector<unsigned long long> reloadParticlesIndexElectron;
+    thrust::host_vector<unsigned long long> host_reloadParticlesIndexIon;
+    thrust::host_vector<unsigned long long> host_reloadParticlesIndexElectron;
 
     thrust::device_vector<MagneticField> B_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;

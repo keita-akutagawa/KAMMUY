@@ -1,5 +1,6 @@
 #include "boundary.hpp"
 #include <thrust/partition.h>
+#include <thrust/transform_reduce.h>
 
 
 using namespace PIC2DConst;
@@ -95,8 +96,7 @@ void BoundaryPIC::conductingWallBoundaryParticleY(
 
 __global__ void openBoundaryParticleY_kernel(
     Particle* particlesSpecies, 
-    const unsigned long long existNumSpecies, 
-    unsigned long long& existNumSpeciesNext
+    const unsigned long long existNumSpecies
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -111,24 +111,21 @@ __global__ void openBoundaryParticleY_kernel(
             particlesSpecies[i].isExist = false;
             return;
         }
-
-        atomicAdd(&existNumSpeciesNext, 1);
     }
 }
+
 
 void BoundaryPIC::openBoundaryParticleY(
     thrust::device_vector<Particle>& particlesIon,
     thrust::device_vector<Particle>& particlesElectron
 )
 {
-    existNumIonNext = 0;
-    existNumElectronNext = 0;
 
     dim3 threadsPerBlockForIon(256);
     dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
 
     openBoundaryParticleY_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
-        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC, existNumIonNext
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC
     );
 
     cudaDeviceSynchronize();
@@ -137,13 +134,31 @@ void BoundaryPIC::openBoundaryParticleY(
     dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
 
     openBoundaryParticleY_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
-        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC, existNumElectronNext
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC
     );
 
     cudaDeviceSynchronize();
 
-    existNumIon_PIC = existNumIonNext;
-    existNumElectron_PIC = existNumElectronNext;
+    
+    existNumIon_PIC = thrust::transform_reduce(
+        particlesIon.begin(),
+        particlesIon.end(),
+        IsExistTransform(), 
+        0,               
+        thrust::plus<unsigned long long>()
+    );
+
+    cudaDeviceSynchronize();
+
+    existNumElectron_PIC = thrust::transform_reduce(
+        particlesElectron.begin(),
+        particlesElectron.end(),
+        IsExistTransform(), 
+        0,               
+        thrust::plus<unsigned long long>()
+    );
+
+    cudaDeviceSynchronize();
 
 
     thrust::partition(

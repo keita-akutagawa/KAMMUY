@@ -7,8 +7,6 @@
 class BoundaryPIC
 {
 private:
-    unsigned long long existNumIonNext;
-    unsigned long long existNumElectronNext;
 
 public:
 

@@ -248,7 +248,7 @@ void IdealMHD2D::save(
 
     std::string filename;
     filename = directoryname + "/"
-             + filenameWithoutStep + "_" + std::to_string(step)
+             + filenameWithoutStep + "_U_" + std::to_string(step)
              + ".bin";
 
     std::ofstream ofs(filename, std::ios::binary);

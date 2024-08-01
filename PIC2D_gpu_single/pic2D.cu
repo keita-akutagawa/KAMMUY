@@ -214,13 +214,11 @@ void PIC2D::oneStepWallXFreeY()
     boundaryPIC.conductingWallBoundaryBY(tmpB);
     boundaryPIC.symmetricBoundaryEX(tmpE);
     boundaryPIC.conductingWallBoundaryEY(tmpE);
-
-
+    
     particlePush.pushVelocity(
         particlesIon, particlesElectron, tmpB, tmpE, dt_PIC
     );
-
-
+    
     particlePush.pushPosition(
         particlesIon, particlesElectron, dt_PIC/2.0f
     );
@@ -230,7 +228,6 @@ void PIC2D::oneStepWallXFreeY()
     boundaryPIC.openBoundaryParticleY(
         particlesIon, particlesElectron
     );
-
 
     currentCalculator.resetCurrent(tmpCurrent);
     currentCalculator.calculateCurrent(
