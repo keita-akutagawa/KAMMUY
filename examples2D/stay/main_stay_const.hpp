@@ -15,9 +15,9 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "results_sample";
-std::string filenameWithoutStep = "sample";
-std::ofstream logfile("results_sample/log_sample.txt");
+std::string directoryname = "results_stay";
+std::string filenameWithoutStep = "stay";
+std::ofstream logfile("results_stay/log_stay.txt");
 
 const int PIC2DConst::totalStep_PIC = 100 * 100;
 const int fieldRecordStep = 100;
