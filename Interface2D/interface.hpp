@@ -6,7 +6,7 @@
 #include "../IdealMHD2D_gpu/conservation_parameter_struct.hpp"
 #include "../PIC2D_gpu_single/const.hpp"
 #include "../PIC2D_gpu_single/field_parameter_struct.hpp"
-#include "../pic2D_gpu_single/moment_struct.hpp"
+#include "../PIC2D_gpu_single/moment_struct.hpp"
 #include "../PIC2D_gpu_single/particle_struct.hpp"
 #include "../PIC2D_gpu_single/moment_calculater.hpp"
 
