@@ -1,6 +1,3 @@
-#include "../../IdealMHD2D_gpu/IdealMHD2D.hpp"
-#include "../../PIC2D_gpu_single/PIC2D.hpp"
-#include "../../Interface2D/interface.hpp"
 #include "main_stay_const.hpp"
 #include <string>
 #include <fstream>
@@ -18,12 +15,12 @@ __global__ void initializePICField_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < device_nx_PIC && j < device_ny_PIC) {
-        E[j + i * device_ny_PIC].eX = 0.0f;
-        E[j + i * device_ny_PIC].eY = 0.0f;
-        E[j + i * device_ny_PIC].eZ = 0.0f;
-        B[j + i * device_ny_PIC].bX = 0.0f;
-        B[j + i * device_ny_PIC].bY = 0.0f; 
-        B[j + i * device_ny_PIC].bZ = 0.0f;
+        E[j + i * device_ny_PIC].eX = 0.0;
+        E[j + i * device_ny_PIC].eY = 0.0;
+        E[j + i * device_ny_PIC].eZ = 0.0;
+        B[j + i * device_ny_PIC].bX = 0.0;
+        B[j + i * device_ny_PIC].bY = 0.0; 
+        B[j + i * device_ny_PIC].bZ = 0.0;
     }
 }
 
@@ -143,7 +140,7 @@ int main()
             thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
             thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
 
-            float mixingRatio = (substeps - substep) / substeps;
+            double mixingRatio = (substeps - substep) / substeps;
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
             
             interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);

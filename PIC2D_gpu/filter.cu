@@ -26,7 +26,7 @@ __global__ void calculateF_kernel(
 }
 
 __global__ void correctE_kernel(
-    ElectricField* E, FilterField* F, float dt
+    ElectricField* E, FilterField* F, double dt
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -45,7 +45,7 @@ void Filter::langdonMarderTypeCorrection(
     thrust::device_vector<ElectricField>& E, 
     const thrust::device_vector<Particle>& particlesIon, 
     const thrust::device_vector<Particle>& particlesElectron, 
-    const float dt
+    const double dt
 )
 {
     calculateRho(particlesIon, particlesElectron);
@@ -93,16 +93,16 @@ void Filter::calculateRho(
 struct CalculateRhoOfOneSpeciesFunctor {
     RhoField* rho;
     const Particle* particlesSpecies;
-    const float q;
+    const double q;
 
     __device__
     void operator()(const unsigned long long& i) const {
-        float cx1, cx2; 
+        double cx1, cx2; 
         int xIndex1, xIndex2;
-        float xOverDx;
-        float cy1, cy2; 
+        double xOverDx;
+        double cy1, cy2; 
         int yIndex1, yIndex2;
-        float yOverDy;
+        double yOverDy;
 
         xOverDx = particlesSpecies[i].x / device_dx_PIC;
         yOverDy = particlesSpecies[i].y / device_dy_PIC;
@@ -115,9 +115,9 @@ struct CalculateRhoOfOneSpeciesFunctor {
         yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         atomicAdd(&(rho[yIndex1 + device_ny_PIC * xIndex1].rho), q * cx2 * cy2);
         atomicAdd(&(rho[yIndex2 + device_ny_PIC * xIndex1].rho), q * cx2 * cy1);
@@ -129,7 +129,7 @@ struct CalculateRhoOfOneSpeciesFunctor {
 
 void Filter::calculateRhoOfOneSpecies(
     const thrust::device_vector<Particle>& particlesSpecies, 
-    float q, int existNumSpecies
+    double q, int existNumSpecies
 )
 {
     CalculateRhoOfOneSpeciesFunctor calculateRhoOfOneSpeciesFunctor{

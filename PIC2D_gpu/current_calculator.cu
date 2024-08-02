@@ -31,20 +31,20 @@ void CurrentCalculator::calculateCurrent(
 __global__ void calculateCurrentOfOneSpecies_kernel(
     CurrentField* current,
     const Particle* particlesSpecies, 
-    const float q, const unsigned long long existNumSpecies
+    const double q, const unsigned long long existNumSpecies
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
     
-        float cx1, cx2; 
+        double cx1, cx2; 
         int xIndex1, xIndex2;
-        float xOverDx;
-        float cy1, cy2; 
+        double xOverDx;
+        double cy1, cy2; 
         int yIndex1, yIndex2;
-        float yOverDy;
-        float qOverGamma, qVxOverGamma, qVyOverGamma, qVzOverGamma;
+        double yOverDy;
+        double qOverGamma, qVxOverGamma, qVyOverGamma, qVzOverGamma;
 
         xOverDx = particlesSpecies[i].x / device_dx_PIC;
         yOverDy = particlesSpecies[i].y / device_dy_PIC;
@@ -57,9 +57,9 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
         yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         qOverGamma = q / particlesSpecies[i].gamma;
         qVxOverGamma = qOverGamma * particlesSpecies[i].vx;
@@ -87,7 +87,7 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
 void CurrentCalculator::calculateCurrentOfOneSpecies(
     thrust::device_vector<CurrentField>& current, 
     const thrust::device_vector<Particle>& particlesSpecies, 
-    float q, int existNumSpecies
+    double q, int existNumSpecies
 )
 {
     dim3 threadsPerBlock(256);

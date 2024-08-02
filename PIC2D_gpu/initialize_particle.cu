@@ -18,7 +18,7 @@ __global__ void uniformForPositionX_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        float x = curand_uniform(&state) * (device_xmax_PIC - device_xmin_PIC) + device_xmin_PIC;
+        double x = curand_uniform(&state) * (device_xmax_PIC - device_xmin_PIC) + device_xmin_PIC;
         particle[i + nStart].x = x;
         particle[i + nStart].isExist = true;
     }
@@ -53,7 +53,7 @@ __global__ void uniformForPositionY_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        float y = curand_uniform(&state) * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
+        double y = curand_uniform(&state) * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
         particle[i + nStart].y = y;
         particle[i + nStart].isExist = true;
     }
@@ -80,7 +80,7 @@ void InitializeParticle::uniformForPositionY(
 
 __global__ void uniformForPositionYDetail_kernel(
     Particle* particle, 
-    const unsigned long long nStart, const unsigned long long nEnd, const int seed, const float ymin, const float ymax
+    const unsigned long long nStart, const unsigned long long nEnd, const int seed, const double ymin, const double ymax
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -88,7 +88,7 @@ __global__ void uniformForPositionYDetail_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        float y = curand_uniform(&state) * (ymax - ymin) + ymin;
+        double y = curand_uniform(&state) * (ymax - ymin) + ymin;
         particle[i + nStart].y = y;
         particle[i + nStart].isExist = true;
     }
@@ -98,8 +98,8 @@ void InitializeParticle::uniformForPositionYDetail(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
-    float ymin, 
-    float ymax, 
+    double ymin, 
+    double ymax, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -117,8 +117,8 @@ void InitializeParticle::uniformForPositionYDetail(
 
 __global__ void maxwellDistributionForVelocity_kernel(
     Particle* particle, 
-    const float bulkVxSpecies, const float bulkVySpecies, const float bulkVzSpecies, 
-    const float vxThSpecies, const float vyThSpecies, const float vzThSpecies, 
+    const double bulkVxSpecies, const double bulkVySpecies, const double bulkVzSpecies, 
+    const double vxThSpecies, const double vyThSpecies, const double vzThSpecies, 
     const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
@@ -132,7 +132,7 @@ __global__ void maxwellDistributionForVelocity_kernel(
         curand_init(seed + 1000000, 100 * i, 0, &stateVy);
         curand_init(seed + 2000000, 100 * i, 0, &stateVz);
 
-        float vx, vy, vz;
+        double vx, vy, vz;
 
         while (true) {
             vx = bulkVxSpecies + curand_normal(&stateVx) * vxThSpecies;
@@ -145,19 +145,19 @@ __global__ void maxwellDistributionForVelocity_kernel(
         particle[i + nStart].vx = vx;
         particle[i + nStart].vy = vy;
         particle[i + nStart].vz = vz;
-        particle[i + nStart].gamma = sqrt(1.0f + (vx * vx + vy * vy + vz * vz) / (device_c_PIC * device_c_PIC));
+        particle[i + nStart].gamma = sqrt(1.0 + (vx * vx + vy * vy + vz * vz) / (device_c_PIC * device_c_PIC));
         particle[i + nStart].isExist = true;
     }
 }
 
 
 void InitializeParticle::maxwellDistributionForVelocity(
-    float bulkVxSpecies, 
-    float bulkVySpecies, 
-    float bulkVzSpecies, 
-    float vxThSpecies, 
-    float vyThSpecies, 
-    float vzThSpecies, 
+    double bulkVxSpecies, 
+    double bulkVySpecies, 
+    double bulkVzSpecies, 
+    double vxThSpecies, 
+    double vyThSpecies, 
+    double vzThSpecies, 
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
@@ -179,7 +179,7 @@ void InitializeParticle::maxwellDistributionForVelocity(
 
 
 __global__ void harrisForPositionY_kernel(
-    Particle* particle, float sheatThickness, 
+    Particle* particle, double sheatThickness, 
     const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
@@ -188,13 +188,13 @@ __global__ void harrisForPositionY_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, 10 * i, 0, &state);
-        float yCenter = 0.5f * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
+        double yCenter = 0.5 * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
 
-        float randomValue;
-        float y;
+        double randomValue;
+        double y;
         while (true) {
             randomValue = curand_uniform(&state);
-            y = yCenter + sheatThickness * atanh(2.0f * randomValue - 1.0f);
+            y = yCenter + sheatThickness * atanh(2.0 * randomValue - 1.0);
 
             if (device_ymin_PIC < y && y < device_ymax_PIC) break;
         }
@@ -208,7 +208,7 @@ void InitializeParticle::harrisForPositionY(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
-    float sheatThickness, 
+    double sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -225,7 +225,7 @@ void InitializeParticle::harrisForPositionY(
 
 
 __global__ void harrisBackgroundForPositionY_kernel(
-    Particle* particle, float sheatThickness, 
+    Particle* particle, double sheatThickness, 
     const unsigned long long nStart, const unsigned long long nEnd, const int seed
 )
 {
@@ -234,15 +234,15 @@ __global__ void harrisBackgroundForPositionY_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, 10 * i, 0, &state);
-        float yCenter = 0.5f * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
+        double yCenter = 0.5 * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
 
-        float randomValue;
-        float y;
+        double randomValue;
+        double y;
         while (true) {
             randomValue = curand_uniform(&state);
             y = randomValue * (device_ymax_PIC - device_ymin_PIC);
 
-            if (randomValue < (1.0f - 1.0f / cosh((y - yCenter) / sheatThickness))) break;
+            if (randomValue < (1.0 - 1.0 / cosh((y - yCenter) / sheatThickness))) break;
         } 
         
         particle[i + nStart].y = y;
@@ -254,7 +254,7 @@ void InitializeParticle::harrisBackgroundForPositionY(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
-    float sheatThickness, 
+    double sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {

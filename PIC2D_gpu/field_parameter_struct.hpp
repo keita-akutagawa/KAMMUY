@@ -3,19 +3,19 @@
 
 struct MagneticField
 {
-    float bX; 
-    float bY; 
-    float bZ; 
+    double bX; 
+    double bY; 
+    double bZ; 
 
     __host__ __device__
     MagneticField() : 
-        bX(0.0f),
-        bY(0.0f),
-        bZ(0.0f)
+        bX(0.0),
+        bY(0.0),
+        bZ(0.0)
         {}
     
     __host__ __device__
-    MagneticField(float x, float y, float z) :
+    MagneticField(double x, double y, double z) :
         bX(x),
         bY(y),
         bZ(z)
@@ -31,19 +31,19 @@ struct MagneticField
 
 struct ElectricField
 {
-    float eX; 
-    float eY; 
-    float eZ; 
+    double eX; 
+    double eY; 
+    double eZ; 
 
     __host__ __device__
     ElectricField() : 
-        eX(0.0f),
-        eY(0.0f),
-        eZ(0.0f)
+        eX(0.0),
+        eY(0.0),
+        eZ(0.0)
         {}
     
     __host__ __device__
-    ElectricField(float x, float y, float z) :
+    ElectricField(double x, double y, double z) :
         eX(x),
         eY(y),
         eZ(z)
@@ -59,19 +59,19 @@ struct ElectricField
 
 struct CurrentField
 {
-    float jX; 
-    float jY; 
-    float jZ; 
+    double jX; 
+    double jY; 
+    double jZ; 
 
     __host__ __device__
     CurrentField() : 
-        jX(0.0f),
-        jY(0.0f),
-        jZ(0.0f)
+        jX(0.0),
+        jY(0.0),
+        jZ(0.0)
         {}
     
     __host__ __device__
-    CurrentField(float x, float y, float z) :
+    CurrentField(double x, double y, double z) :
         jX(x),
         jY(y),
         jZ(z)
@@ -87,15 +87,15 @@ struct CurrentField
 
 struct RhoField
 {
-    float rho; 
+    double rho; 
 
     __host__ __device__
     RhoField() : 
-        rho(0.0f)
+        rho(0.0)
         {}
     
     __host__ __device__
-    RhoField(float x) :
+    RhoField(double x) :
         rho(x)
     {}
 
@@ -109,11 +109,11 @@ struct RhoField
 
 struct FilterField
 {
-    float F;
+    double F;
 
     __host__ __device__
     FilterField() : 
-        F(0.0f)
+        F(0.0)
         {}
 };
 

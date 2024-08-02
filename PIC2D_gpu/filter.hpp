@@ -18,7 +18,7 @@ public:
         thrust::device_vector<ElectricField>& E, 
         const thrust::device_vector<Particle>& particlesIon, 
         const thrust::device_vector<Particle>& particlesElectron, 
-        const float dt
+        const double dt
     );
 
 private:
@@ -31,7 +31,7 @@ private:
 
     void calculateRhoOfOneSpecies(
         const thrust::device_vector<Particle>& particlesSpecies, 
-        float q, int existNumSpecies
+        double q, int existNumSpecies
     );
 };
 

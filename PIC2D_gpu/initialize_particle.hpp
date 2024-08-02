@@ -27,18 +27,18 @@ public:
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
-        float ymin, 
-        float ymax, 
+        double ymin, 
+        double ymax, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
     void maxwellDistributionForVelocity(
-        float bulkVxSpecies, 
-        float bulkVySpecies, 
-        float bulkVzSpecies, 
-        float vxThSpecies, 
-        float vyThSpecies, 
-        float vzThSpecies, 
+        double bulkVxSpecies, 
+        double bulkVySpecies, 
+        double bulkVzSpecies, 
+        double vxThSpecies, 
+        double vyThSpecies, 
+        double vzThSpecies, 
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
@@ -49,7 +49,7 @@ public:
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
-        float sheatThickness, 
+        double sheatThickness, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
@@ -57,7 +57,7 @@ public:
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
-        float sheatThickness, 
+        double sheatThickness, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 

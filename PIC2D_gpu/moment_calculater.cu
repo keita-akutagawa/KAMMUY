@@ -51,12 +51,12 @@ struct CalculateZerothMomentOfOneSpeciesFunctor {
 
     __device__
     void operator()(const unsigned long long& i) const {
-        float cx1, cx2; 
+        double cx1, cx2; 
         unsigned long long xIndex1, xIndex2;
-        float xOverDx;
-        float cy1, cy2; 
+        double xOverDx;
+        double cy1, cy2; 
         unsigned long long yIndex1, yIndex2;
-        float yOverDy;
+        double yOverDy;
 
         xOverDx = particlesSpecies[i].x / device_dx_PIC;
         yOverDy = particlesSpecies[i].y / device_dy_PIC;
@@ -69,9 +69,9 @@ struct CalculateZerothMomentOfOneSpeciesFunctor {
         yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         atomicAdd(&(zerothMomentOfOneSpecies[yIndex1 + device_ny_PIC * xIndex1].n), cx2 * cy2);
         atomicAdd(&(zerothMomentOfOneSpecies[yIndex2 + device_ny_PIC * xIndex1].n), cx2 * cy1);
@@ -111,13 +111,13 @@ struct CalculateFirstMomentOfOneSpeciesFunctor {
 
     __device__
     void operator()(const unsigned long long& i) const {
-        float cx1, cx2; 
+        double cx1, cx2; 
         unsigned long long xIndex1, xIndex2;
-        float xOverDx;
-        float cy1, cy2; 
+        double xOverDx;
+        double cy1, cy2; 
         unsigned long long yIndex1, yIndex2;
-        float yOverDy;
-        float vx, vy, vz;
+        double yOverDy;
+        double vx, vy, vz;
 
         xOverDx = particlesSpecies[i].x / device_dx_PIC;
         yOverDy = particlesSpecies[i].y / device_dy_PIC;
@@ -130,9 +130,9 @@ struct CalculateFirstMomentOfOneSpeciesFunctor {
         yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         vx = particlesSpecies[i].vx;
         vy = particlesSpecies[i].vy;
@@ -186,13 +186,13 @@ struct CalculateSecondMomentOfOneSpeciesFunctor {
 
     __device__
     void operator()(const unsigned long long& i) const {
-        float cx1, cx2; 
+        double cx1, cx2; 
         int xIndex1, xIndex2;
-        float xOverDx;
-        float cy1, cy2; 
+        double xOverDx;
+        double cy1, cy2; 
         int yIndex1, yIndex2;
-        float yOverDy;
-        float vx, vy, vz;
+        double yOverDy;
+        double vx, vy, vz;
 
         xOverDx = particlesSpecies[i].x / device_dx_PIC;
         yOverDy = particlesSpecies[i].y / device_dy_PIC;
@@ -205,9 +205,9 @@ struct CalculateSecondMomentOfOneSpeciesFunctor {
         yIndex2 = (yIndex2 == device_ny_PIC) ? 0 : yIndex2;
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         vx = particlesSpecies[i].vx;
         vy = particlesSpecies[i].vy;

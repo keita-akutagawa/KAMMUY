@@ -4,7 +4,7 @@
 using namespace PIC2DConst;
 
 __global__ void timeEvolutionB_kernel(
-    MagneticField* B, const ElectricField* E, const float dt
+    MagneticField* B, const ElectricField* E, const double dt
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -42,7 +42,7 @@ __global__ void timeEvolutionB_kernel(
 void FieldSolver::timeEvolutionB(
     thrust::device_vector<MagneticField>& B, 
     const thrust::device_vector<ElectricField>& E, 
-    const float dt
+    const double dt
 )
 {
     dim3 threadsPerBlock(16, 16);
@@ -61,7 +61,7 @@ void FieldSolver::timeEvolutionB(
 
 
 __global__ void timeEvolutionE_kernel(
-    ElectricField* E, const MagneticField* B, const CurrentField* current, const float dt
+    ElectricField* E, const MagneticField* B, const CurrentField* current, const double dt
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -112,7 +112,7 @@ void FieldSolver::timeEvolutionE(
     thrust::device_vector<ElectricField>& E, 
     const thrust::device_vector<MagneticField>& B, 
     const thrust::device_vector<CurrentField>& current, 
-    const float dt
+    const double dt
 )
 {
     dim3 threadsPerBlock(16, 16);

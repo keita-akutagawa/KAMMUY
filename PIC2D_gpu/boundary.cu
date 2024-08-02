@@ -14,13 +14,13 @@ __global__ void conductingWallBoundaryParticleX_kernel(
 
     if (i < existNumSpecies) {
         if (particlesSpecies[i].x <= device_xmin_PIC) {
-            particlesSpecies[i].x = 2.0f * device_xmin_PIC - particlesSpecies[i].x + device_EPS_PIC;
-            particlesSpecies[i].vx = -1.0f * particlesSpecies[i].vx;
+            particlesSpecies[i].x = 2.0 * device_xmin_PIC - particlesSpecies[i].x + device_EPS_PIC;
+            particlesSpecies[i].vx = -1.0 * particlesSpecies[i].vx;
         }
 
         if (particlesSpecies[i].x >= device_xmax_PIC) {
-            particlesSpecies[i].x = 2.0f * device_xmax_PIC - particlesSpecies[i].x - device_EPS_PIC;
-            particlesSpecies[i].vx = -1.0f * particlesSpecies[i].vx;
+            particlesSpecies[i].x = 2.0 * device_xmax_PIC - particlesSpecies[i].x - device_EPS_PIC;
+            particlesSpecies[i].vx = -1.0 * particlesSpecies[i].vx;
         }
     }
 }
@@ -58,13 +58,13 @@ __global__ void conductingWallBoundaryParticleY_kernel(
 
     if (i < existNumSpecies) {
         if (particlesSpecies[i].y <= device_ymin_PIC) {
-            particlesSpecies[i].y = 2.0f * device_ymin_PIC - particlesSpecies[i].y + device_EPS_PIC;
-            particlesSpecies[i].vy = -1.0f * particlesSpecies[i].vy;
+            particlesSpecies[i].y = 2.0 * device_ymin_PIC - particlesSpecies[i].y + device_EPS_PIC;
+            particlesSpecies[i].vy = -1.0 * particlesSpecies[i].vy;
         }
 
         if (particlesSpecies[i].y >= device_ymax_PIC) {
-            particlesSpecies[i].y = 2.0f * device_ymax_PIC - particlesSpecies[i].y - device_EPS_PIC;
-            particlesSpecies[i].vy = -1.0f * particlesSpecies[i].vy;
+            particlesSpecies[i].y = 2.0 * device_ymax_PIC - particlesSpecies[i].y - device_EPS_PIC;
+            particlesSpecies[i].vy = -1.0 * particlesSpecies[i].vy;
         }
     }
 }
@@ -198,12 +198,12 @@ __global__ void symmetricBoundaryBX_kernel(
 
     if (j < device_ny_PIC) {
         B[j + device_ny_PIC * 0].bX = B[j + device_ny_PIC * 1].bX;
-        B[j + device_ny_PIC * 0].bY = 0.0f;
+        B[j + device_ny_PIC * 0].bY = 0.0;
         B[j + device_ny_PIC * 0].bZ = B[j + device_ny_PIC * 1].bZ;
 
         B[j + device_ny_PIC * (device_nx_PIC - 1)].bX = B[j + device_ny_PIC * (device_nx_PIC - 2)].bX;
-        B[j + device_ny_PIC * (device_nx_PIC - 2)].bY = 0.0f;
-        B[j + device_ny_PIC * (device_nx_PIC - 1)].bY = 0.0f;
+        B[j + device_ny_PIC * (device_nx_PIC - 2)].bY = 0.0;
+        B[j + device_ny_PIC * (device_nx_PIC - 1)].bY = 0.0;
         B[j + device_ny_PIC * (device_nx_PIC - 2)].bZ = B[j + device_ny_PIC * (device_nx_PIC - 3)].bZ;
         B[j + device_ny_PIC * (device_nx_PIC - 1)].bZ = B[j + device_ny_PIC * (device_nx_PIC - 2)].bZ;
     }
@@ -241,13 +241,13 @@ __global__ void conductingWallBoundaryBY_kernel(
 
     if (i < device_nx_PIC) {
         B[0 + device_ny_PIC * i].bX = B[1 + device_ny_PIC * i].bX;
-        B[1 + device_ny_PIC * i].bY = 0.0f;
-        B[0 + device_ny_PIC * i].bY = 0.0f;
+        B[1 + device_ny_PIC * i].bY = 0.0;
+        B[0 + device_ny_PIC * i].bY = 0.0;
         B[0 + device_ny_PIC * i].bZ = B[1 + device_ny_PIC * i].bZ;
 
         B[device_ny_PIC - 2 + device_ny_PIC * i].bX = B[device_ny_PIC - 3 + device_ny_PIC * i].bX;
         B[device_ny_PIC - 1 + device_ny_PIC * i].bX = B[device_ny_PIC - 2 + device_ny_PIC * i].bX;
-        B[device_ny_PIC - 1 + device_ny_PIC * i].bY = -1.0f * B[device_ny_PIC - 2 + device_ny_PIC * i].bY;
+        B[device_ny_PIC - 1 + device_ny_PIC * i].bY = -1.0 * B[device_ny_PIC - 2 + device_ny_PIC * i].bY;
         B[device_ny_PIC - 2 + device_ny_PIC * i].bZ = B[device_ny_PIC - 3 + device_ny_PIC * i].bZ;
         B[device_ny_PIC - 1 + device_ny_PIC * i].bZ = B[device_ny_PIC - 2 + device_ny_PIC * i].bZ;
     }
@@ -336,12 +336,12 @@ __global__ void symmetricBoundaryEX_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (j < device_ny_PIC) {
-        E[j + device_ny_PIC * 0].eX = 0.0f;
+        E[j + device_ny_PIC * 0].eX = 0.0;
         E[j + device_ny_PIC * 0].eY = E[j + device_ny_PIC * 1].eY;
         E[j + device_ny_PIC * 0].eZ = E[j + device_ny_PIC * 1].eZ;
 
-        E[j + device_ny_PIC * (device_nx_PIC - 1)].eX = 0.0f;
-        E[j + device_ny_PIC * (device_nx_PIC - 2)].eX = 0.0f;
+        E[j + device_ny_PIC * (device_nx_PIC - 1)].eX = 0.0;
+        E[j + device_ny_PIC * (device_nx_PIC - 2)].eX = 0.0;
         E[j + device_ny_PIC * (device_nx_PIC - 1)].eY = E[j + device_ny_PIC * (device_nx_PIC - 2)].eY;
         E[j + device_ny_PIC * (device_nx_PIC - 1)].eZ = E[j + device_ny_PIC * (device_nx_PIC - 2)].eZ;
     }
@@ -379,16 +379,16 @@ __global__ void conductingWallBoundaryEY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        E[0 + device_ny_PIC * i].eX = 0.0f;
-        E[1 + device_ny_PIC * i].eX = 0.0f;
-        E[0 + device_ny_PIC * i].eY = -1.0f * E[1 + device_ny_PIC * i].eY;
-        E[0 + device_ny_PIC * i].eZ = 0.0f;
-        E[1 + device_ny_PIC * i].eZ = 0.0f;
+        E[0 + device_ny_PIC * i].eX = 0.0;
+        E[1 + device_ny_PIC * i].eX = 0.0;
+        E[0 + device_ny_PIC * i].eY = -1.0 * E[1 + device_ny_PIC * i].eY;
+        E[0 + device_ny_PIC * i].eZ = 0.0;
+        E[1 + device_ny_PIC * i].eZ = 0.0;
 
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0f;
-        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0f;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0;
+        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
     }
 }
 
@@ -424,16 +424,16 @@ __global__ void freeBoundaryEY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        E[0 + device_ny_PIC * i].eX = 0.0f;
-        E[1 + device_ny_PIC * i].eX = 0.0f;
-        E[0 + device_ny_PIC * i].eY = -1.0f * E[1 + device_ny_PIC * i].eY;
-        E[0 + device_ny_PIC * i].eZ = 0.0f;
-        E[1 + device_ny_PIC * i].eZ = 0.0f;
+        E[0 + device_ny_PIC * i].eX = 0.0;
+        E[1 + device_ny_PIC * i].eX = 0.0;
+        E[0 + device_ny_PIC * i].eY = -1.0 * E[1 + device_ny_PIC * i].eY;
+        E[0 + device_ny_PIC * i].eZ = 0.0;
+        E[1 + device_ny_PIC * i].eZ = 0.0;
 
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0f;
-        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0f;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0f * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0;
+        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0;
+        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
     }
 }
 
@@ -477,10 +477,10 @@ __global__ void symmetricBoundaryCurrentX_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (j < device_ny_PIC) {
-        current[j + device_ny_PIC * 0].jX = 0.0f;
+        current[j + device_ny_PIC * 0].jX = 0.0;
         current[j + device_ny_PIC * 0].jY = current[j + device_ny_PIC * 1].jY;
         current[j + device_ny_PIC * 0].jZ = current[j + device_ny_PIC * 1].jZ;
-        current[j + device_ny_PIC * (device_nx_PIC - 1)].jX = 0.0f;
+        current[j + device_ny_PIC * (device_nx_PIC - 1)].jX = 0.0;
         current[j + device_ny_PIC * (device_nx_PIC - 1)].jY = current[j + device_ny_PIC * (device_nx_PIC - 2)].jY;
         current[j + device_ny_PIC * (device_nx_PIC - 1)].jZ = current[j + device_ny_PIC * (device_nx_PIC - 2)].jZ;
     }
@@ -518,17 +518,17 @@ __global__ void conductingWallBoundaryCurrentY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        current[0 + device_ny_PIC * i].jX = 0.0f;
-        current[1 + device_ny_PIC * i].jX = 0.0f;
-        current[0 + device_ny_PIC * i].jY = 0.0f;
-        current[0 + device_ny_PIC * i].jZ = 0.0f;
-        current[1 + device_ny_PIC * i].jZ = 0.0f;
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jX = 0.0f;
-        current[device_ny_PIC - 2 + device_ny_PIC * i].jX = 0.0f;
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jY = 0.0f;
-        current[device_ny_PIC - 2 + device_ny_PIC * i].jY = 0.0f;
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jZ = 0.0f;
-        current[device_ny_PIC - 2 + device_ny_PIC * i].jZ = 0.0f;
+        current[0 + device_ny_PIC * i].jX = 0.0;
+        current[1 + device_ny_PIC * i].jX = 0.0;
+        current[0 + device_ny_PIC * i].jY = 0.0;
+        current[0 + device_ny_PIC * i].jZ = 0.0;
+        current[1 + device_ny_PIC * i].jZ = 0.0;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jX = 0.0;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jX = 0.0;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jY = 0.0;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jY = 0.0;
+        current[device_ny_PIC - 1 + device_ny_PIC * i].jZ = 0.0;
+        current[device_ny_PIC - 2 + device_ny_PIC * i].jZ = 0.0;
     }
 }
 

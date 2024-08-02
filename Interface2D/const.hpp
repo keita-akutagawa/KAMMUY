@@ -4,7 +4,7 @@
 
 namespace Interface2DConst
 {
-    extern const float PI;
+    extern const double PI;
 
     extern const int windowSizeForRemoveNoiseByConvolution;
 
@@ -12,7 +12,7 @@ namespace Interface2DConst
     extern const unsigned long long reloadParticlesTotalNumElectron;
 
 
-    extern __constant__ float device_PI;
+    extern __constant__ double device_PI;
 
     extern __constant__ int device_windowSizeForRemoveNoiseByConvolution;
 

@@ -4,11 +4,11 @@
 #include "reload_particles_data_struct.hpp"
 #include "../IdealMHD2D_gpu/const.hpp"
 #include "../IdealMHD2D_gpu/conservation_parameter_struct.hpp"
-#include "../PIC2D_gpu_single/const.hpp"
-#include "../PIC2D_gpu_single/field_parameter_struct.hpp"
-#include "../PIC2D_gpu_single/moment_struct.hpp"
-#include "../PIC2D_gpu_single/particle_struct.hpp"
-#include "../PIC2D_gpu_single/moment_calculater.hpp"
+#include "../PIC2D_gpu/const.hpp"
+#include "../PIC2D_gpu/field_parameter_struct.hpp"
+#include "../PIC2D_gpu/moment_struct.hpp"
+#include "../PIC2D_gpu/particle_struct.hpp"
+#include "../PIC2D_gpu/moment_calculater.hpp"
 
 
 class Interface2D
@@ -20,11 +20,11 @@ private:
     int indexOfInterfaceEndInMHD;
     int indexOfInterfaceEndInPIC;
 
-    thrust::device_vector<float> interlockingFunctionY;
-    thrust::device_vector<float> interlockingFunctionYHalf;
+    thrust::device_vector<double> interlockingFunctionY;
+    thrust::device_vector<double> interlockingFunctionYHalf;
 
-    thrust::host_vector<float> host_interlockingFunctionY;
-    thrust::host_vector<float> host_interlockingFunctionYHalf;
+    thrust::host_vector<double> host_interlockingFunctionY;
+    thrust::host_vector<double> host_interlockingFunctionYHalf;
 
     thrust::device_vector<ZerothMoment> zerothMomentIon;
     thrust::device_vector<ZerothMoment> zerothMomentElectron;
@@ -101,7 +101,7 @@ public:
     thrust::device_vector<ConservationParameter>& calculateAndGetSubU(
         const thrust::device_vector<ConservationParameter>& UPast, 
         const thrust::device_vector<ConservationParameter>& UNext, 
-        float mixingRatio
+        double mixingRatio
     );
 
     void resetTimeAveParameters();

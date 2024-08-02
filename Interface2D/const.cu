@@ -6,7 +6,7 @@ using namespace Interface2DConst;
 
 void initializeDeviceConstants_Interface()
 {
-    cudaMemcpyToSymbol(device_PI, &PI, sizeof(float));
+    cudaMemcpyToSymbol(device_PI, &PI, sizeof(double));
 
     cudaMemcpyToSymbol(device_windowSizeForRemoveNoiseByConvolution, &windowSizeForRemoveNoiseByConvolution, sizeof(int));
 
