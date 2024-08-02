@@ -144,8 +144,8 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
         float bXMHD, bYMHD, bZMHD;
         float bXInterface, bYInterface, bZInterface;
 
-        int indexPIC = indexOfInterfaceStartInPIC +  j + i * PIC2DConst::device_ny_PIC;
-        int indexMHD = indexOfInterfaceStartInMHD +  j + i * IdealMHD2DConst::device_ny_MHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
 
         //PICのグリッドにMHDを合わせる
         bXPIC = B[indexPIC].bX;
@@ -201,7 +201,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j &&  j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
         float eXPIC, eYPIC, eZPIC;
         float eXMHD, eYMHD, eZMHD;
         float eXPlusX1MHD;

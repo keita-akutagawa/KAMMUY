@@ -122,33 +122,8 @@ int main()
     idealMHD2D.initializeU();
     pIC2D.initialize();
 
-    const int substeps = int(round(sqrt(PIC2DConst::mRatio_PIC)));
+    const int substeps = 1;int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
-        std::cout << step << std::endl;
-        if (step % recordStep == 0) {
-            std::cout << std::to_string(step) << " step done : total time is "
-                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
-                      << " [Omega_ci * t]"
-                      << std::endl;
-            logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
-            pIC2D.saveFields(
-                directoryname, filenameWithoutStep, step
-            );
-            pIC2D.saveZerothMoments(
-                directoryname, filenameWithoutStep, step
-            );
-            pIC2D.saveFirstMoments(
-                directoryname, filenameWithoutStep, step
-            );
-            idealMHD2D.save(
-                directoryname, filenameWithoutStep, step
-            );
-        }
-        if (isParticleRecord && step % particleRecordStep == 0) {
-            pIC2D.saveParticle(
-                directoryname, filenameWithoutStep, step
-            );
-        }
         
 
         idealMHD2D.setPastU();
@@ -179,6 +154,31 @@ int main()
         }
 
         interface2D.calculateTimeAveParameters(substeps);
+
+        if (step % recordStep == 0) {
+            std::cout << std::to_string(step) << " step done : total time is "
+                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
+                      << " [Omega_ci * t]"
+                      << std::endl;
+            logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
+            pIC2D.saveFields(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveZerothMoments(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveFirstMoments(
+                directoryname, filenameWithoutStep, step
+            );
+            idealMHD2D.save(
+                directoryname, filenameWithoutStep, step
+            );
+        }
+        if (isParticleRecord && step % particleRecordStep == 0) {
+            pIC2D.saveParticle(
+                directoryname, filenameWithoutStep, step
+            );
+        }
         
 
         interface2D.sendPICtoMHD(UPast, UNext);
