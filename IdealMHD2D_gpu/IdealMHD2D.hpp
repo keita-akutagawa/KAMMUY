@@ -52,6 +52,8 @@ public:
 
     thrust::device_vector<ConservationParameter>& getURef();
 
+    thrust::device_vector<ConservationParameter>& getUPastRef();
+
 private:
     void shiftUToCenterForCT(
         thrust::device_vector<ConservationParameter>& U

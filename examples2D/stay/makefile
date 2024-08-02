@@ -27,4 +27,4 @@ run: $(EXECUTABLE)
 	./$(EXECUTABLE)
 
 clean:
-	rm -f $(OBJS) $(MAIN:.cu=.o) $(EXECUTABLE) $(ADITIONALFILES) $(DEPS)
+	rm -f $(OBJS) $(MAIN:.cu=.o) $(MAIN:.cu=.d) $(EXECUTABLE) $(ADITIONALFILES) $(DEPS)

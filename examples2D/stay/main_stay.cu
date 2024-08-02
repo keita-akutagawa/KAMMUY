@@ -120,38 +120,7 @@ int main()
     pIC2D.initialize();
 
     const int substeps = 1;int(round(sqrt(PIC2DConst::mRatio_PIC)));
-    for (int step = 0; step < IdealMHD2DConst::totalStep_MHD; step++) {
-        
-
-        idealMHD2D.setPastU();
-        thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getURef();
-        idealMHD2D.oneStepRK2_predictor();
-        thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
-
-        
-        PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
-        interface2D.resetTimeAveParameters();
-        for (int substep = 0; substep < substeps + 1; substep++) {
-            pIC2D.oneStepWallXFreeY();
-
-            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-            thrust::device_vector<ElectricField>& E = pIC2D.getERef();
-            thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
-            thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
-            thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
-
-            double mixingRatio = (substeps - substep) / substeps;
-            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
-            
-            interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
-            interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
-            interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
-            interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
-            interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
-        }
-
-        interface2D.calculateTimeAveParameters(substeps);
-
+    for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
         if (step % recordStep == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
                       << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
@@ -178,17 +147,47 @@ int main()
         }
         
 
+        idealMHD2D.setPastU();
+        thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
+        idealMHD2D.oneStepRK2_predictor();
+        thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
+
+        
+        PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
+        interface2D.resetTimeAveParameters();
+        for (int substep = 0; substep < substeps; substep++) {
+            pIC2D.oneStepWallXFreeY();
+
+            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+            thrust::device_vector<ElectricField>& E = pIC2D.getERef();
+            thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
+            thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
+            thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
+
+            double mixingRatio = (substeps - substep) / substeps;
+            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
+            
+            interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
+            interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
+            interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
+            interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
+            interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
+        }
+
+        interface2D.calculateTimeAveParameters(substeps);
+        
+
         interface2D.sendPICtoMHD(UPast, UNext);
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
 
         idealMHD2D.oneStepRK2_corrector(UHalf);
 
+
         if (idealMHD2D.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
             return 0;
         }
-
 
         IdealMHD2DConst::totalTime_MHD += IdealMHD2DConst::dt_MHD;
     }

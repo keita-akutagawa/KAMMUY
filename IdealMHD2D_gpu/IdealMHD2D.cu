@@ -475,3 +475,9 @@ thrust::device_vector<ConservationParameter>& IdealMHD2D::getURef()
     return U;
 }
 
+
+thrust::device_vector<ConservationParameter>& IdealMHD2D::getUPastRef()
+{
+    return UPast;
+}
+

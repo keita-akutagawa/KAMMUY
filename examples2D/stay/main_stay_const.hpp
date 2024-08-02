@@ -29,17 +29,17 @@ const int recordStep = 1;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
-double PIC2DConst::totalTime_PIC = 0.0f;
+double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
 const int PIC2DConst::nx_PIC = 100;
-const double PIC2DConst::dx_PIC = 1.0f;
-const double PIC2DConst::xmin_PIC = 0.0f; 
+const double PIC2DConst::dx_PIC = 1.0;
+const double PIC2DConst::xmin_PIC = 0.0; 
 const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC;
 
 const int PIC2DConst::ny_PIC = 200;
-const double PIC2DConst::dy_PIC = 1.0f;
-const double PIC2DConst::ymin_PIC = 0.0f; 
+const double PIC2DConst::dy_PIC = 1.0;
+const double PIC2DConst::ymin_PIC = 0.0; 
 const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC;
 
 const int IdealMHD2DConst::nx_MHD = PIC2DConst::nx_PIC;
