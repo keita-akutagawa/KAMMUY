@@ -139,7 +139,7 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         double bXPIC, bYPIC, bZPIC;
         double bXMHD, bYMHD, bZMHD;
         double bXInterface, bYInterface, bZInterface;
@@ -201,7 +201,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         double eXPIC, eYPIC, eZPIC;
         double eXMHD, eYMHD, eZMHD;
         double eXPlusX1MHD;
@@ -294,7 +294,7 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         double jXPIC, jYPIC, jZPIC;
         double jXMHD, jYMHD, jZMHD;
         double jXPlusX1MHD; 
@@ -379,7 +379,7 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -801,7 +801,7 @@ __global__ void sendPICtoMHD_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
