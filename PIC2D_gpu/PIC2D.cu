@@ -327,7 +327,7 @@ void PIC2D::saveFields(
                      + host_E[j + ny_PIC * i].eZ * host_E[j + ny_PIC * i].eZ;
         }
     }
-    EEnergy *= 0.5f * epsilon0_PIC;
+    EEnergy *= 0.5 * epsilon0_PIC;
 
     std::ofstream ofsCurrent(filenameCurrent, std::ios::binary);
     ofsCurrent << std::fixed << std::setprecision(6);

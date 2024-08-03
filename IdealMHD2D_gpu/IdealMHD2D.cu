@@ -156,7 +156,7 @@ void IdealMHD2D::oneStepRK2_predictor()
     );
     thrust::copy(U.begin(), U.end(), UBar.begin());
 
-    calculateDt();
+    //calculateDt();
 
     shiftUToCenterForCT(U);
     fluxF = fluxSolver.getFluxF(U);

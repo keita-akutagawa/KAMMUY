@@ -8,6 +8,8 @@
 #include "../../IdealMHD2D_gpu/IdealMHD2D.hpp"
 #include "../../PIC2D_gpu/PIC2D.hpp"
 #include "../../Interface2D/interface.hpp"
+#include "../../PIC2D_gpu/boundary.hpp"
+#include "../../IdealMHD2D_gpu/boundary.hpp"
 
 #include "../../IdealMHD2D_gpu/const.hpp"
 #include "../../PIC2D_gpu/const.hpp"
@@ -23,7 +25,7 @@ std::string directoryname = "results_stay";
 std::string filenameWithoutStep = "stay";
 std::ofstream logfile("results_stay/log_stay.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 100;
+const int IdealMHD2DConst::totalStep_MHD = 10;
 const int PIC2DConst::totalStep_PIC = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;

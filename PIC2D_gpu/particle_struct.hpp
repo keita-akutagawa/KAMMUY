@@ -15,13 +15,13 @@ struct Particle
 
     __host__ __device__
     Particle() : 
-        x(-1.0e10), 
-        y(-1.0e10), 
-        z(-1.0e10), 
-        vx(-1.0e10), 
-        vy(-1.0e10), 
-        vz(-1.0e10), 
-        gamma(-1.0e10), 
+        x(0.0), 
+        y(0.0), 
+        z(0.0), 
+        vx(0.0), 
+        vy(0.0), 
+        vz(0.0), 
+        gamma(0.0), 
         isExist(false)
         {}
     

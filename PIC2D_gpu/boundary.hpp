@@ -1,3 +1,7 @@
+#ifndef CONST_PIC_BOUNDARY_H
+#define CONST_PIC_BOUNDARY_H
+
+
 #include <thrust/device_vector.h>
 #include "const.hpp"
 #include "particle_struct.hpp"
@@ -100,4 +104,6 @@ private:
 
 };
 
+
+#endif
 

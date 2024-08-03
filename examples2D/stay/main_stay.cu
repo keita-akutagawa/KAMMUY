@@ -107,6 +107,8 @@ int main()
         indexOfInterfaceStartInPIC, 
         interfaceLength
     );
+    BoundaryPIC boundaryPIC;
+    BoundaryMHD boundaryMHD;
 
     size_t free_mem = 0;
     size_t total_mem = 0;
@@ -119,12 +121,62 @@ int main()
     idealMHD2D.initializeU();
     pIC2D.initialize();
 
-    const int substeps = 1;int(round(sqrt(PIC2DConst::mRatio_PIC)));
+    const int substeps = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
+        
+        idealMHD2D.calculateDt();
+        double dtCommon = min(IdealMHD2DConst::dt_MHD / substeps, 0.5 * PIC2DConst::c_PIC);
+        PIC2DConst::dt_PIC = dtCommon;
+        IdealMHD2DConst::dt_MHD = substeps * dtCommon;
+
+        idealMHD2D.setPastU();
+        thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
+        idealMHD2D.oneStepRK2_predictor();
+        thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
+
+        
+        interface2D.resetTimeAveParameters();
+        for (int substep = 0; substep < substeps; substep++) {
+            pIC2D.oneStepWallXFreeY();
+
+            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+            thrust::device_vector<ElectricField>& E = pIC2D.getERef();
+            thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
+            thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
+            thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
+
+            double mixingRatio = (substeps - substep) / substeps;
+            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
+            
+            interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
+            interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
+            interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
+            interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
+
+            boundaryPIC.symmetricBoundaryBX(B);
+            boundaryPIC.conductingWallBoundaryBY(B);
+            boundaryPIC.symmetricBoundaryEX(E);
+            boundaryPIC.conductingWallBoundaryEY(E);
+            boundaryPIC.symmetricBoundaryCurrentX(current);
+            boundaryPIC.conductingWallBoundaryCurrentY(current);
+
+            interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
+        }
+
+        interface2D.calculateTimeAveParameters(substeps);
+
+
+        interface2D.sendPICtoMHD(UPast, UNext);
+        thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
+        boundaryMHD.freeBoundaryX2nd(UHalf);
+        boundaryMHD.freeBoundaryY2nd(UHalf);
+
+        idealMHD2D.oneStepRK2_corrector(UHalf);
+
         if (step % recordStep == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
-                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaCi_PIC
-                      << " [Omega_ci * t]"
+                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
+                      << " [omega_pe * t]"
                       << std::endl;
             logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
             pIC2D.saveFields(
@@ -145,44 +197,6 @@ int main()
                 directoryname, filenameWithoutStep, step
             );
         }
-        
-
-        idealMHD2D.setPastU();
-        thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
-        idealMHD2D.oneStepRK2_predictor();
-        thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
-
-        
-        PIC2DConst::dt_PIC = IdealMHD2DConst::dt_MHD / substeps;
-        interface2D.resetTimeAveParameters();
-        for (int substep = 0; substep < substeps; substep++) {
-            pIC2D.oneStepWallXFreeY();
-
-            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-            thrust::device_vector<ElectricField>& E = pIC2D.getERef();
-            thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
-            thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
-            thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
-
-            double mixingRatio = (substeps - substep) / substeps;
-            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
-            
-            interface2D.sendMHDtoPIC_magneticField_yDirection(USub, B);
-            interface2D.sendMHDtoPIC_electricField_yDirection(USub, E);
-            interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
-            interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
-            interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
-        }
-
-        interface2D.calculateTimeAveParameters(substeps);
-        
-
-        interface2D.sendPICtoMHD(UPast, UNext);
-        thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
-
-
-        idealMHD2D.oneStepRK2_corrector(UHalf);
-
 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
