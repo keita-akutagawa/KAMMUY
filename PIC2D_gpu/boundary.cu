@@ -104,12 +104,10 @@ __global__ void openBoundaryParticleY_kernel(
     if (i < existNumSpecies) {
         if (particlesSpecies[i].y <= device_ymin_PIC) {
             particlesSpecies[i].isExist = false;
-            return;
         }
 
         if (particlesSpecies[i].y >= device_ymax_PIC) {
             particlesSpecies[i].isExist = false;
-            return;
         }
     }
 }
@@ -176,12 +174,6 @@ void BoundaryPIC::openBoundaryParticleY(
 
 //////////
 
-void BoundaryPIC::periodicBoundaryBX(
-    thrust::device_vector<MagneticField>& B
-)
-{
-    return;
-}
 
 void BoundaryPIC::conductingWallBoundaryBX(
     thrust::device_vector<MagneticField>& B
@@ -224,13 +216,6 @@ void BoundaryPIC::symmetricBoundaryBX(
     cudaDeviceSynchronize();
 }
 
-
-void BoundaryPIC::periodicBoundaryBY(
-    thrust::device_vector<MagneticField>& B
-)
-{
-    return;
-}
 
 
 __global__ void conductingWallBoundaryBY_kernel(
@@ -310,15 +295,8 @@ void BoundaryPIC::freeBoundaryBY(
     cudaDeviceSynchronize();
 }
 
-//////////
 
-
-void BoundaryPIC::periodicBoundaryEX(
-    thrust::device_vector<ElectricField>& E
-)
-{
-    return;
-}
+//////////////////////////////////////////////////
 
 
 void BoundaryPIC::conductingWallBoundaryEX(
@@ -361,14 +339,6 @@ void BoundaryPIC::symmetricBoundaryEX(
     );
 
     cudaDeviceSynchronize();
-}
-
-
-void BoundaryPIC::periodicBoundaryEY(
-    thrust::device_vector<ElectricField>& E
-)
-{
-    return;
 }
 
 
@@ -452,14 +422,8 @@ void BoundaryPIC::freeBoundaryEY(
     cudaDeviceSynchronize();
 }
 
-//////////
 
-void BoundaryPIC::periodicBoundaryCurrentX(
-    thrust::device_vector<CurrentField>& current
-)
-{
-    return;
-}
+//////////////////////////////////////////////////
 
 
 void BoundaryPIC::conductingWallBoundaryCurrentX(
@@ -500,14 +464,6 @@ void BoundaryPIC::symmetricBoundaryCurrentX(
     );
 
     cudaDeviceSynchronize();
-}
-
-
-void BoundaryPIC::periodicBoundaryCurrentY(
-    thrust::device_vector<CurrentField>& current
-)
-{
-    return;
 }
 
 

@@ -29,9 +29,6 @@ public:
     );
 
 
-    void periodicBoundaryBX(
-        thrust::device_vector<MagneticField>& B
-    );
     void conductingWallBoundaryBX(
         thrust::device_vector<MagneticField>& B
     );
@@ -39,9 +36,6 @@ public:
         thrust::device_vector<MagneticField>& B
     );
 
-    void periodicBoundaryBY(
-        thrust::device_vector<MagneticField>& B
-    );
     void conductingWallBoundaryBY(
         thrust::device_vector<MagneticField>& B
     );
@@ -53,9 +47,6 @@ public:
     );
 
 
-    void periodicBoundaryEX(
-        thrust::device_vector<ElectricField>& E
-    );
     void conductingWallBoundaryEX(
         thrust::device_vector<ElectricField>& E
     );
@@ -63,9 +54,6 @@ public:
         thrust::device_vector<ElectricField>& E
     );
 
-    void periodicBoundaryEY(
-        thrust::device_vector<ElectricField>& E
-    );
     void conductingWallBoundaryEY(
         thrust::device_vector<ElectricField>& E
     );
@@ -77,9 +65,6 @@ public:
     );
 
 
-    void periodicBoundaryCurrentX(
-        thrust::device_vector<CurrentField>& current
-    );
     void conductingWallBoundaryCurrentX(
         thrust::device_vector<CurrentField>& current
     );
@@ -87,9 +72,6 @@ public:
         thrust::device_vector<CurrentField>& current
     );
 
-    void periodicBoundaryCurrentY(
-        thrust::device_vector<CurrentField>& current
-    );
     void conductingWallBoundaryCurrentY(
         thrust::device_vector<CurrentField>& current
     );

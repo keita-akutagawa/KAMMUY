@@ -151,11 +151,13 @@ void freeBoundaryX2nd_kernel(ConservationParameter* U)
 {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     if (j < device_ny_MHD) {
-        U[j + 0 * device_ny_MHD] = U[j + 2 * device_ny_MHD];
-        U[j + 1 * device_ny_MHD] = U[j + 2 * device_ny_MHD];
+        U[j + 0 * device_ny_MHD] = U[j + 3 * device_ny_MHD];
+        U[j + 1 * device_ny_MHD] = U[j + 3 * device_ny_MHD];
+        U[j + 2 * device_ny_MHD] = U[j + 3 * device_ny_MHD];
 
-        U[j + (device_nx_MHD - 1) * device_ny_MHD] = U[j + (device_nx_MHD - 3) * device_ny_MHD];
-        U[j + (device_nx_MHD - 2) * device_ny_MHD] = U[j + (device_nx_MHD - 3) * device_ny_MHD];
+        U[j + (device_nx_MHD - 1) * device_ny_MHD] = U[j + (device_nx_MHD - 4) * device_ny_MHD];
+        U[j + (device_nx_MHD - 2) * device_ny_MHD] = U[j + (device_nx_MHD - 4) * device_ny_MHD];
+        U[j + (device_nx_MHD - 3) * device_ny_MHD] = U[j + (device_nx_MHD - 4) * device_ny_MHD];
     }
 }
 
@@ -177,11 +179,13 @@ void freeBoundaryY2nd_kernel(ConservationParameter* U)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_nx_MHD) {
-        U[0 + i * device_ny_MHD] = U[2 + i * device_ny_MHD];
-        U[1 + i * device_ny_MHD] = U[2 + i * device_ny_MHD];
+        U[0 + i * device_ny_MHD] = U[3 + i * device_ny_MHD];
+        U[1 + i * device_ny_MHD] = U[3 + i * device_ny_MHD];
+        U[2 + i * device_ny_MHD] = U[3 + i * device_ny_MHD];
 
-        U[device_ny_MHD - 1 + i * device_ny_MHD] = U[device_ny_MHD - 3 + i * device_ny_MHD];
-        U[device_ny_MHD - 2 + i * device_ny_MHD] = U[device_ny_MHD - 3 + i * device_ny_MHD];
+        U[device_ny_MHD - 1 + i * device_ny_MHD] = U[device_ny_MHD - 4 + i * device_ny_MHD];
+        U[device_ny_MHD - 2 + i * device_ny_MHD] = U[device_ny_MHD - 4 + i * device_ny_MHD];
+        U[device_ny_MHD - 3 + i * device_ny_MHD] = U[device_ny_MHD - 4 + i * device_ny_MHD];
     }
 }
 

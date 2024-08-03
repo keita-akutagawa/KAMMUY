@@ -9,7 +9,6 @@ struct ReloadParticlesData
     double v;
     double w;
     double vth;
-    bool hasData;
 
     __host__ __device__
     ReloadParticlesData() : 

@@ -393,62 +393,62 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
 
         //PICのグリッドにMHDを合わせる
         rhoMHD = U[indexMHD].rho;
-        uMHD = U[indexMHD].rhoU / rhoMHD;
-        vMHD = U[indexMHD].rhoV / rhoMHD;
-        wMHD = U[indexMHD].rhoW / rhoMHD;
-        bXMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny].bX);
-        bYMHD = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
-        bZMHD = U[indexMHD].bZ;
-        eMHD = U[indexMHD].e;
-        pMHD = (IdealMHD2DConst::device_gamma_MHD - 1.0)
-             * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
-             - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
-        jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0 * dy);
-        jYMHD = -(U[indexMHD + ny].bZ - U[indexMHD - ny].bZ) / (2.0 * dx);
-        jZMHD = 0.25 * ((U[indexMHD + ny].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
-                       + (U[indexMHD].bY - U[indexMHD - ny].bY) / dx - (U[indexMHD + 1 - ny].bX - U[indexMHD - ny].bX) / dy
-                       + (U[indexMHD - 1 + ny].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
-                       + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny].bY) / dx - (U[indexMHD - ny].bX - U[indexMHD - 1 - ny].bX) / dy);
+        uMHD   = U[indexMHD].rhoU / rhoMHD;
+        vMHD   = U[indexMHD].rhoV / rhoMHD;
+        wMHD   = U[indexMHD].rhoW / rhoMHD;
+        bXMHD  = 0.5 * (U[indexMHD].bX + U[indexMHD - ny].bX);
+        bYMHD  = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
+        bZMHD  = U[indexMHD].bZ;
+        eMHD   = U[indexMHD].e;
+        pMHD   = (IdealMHD2DConst::device_gamma_MHD - 1.0)
+               * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
+               - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
+        jXMHD  = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0 * dy);
+        jYMHD  = -(U[indexMHD + ny].bZ - U[indexMHD - ny].bZ) / (2.0 * dx);
+        jZMHD  = 0.25 * ((U[indexMHD + ny].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
+                      + (U[indexMHD].bY - U[indexMHD - ny].bY) / dx - (U[indexMHD + 1 - ny].bX - U[indexMHD - ny].bX) / dy
+                      + (U[indexMHD - 1 + ny].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
+                      + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny].bY) / dx - (U[indexMHD - ny].bX - U[indexMHD - 1 - ny].bX) / dy);
 
         niMHD = rhoMHD / (PIC2DConst::device_mIon_PIC + PIC2DConst::device_mElectron_PIC);
         neMHD = niMHD;
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
 
-        rhoPIC = PIC2DConst::device_mIon_PIC * zerothMomentIon[indexPIC].n + PIC2DConst::device_mElectron_PIC * zerothMomentElectron[indexPIC].n;
-        uPIC = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].x + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].x) / rhoPIC;
-        vPIC = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].y + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].y) / rhoPIC;
-        wPIC = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].z + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].z) / rhoPIC;
-        jXPIC = PIC2DConst::device_qIon_PIC * firstMomentIon[indexPIC].x + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].x;
-        jYPIC = PIC2DConst::device_qIon_PIC * firstMomentIon[indexPIC].y + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].y;
-        jZPIC = PIC2DConst::device_qIon_PIC * firstMomentIon[indexPIC].z + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].z;
+        rhoPIC = PIC2DConst::device_mIon_PIC  * zerothMomentIon[indexPIC].n + PIC2DConst::device_mElectron_PIC * zerothMomentElectron[indexPIC].n;
+        uPIC   = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].x  + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].x) / rhoPIC;
+        vPIC   = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].y  + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].y) / rhoPIC;
+        wPIC   = (PIC2DConst::device_mIon_PIC * firstMomentIon[indexPIC].z  + PIC2DConst::device_mElectron_PIC * firstMomentElectron[indexPIC].z) / rhoPIC;
+        jXPIC  = PIC2DConst::device_qIon_PIC  * firstMomentIon[indexPIC].x  + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].x;
+        jYPIC  = PIC2DConst::device_qIon_PIC  * firstMomentIon[indexPIC].y  + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].y;
+        jZPIC  = PIC2DConst::device_qIon_PIC  * firstMomentIon[indexPIC].z  + PIC2DConst::device_qElectron_PIC * firstMomentElectron[indexPIC].z;
 
         rhoPIC = interlockingFunctionY[j] * rhoMHD + (1.0 - interlockingFunctionY[j]) * rhoPIC;
-        uPIC = interlockingFunctionY[j] * uMHD + (1.0 - interlockingFunctionY[j]) * uPIC;
-        vPIC = interlockingFunctionY[j] * vMHD + (1.0 - interlockingFunctionY[j]) * vPIC;
-        wPIC = interlockingFunctionY[j] * wMHD + (1.0 - interlockingFunctionY[j]) * wPIC;
-        jXPIC = interlockingFunctionY[j] * jXMHD + (1.0 - interlockingFunctionY[j]) * jXPIC;
-        jYPIC = interlockingFunctionY[j] * jYMHD + (1.0 - interlockingFunctionY[j]) * jYPIC;
-        jZPIC = interlockingFunctionY[j] * jZMHD + (1.0 - interlockingFunctionY[j]) * jZPIC;
+        uPIC   = interlockingFunctionY[j] * uMHD   + (1.0 - interlockingFunctionY[j]) * uPIC;
+        vPIC   = interlockingFunctionY[j] * vMHD   + (1.0 - interlockingFunctionY[j]) * vPIC;
+        wPIC   = interlockingFunctionY[j] * wMHD   + (1.0 - interlockingFunctionY[j]) * wPIC;
+        jXPIC  = interlockingFunctionY[j] * jXMHD  + (1.0 - interlockingFunctionY[j]) * jXPIC;
+        jYPIC  = interlockingFunctionY[j] * jYMHD  + (1.0 - interlockingFunctionY[j]) * jYPIC;
+        jZPIC  = interlockingFunctionY[j] * jZMHD  + (1.0 - interlockingFunctionY[j]) * jZPIC;
 
-        niPIC = rhoPIC / (PIC2DConst::device_mIon_PIC + PIC2DConst::device_mElectron_PIC);
-        nePIC = niPIC;
+        niPIC   = rhoPIC / (PIC2DConst::device_mIon_PIC + PIC2DConst::device_mElectron_PIC);
+        nePIC   = niPIC;
         vThiPIC = sqrt(2.0 * tiMHD / PIC2DConst::device_mIon_PIC);
         vThePIC = sqrt(2.0 * teMHD / PIC2DConst::device_mElectron_PIC);
 
 
-        reloadParticlesDataIon[j + i * interfaceLength].number = round(niPIC);
+        reloadParticlesDataIon     [j + i * interfaceLength].number = round(niPIC);
         reloadParticlesDataElectron[j + i * interfaceLength].number = round(nePIC);
-        reloadParticlesDataIon[j + i * interfaceLength].u = uPIC;
-        reloadParticlesDataIon[j + i * interfaceLength].v = vPIC;
-        reloadParticlesDataIon[j + i * interfaceLength].w = wPIC;
-        reloadParticlesDataElectron[j + i * interfaceLength].u = uPIC - jXPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
-        reloadParticlesDataElectron[j + i * interfaceLength].v = vPIC - jYPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
-        reloadParticlesDataElectron[j + i * interfaceLength].w = wPIC - jZPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
-        reloadParticlesDataIon[j + i * interfaceLength].vth = vThiPIC;
-        reloadParticlesDataElectron[j + i * interfaceLength].vth = vThePIC;
+        reloadParticlesDataIon     [j + i * interfaceLength].u      = uPIC;
+        reloadParticlesDataIon     [j + i * interfaceLength].v      = vPIC;
+        reloadParticlesDataIon     [j + i * interfaceLength].w      = wPIC;
+        reloadParticlesDataElectron[j + i * interfaceLength].u      = uPIC - jXPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
+        reloadParticlesDataElectron[j + i * interfaceLength].v      = vPIC - jYPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
+        reloadParticlesDataElectron[j + i * interfaceLength].w      = wPIC - jZPIC / round(nePIC) / abs(PIC2DConst::device_qElectron_PIC);
+        reloadParticlesDataIon     [j + i * interfaceLength].vth    = vThiPIC;
+        reloadParticlesDataElectron[j + i * interfaceLength].vth    = vThePIC;
 
-        reloadParticlesIndexIon[j + i * interfaceLength] = round(niPIC);
+        reloadParticlesIndexIon     [j + i * interfaceLength] = round(niPIC);
         reloadParticlesIndexElectron[j + i * interfaceLength] = round(nePIC);
     }
 }
@@ -471,7 +471,7 @@ __global__ void reloadParticles_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
         int index = j + i * interfaceLength;
         //int reloadNum = reloadParticlesDataSpecies[index].number;
         double u = reloadParticlesDataSpecies[index].u;
@@ -672,10 +672,14 @@ __global__ void deleteParticles_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
+        double x = particlesSpecies[i].x;
         double y = particlesSpecies[i].y;
         double interfaceMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC;
         double interfaceMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
-        if (interfaceMin < y && y < interfaceMax) {
+
+        if (interfaceMin + PIC2DConst::device_dy_PIC < y && y < interfaceMax - PIC2DConst::device_dy_PIC
+            && device_xmin_PIC < x && x < device_xmax_PIC) 
+        {
             int j = floor(y) - indexOfInterfaceStartInPIC;
             curandState state; 
             curand_init(step, i, 0, &state);
@@ -837,12 +841,12 @@ __global__ void sendPICtoMHD_kernel(
         bZPIC  = 0.25 * (B[indexPIC].bZ + B[indexPIC - PIC2DConst::device_ny_PIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - PIC2DConst::device_ny_PIC - 1].bZ);
 
         rhoMHD = interlockingFunctionY[j] * rhoMHD + (1.0 - interlockingFunctionY[j]) * rhoPIC;
-        uMHD = interlockingFunctionY[j]   * uMHD   + (1.0 - interlockingFunctionY[j]) * uPIC;
-        vMHD = interlockingFunctionY[j]   * vMHD   + (1.0 - interlockingFunctionY[j]) * vPIC;
-        wMHD = interlockingFunctionY[j]   * wMHD   + (1.0 - interlockingFunctionY[j]) * wPIC;
-        bXMHD = interlockingFunctionY[j]  * bXMHD  + (1.0 - interlockingFunctionY[j]) * bXPIC;
-        bYMHD = interlockingFunctionY[j]  * bYMHD  + (1.0 - interlockingFunctionY[j]) * bYPIC;
-        bZMHD = interlockingFunctionY[j]  * bZMHD  + (1.0 - interlockingFunctionY[j]) * bZPIC;
+        uMHD   = interlockingFunctionY[j] * uMHD   + (1.0 - interlockingFunctionY[j]) * uPIC;
+        vMHD   = interlockingFunctionY[j] * vMHD   + (1.0 - interlockingFunctionY[j]) * vPIC;
+        wMHD   = interlockingFunctionY[j] * wMHD   + (1.0 - interlockingFunctionY[j]) * wPIC;
+        bXMHD  = interlockingFunctionY[j] * bXMHD  + (1.0 - interlockingFunctionY[j]) * bXPIC;
+        bYMHD  = interlockingFunctionY[j] * bYMHD  + (1.0 - interlockingFunctionY[j]) * bYPIC;
+        bZMHD  = interlockingFunctionY[j] * bZMHD  + (1.0 - interlockingFunctionY[j]) * bZPIC;
 
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;
@@ -1038,17 +1042,17 @@ __global__ void calculateTimeAveParameters_kernel(
     if (i < PIC2DConst::device_nx_PIC && j < PIC2DConst::device_ny_PIC) {
         int index = j + i * PIC2DConst::device_ny_PIC;
 
-        B_timeAve[index].bX /= static_cast<double>(substeps);
-        B_timeAve[index].bY /= static_cast<double>(substeps);
-        B_timeAve[index].bZ /= static_cast<double>(substeps);
-        zerothMomentIon_timeAve[index].n /= static_cast<double>(substeps);
+        B_timeAve[index].bX                   /= static_cast<double>(substeps);
+        B_timeAve[index].bY                   /= static_cast<double>(substeps);
+        B_timeAve[index].bZ                   /= static_cast<double>(substeps);
+        zerothMomentIon_timeAve[index].n      /= static_cast<double>(substeps);
         zerothMomentElectron_timeAve[index].n /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].x /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].y /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].z /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].x /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].y /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].z /= static_cast<double>(substeps);
+        firstMomentIon_timeAve[index].x       /= static_cast<double>(substeps);
+        firstMomentIon_timeAve[index].y       /= static_cast<double>(substeps);
+        firstMomentIon_timeAve[index].z       /= static_cast<double>(substeps);
+        firstMomentElectron_timeAve[index].x  /= static_cast<double>(substeps);
+        firstMomentElectron_timeAve[index].y  /= static_cast<double>(substeps);
+        firstMomentElectron_timeAve[index].z  /= static_cast<double>(substeps);
     }
 }
 
