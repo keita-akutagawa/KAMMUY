@@ -36,8 +36,8 @@ double IdealMHD2DConst::totalTime_MHD = 0.0;
 
 const int PIC2DConst::nx_PIC = 100;
 const double PIC2DConst::dx_PIC = 1.0;
-const double PIC2DConst::xmin_PIC = 0.0 * dx_PIC; 
-const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0 * dx_PIC;
+const double PIC2DConst::xmin_PIC = 1.0 * dx_PIC; 
+const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 1.0 * dx_PIC;
 
 const int PIC2DConst::ny_PIC = 200;
 const double PIC2DConst::dy_PIC = 1.0;
@@ -46,8 +46,8 @@ const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 1.0 * dy_PIC;
 
 const int IdealMHD2DConst::nx_MHD = PIC2DConst::nx_PIC;
 const double IdealMHD2DConst::dx_MHD = 1.0;
-const double IdealMHD2DConst::xmin_MHD = 0.0 * dx_MHD;
-const double IdealMHD2DConst::xmax_MHD = nx_MHD * dx_MHD - 0.0 * dx_MHD;
+const double IdealMHD2DConst::xmin_MHD = 1.0 * dx_MHD;
+const double IdealMHD2DConst::xmax_MHD = nx_MHD * dx_MHD - 1.0 * dx_MHD;
 
 const int IdealMHD2DConst::ny_MHD = 200;
 const double IdealMHD2DConst::dy_MHD = 1.0;

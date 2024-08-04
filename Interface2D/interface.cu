@@ -479,7 +479,7 @@ __global__ void reloadParticles_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (0 < i && i < PIC2DConst::device_nx_PIC && 0 < j && j < interfaceLength) {
         int index = j + i * interfaceLength;
         //int reloadNum = reloadParticlesDataSpecies[index].number;
         double u = reloadParticlesDataSpecies[index].u;
@@ -681,10 +681,10 @@ __global__ void deleteParticles_kernel(
     if (i < existNumSpecies) {
         double x = particlesSpecies[i].x;
         double y = particlesSpecies[i].y;
-        double interfaceMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC;
-        double interfaceMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
+        double deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC + PIC2DConst::device_dy_PIC;
+        double deleteYMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC - PIC2DConst::device_dy_PIC;
 
-        if (interfaceMin < y && y < interfaceMax
+        if (deleteYMin < y && y < deleteYMax
             && device_xmin_PIC < x && x < device_xmax_PIC) 
         {
             int j = floor(y - device_ymin_PIC) - indexOfInterfaceStartInPIC;
