@@ -18,7 +18,7 @@ __global__ void uniformForPositionX_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        double x = curand_uniform(&state) * (device_xmax_PIC - device_xmin_PIC) + device_xmin_PIC;
+        double x = curand_uniform_double(&state) * (device_xmax_PIC - device_xmin_PIC) + device_xmin_PIC;
         particle[i + nStart].x = x;
         particle[i + nStart].isExist = true;
     }
@@ -53,7 +53,7 @@ __global__ void uniformForPositionY_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        double y = curand_uniform(&state) * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
+        double y = curand_uniform_double(&state) * (device_ymax_PIC - device_ymin_PIC) + device_ymin_PIC;
         particle[i + nStart].y = y;
         particle[i + nStart].isExist = true;
     }
@@ -88,7 +88,7 @@ __global__ void uniformForPositionYDetail_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, i, 0, &state);
-        double y = curand_uniform(&state) * (ymax - ymin) + ymin;
+        double y = curand_uniform_double(&state) * (ymax - ymin) + ymin;
         particle[i + nStart].y = y;
         particle[i + nStart].isExist = true;
     }
@@ -135,9 +135,9 @@ __global__ void maxwellDistributionForVelocity_kernel(
         double vx, vy, vz;
 
         while (true) {
-            vx = bulkVxSpecies + curand_normal(&stateVx) * vxThSpecies;
-            vy = bulkVySpecies + curand_normal(&stateVy) * vyThSpecies;
-            vz = bulkVzSpecies + curand_normal(&stateVz) * vzThSpecies;
+            vx = bulkVxSpecies + curand_normal_double(&stateVx) * vxThSpecies;
+            vy = bulkVySpecies + curand_normal_double(&stateVy) * vyThSpecies;
+            vz = bulkVzSpecies + curand_normal_double(&stateVz) * vzThSpecies;
 
             if (vx * vx + vy * vy + vz * vz < device_c_PIC * device_c_PIC) break;
         }
@@ -193,7 +193,7 @@ __global__ void harrisForPositionY_kernel(
         double randomValue;
         double y;
         while (true) {
-            randomValue = curand_uniform(&state);
+            randomValue = curand_uniform_double(&state);
             y = yCenter + sheatThickness * atanh(2.0 * randomValue - 1.0);
 
             if (device_ymin_PIC < y && y < device_ymax_PIC) break;
@@ -239,7 +239,7 @@ __global__ void harrisBackgroundForPositionY_kernel(
         double randomValue;
         double y;
         while (true) {
-            randomValue = curand_uniform(&state);
+            randomValue = curand_uniform_double(&state);
             y = randomValue * (device_ymax_PIC - device_ymin_PIC);
 
             if (randomValue < (1.0 - 1.0 / cosh((y - yCenter) / sheatThickness))) break;
