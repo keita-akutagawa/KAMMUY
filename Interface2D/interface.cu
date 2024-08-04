@@ -497,12 +497,12 @@ __global__ void reloadParticles_kernel(
             if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
-                x = particleSource.x; x += i * PIC2DConst::device_dx_PIC + device_ymin_PIC;
+                x = particleSource.x; x += i * PIC2DConst::device_dx_PIC + device_xmin_PIC;
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy_PIC + device_ymin_MHD;
                 z = 0.0;
                 vx = particleSource.vx; vx = u + vx * vth;
-                vy = particleSource.vx; vy = v + vy * vth;
-                vz = particleSource.vx; vz = w + vz * vth;
+                vy = particleSource.vy; vy = v + vy * vth;
+                vz = particleSource.vz; vz = w + vz * vth;
                 gamma = sqrt(1.0 + (vx * vx + vy * vy + vz * vz) / (PIC2DConst::device_c_PIC * PIC2DConst::device_c_PIC));
                 
                 particleReload.x = x; particleReload.y = y; particleReload.z = z;
@@ -512,8 +512,6 @@ __global__ void reloadParticles_kernel(
 
                 particlesSpecies[existNumSpecies + k] = particleReload;
             }
-
-            
         }
 
     }
@@ -578,7 +576,7 @@ void Interface2D::sendMHDtoPIC_particle(
     std::uniform_int_distribution<unsigned long long> distIon(0, Interface2DConst::reloadParticlesTotalNumIon);
     std::uniform_int_distribution<unsigned long long> distElectron(0, Interface2DConst::reloadParticlesTotalNumElectron);
     restartParticlesIndexIon = distIon(genIon);
-    restartParticlesIndexElectron = distElectron(genElectron);
+    restartParticlesIndexElectron = distElectron(genElectron); 
 
 
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -686,7 +684,7 @@ __global__ void deleteParticles_kernel(
         double interfaceMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC;
         double interfaceMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
 
-        if (interfaceMin + PIC2DConst::device_dy_PIC < y && y < interfaceMax - PIC2DConst::device_dy_PIC
+        if (interfaceMin < y && y < interfaceMax
             && device_xmin_PIC < x && x < device_xmax_PIC) 
         {
             int j = floor(y - device_ymin_PIC) - indexOfInterfaceStartInPIC;
