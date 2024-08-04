@@ -34,10 +34,13 @@ private:
     unsigned long long restartParticlesIndexIon;
     unsigned long long restartParticlesIndexElectron;
 
-    thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
-    thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
     thrust::device_vector<Particle> reloadParticlesSourceIon;
     thrust::device_vector<Particle> reloadParticlesSourceElectron;
+
+    thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
+    thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
+    thrust::host_vector<ReloadParticlesData> host_reloadParticlesDataIon;
+    thrust::host_vector<ReloadParticlesData> host_reloadParticlesDataElectron;
 
     thrust::device_vector<unsigned long long> reloadParticlesIndexIon;
     thrust::device_vector<unsigned long long> reloadParticlesIndexElectron;
