@@ -177,8 +177,9 @@ void IdealMHD2D::oneStepRK2_predictor()
     ct.setOldFlux2D(fluxF, fluxG);
     ct.divBClean(bXOld, bYOld, UBar);
 
-    boundaryMHD.freeBoundaryX2nd(UBar);
-    boundaryMHD.freeBoundaryY2nd(UBar);
+    boundaryMHD.periodicBoundaryX2nd(UBar);
+    //boundaryMHD.symmetricBoundaryX2nd(UBar);
+    boundaryMHD.symmetricBoundaryY2nd(UBar);
 
     shiftUToCenterForCT(UBar);
     fluxF = fluxSolver.getFluxF(UBar);
@@ -199,8 +200,9 @@ void IdealMHD2D::oneStepRK2_predictor()
 
     ct.divBClean(bXOld, bYOld, U);
 
-    boundaryMHD.freeBoundaryX2nd(U);
-    boundaryMHD.freeBoundaryY2nd(U);
+    boundaryMHD.periodicBoundaryX2nd(U);
+    //boundaryMHD.symmetricBoundaryX2nd(U);
+    boundaryMHD.symmetricBoundaryY2nd(U);
 }
 
 
@@ -232,8 +234,9 @@ void IdealMHD2D::oneStepRK2_corrector(
     ct.setOldFlux2D(fluxF, fluxG);
     ct.divBClean(bXOld, bYOld, U);
 
-    boundaryMHD.freeBoundaryX2nd(U);
-    boundaryMHD.freeBoundaryY2nd(U);
+    boundaryMHD.periodicBoundaryX2nd(U);
+    //boundaryMHD.symmetricBoundaryX2nd(U);
+    boundaryMHD.symmetricBoundaryY2nd(U);
 
 }
 

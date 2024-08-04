@@ -17,7 +17,7 @@ public:
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void freeBoundaryX2nd(
+    void symmetricBoundaryX2nd(
         thrust::device_vector<ConservationParameter>& U
     );
 
@@ -25,7 +25,7 @@ public:
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void freeBoundaryY2nd(
+    void symmetricBoundaryY2nd(
         thrust::device_vector<ConservationParameter>& U
     );
 

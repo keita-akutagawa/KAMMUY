@@ -61,9 +61,11 @@ public:
     
     virtual void initialize();
 
+    void oneStepPeriodicXFreeY();
+
     void oneStepSymmetricXWallY();
 
-    void oneStepWallXFreeY();
+    void oneStepSymmetricXFreeY();
 
     void sortParticle();
 

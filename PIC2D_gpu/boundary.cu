@@ -6,6 +6,48 @@
 using namespace PIC2DConst;
 
 
+__global__ void periodicBoundaryParticleX_kernel(
+    Particle* particlesSpecies, unsigned long long existNumSpecies
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < existNumSpecies) {
+        if (particlesSpecies[i].x <= device_xmin_PIC) {
+            particlesSpecies[i].x += device_xmax_PIC - device_xmin_PIC - device_EPS_PIC;
+        }
+
+        if (particlesSpecies[i].x >= device_xmax_PIC) {
+            particlesSpecies[i].x -= device_xmax_PIC - device_xmin_PIC + device_EPS_PIC;
+        }
+    }
+}
+
+void BoundaryPIC::periodicBoundaryParticleX(
+    thrust::device_vector<Particle>& particlesIon,
+    thrust::device_vector<Particle>& particlesElectron
+)
+{
+    dim3 threadsPerBlockForIon(256);
+    dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+
+    periodicBoundaryParticleX_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC
+    );
+
+    cudaDeviceSynchronize();
+
+    dim3 threadsPerBlockForElectron(256);
+    dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+
+    periodicBoundaryParticleX_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
 __global__ void conductingWallBoundaryParticleX_kernel(
     Particle* particlesSpecies, unsigned long long existNumSpecies
 )
@@ -270,13 +312,9 @@ __global__ void freeBoundaryBY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        B[0 + device_ny_PIC * i].bX = B[1 + device_ny_PIC * i].bX;
-        B[0 + device_ny_PIC * i].bY = B[2 + device_ny_PIC * i].bY;
-        B[0 + device_ny_PIC * i].bZ = B[1 + device_ny_PIC * i].bZ;
+        B[0 + i * device_ny_PIC] = B[1 + i * device_ny_PIC];
 
-        B[device_ny_PIC - 1 + device_ny_PIC * i].bX = B[device_ny_PIC - 3 + device_ny_PIC * i].bX;
-        B[device_ny_PIC - 1 + device_ny_PIC * i].bY = B[device_ny_PIC - 2 + device_ny_PIC * i].bY;
-        B[device_ny_PIC - 1 + device_ny_PIC * i].bZ = B[device_ny_PIC - 3 + device_ny_PIC * i].bZ;
+        B[device_ny_PIC - 1 + i * device_ny_PIC] = B[device_ny_PIC - 2 + i * device_ny_PIC];
     }
 }
 
@@ -394,16 +432,9 @@ __global__ void freeBoundaryEY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        E[0 + device_ny_PIC * i].eX = 0.0;
-        E[1 + device_ny_PIC * i].eX = 0.0;
-        E[0 + device_ny_PIC * i].eY = -1.0 * E[1 + device_ny_PIC * i].eY;
-        E[0 + device_ny_PIC * i].eZ = 0.0;
-        E[1 + device_ny_PIC * i].eZ = 0.0;
+        E[0 + i * device_ny_PIC] = E[1 + i * device_ny_PIC];
 
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eX = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eX;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eY = 0.0;
-        E[device_ny_PIC - 2 + device_ny_PIC * i].eY = 0.0;
-        E[device_ny_PIC - 1 + device_ny_PIC * i].eZ = -1.0 * E[device_ny_PIC - 2 + device_ny_PIC * i].eZ;
+        E[device_ny_PIC - 1 + i * device_ny_PIC] = E[device_ny_PIC - 2 + i * device_ny_PIC];
     }
 }
 
@@ -520,13 +551,9 @@ __global__ void freeBoundaryCurrentY_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < device_nx_PIC) {
-        current[0 + device_ny_PIC * i].jX = current[2 + device_ny_PIC * i].jX;
-        current[0 + device_ny_PIC * i].jY = current[1 + device_ny_PIC * i].jY;
-        current[0 + device_ny_PIC * i].jZ = current[2 + device_ny_PIC * i].jZ;
+        current[0 + i * device_ny_PIC] = current[1 + i * device_ny_PIC];
 
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jX = current[device_ny_PIC - 2 + device_ny_PIC * i].jX;
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jY = current[device_ny_PIC - 3 + device_ny_PIC * i].jY;
-        current[device_ny_PIC - 1 + device_ny_PIC * i].jZ = current[device_ny_PIC - 2 + device_ny_PIC * i].jZ;
+        current[device_ny_PIC - 1 + i * device_ny_PIC] = current[device_ny_PIC - 2 + i * device_ny_PIC];
     }
 }
 
