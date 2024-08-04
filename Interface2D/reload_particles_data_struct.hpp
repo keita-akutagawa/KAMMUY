@@ -4,7 +4,7 @@
 
 struct ReloadParticlesData
 {
-    unsigned long long number; 
+    unsigned long long numberAndIndex; 
     double u;
     double v;
     double w;
@@ -12,7 +12,7 @@ struct ReloadParticlesData
 
     __host__ __device__
     ReloadParticlesData() : 
-        number(0), 
+        numberAndIndex(0), 
         u(0.0), 
         v(0.0), 
         w(0.0),

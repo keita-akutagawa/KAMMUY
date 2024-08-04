@@ -74,11 +74,6 @@ Interface2D::Interface2D(
        host_reloadParticlesDataIon       (PIC2DConst::nx_PIC * interfaceLength), 
        host_reloadParticlesDataElectron  (PIC2DConst::nx_PIC * interfaceLength), 
 
-       reloadParticlesIndexIon          (PIC2DConst::nx_PIC * interfaceLength, 0), 
-       reloadParticlesIndexElectron     (PIC2DConst::nx_PIC * interfaceLength, 0), 
-       host_reloadParticlesIndexIon     (PIC2DConst::nx_PIC * interfaceLength, 0), 
-       host_reloadParticlesIndexElectron(PIC2DConst::nx_PIC * interfaceLength, 0), 
-
        B_timeAve                   (PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        zerothMomentIon_timeAve     (PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        zerothMomentElectron_timeAve(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
@@ -379,8 +374,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     const ConservationParameter* U, 
     ReloadParticlesData* reloadParticlesDataIon, 
     ReloadParticlesData* reloadParticlesDataElectron, 
-    unsigned long long* reloadParticlesIndexIon, 
-    unsigned long long* reloadParticlesIndexElectron, 
     int indexOfInterfaceStartInMHD, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength
@@ -448,8 +441,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         vThePIC = sqrt(2.0 * teMHD / mElectron);
 
 
-        reloadParticlesDataIon     [j + i * interfaceLength].number = round(niPIC);
-        reloadParticlesDataElectron[j + i * interfaceLength].number = round(nePIC);
+        reloadParticlesDataIon     [j + i * interfaceLength].numberAndIndex = round(niPIC);
+        reloadParticlesDataElectron[j + i * interfaceLength].numberAndIndex = round(nePIC);
         reloadParticlesDataIon     [j + i * interfaceLength].u      = uPIC;
         reloadParticlesDataIon     [j + i * interfaceLength].v      = vPIC;
         reloadParticlesDataIon     [j + i * interfaceLength].w      = wPIC;
@@ -458,9 +451,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         reloadParticlesDataElectron[j + i * interfaceLength].w      = wPIC - jZPIC / round(nePIC) / abs(qElectron);
         reloadParticlesDataIon     [j + i * interfaceLength].vth    = vThiPIC;
         reloadParticlesDataElectron[j + i * interfaceLength].vth    = vThePIC;
-
-        reloadParticlesIndexIon     [j + i * interfaceLength] = round(niPIC);
-        reloadParticlesIndexElectron[j + i * interfaceLength] = round(nePIC);
     }
 }
 
@@ -468,7 +458,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
 __global__ void reloadParticles_kernel(
     const double* interlockingFunctionY, 
     const ReloadParticlesData* reloadParticlesDataSpecies, 
-    const unsigned long long* reloadParticlesIndexSpecies, 
     const Particle* reloadParticlesSpecies, 
     unsigned long long reloadParticlesTotalNumSpecies, 
     Particle* particlesSpecies, 
@@ -482,9 +471,8 @@ __global__ void reloadParticles_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < PIC2DConst::device_nx_PIC - 1 && 0 < j && j < interfaceLength - 1) {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
         int index = j + i * interfaceLength;
-        //int reloadNum = reloadParticlesDataSpecies[index].number;
         double u = reloadParticlesDataSpecies[index].u;
         double v = reloadParticlesDataSpecies[index].v;
         double w = reloadParticlesDataSpecies[index].w;
@@ -492,7 +480,7 @@ __global__ void reloadParticles_kernel(
         Particle particleSource, particleReload;
         double x, y, z, vx, vy, vz, gamma;
 
-        for (unsigned long long k = reloadParticlesIndexSpecies[index]; k < reloadParticlesIndexSpecies[index + 1]; k++) {
+        for (unsigned long long k = reloadParticlesDataSpecies[index].numberAndIndex; k < reloadParticlesDataSpecies[index + 1].numberAndIndex; k++) {
             curandState state; 
             curand_init(step, k, 0, &state);
             double randomValue = curand_uniform_double(&state);
@@ -529,8 +517,8 @@ void Interface2D::sendMHDtoPIC_particle(
 {
     setMoments(particlesIon, particlesElectron);
 
-    thrust::fill(reloadParticlesIndexIon.begin(), reloadParticlesIndexIon.end(), 0);
-    thrust::fill(reloadParticlesIndexElectron.begin(), reloadParticlesIndexElectron.end(), 0);
+    thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
+    thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -545,8 +533,6 @@ void Interface2D::sendMHDtoPIC_particle(
         thrust::raw_pointer_cast(U.data()),  
         thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
-        thrust::raw_pointer_cast(reloadParticlesIndexIon.data()), 
-        thrust::raw_pointer_cast(reloadParticlesIndexElectron.data()), 
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         interfaceLength
@@ -555,25 +541,6 @@ void Interface2D::sendMHDtoPIC_particle(
     cudaDeviceSynchronize();
     
     deleteParticles(particlesIon, particlesElectron, step);
-    
-
-    host_reloadParticlesIndexIon = reloadParticlesIndexIon;
-    host_reloadParticlesIndexElectron = reloadParticlesIndexElectron;
-    
-    for (int i = 0; i < PIC2DConst::nx_PIC; i++) {
-        for (int j = 0; j < interfaceLength; j++) {
-
-            if (j == 0 && i == 0) continue;
-
-            int index = j + i * interfaceLength;
-
-            host_reloadParticlesIndexIon[index] += host_reloadParticlesIndexIon[index - 1];
-            host_reloadParticlesIndexElectron[index] += host_reloadParticlesIndexElectron[index - 1];
-        }
-    }
-
-    reloadParticlesIndexIon = host_reloadParticlesIndexIon;
-    reloadParticlesIndexElectron = host_reloadParticlesIndexElectron;
 
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
@@ -602,6 +569,16 @@ void Interface2D::sendMHDtoPIC_particle(
         host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index - PIC2DConst::nx_PIC];
     }
 
+    for (int i = 0; i < PIC2DConst::nx_PIC; i++) {
+        for (int j = 0; j < interfaceLength; j++) {
+            if (i == 0 && j == 0) continue;
+            
+            int index = j + i * interfaceLength;
+            host_reloadParticlesDataIon[index].numberAndIndex += host_reloadParticlesDataIon[index - 1].numberAndIndex;
+            host_reloadParticlesDataElectron[index].numberAndIndex += host_reloadParticlesDataElectron[index - 1].numberAndIndex;
+        }
+    }
+
     reloadParticlesDataIon = host_reloadParticlesDataIon;
     reloadParticlesDataElectron = host_reloadParticlesDataElectron;
 
@@ -617,7 +594,6 @@ void Interface2D::sendMHDtoPIC_particle(
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
-        thrust::raw_pointer_cast(reloadParticlesIndexIon.data()), 
         thrust::raw_pointer_cast(reloadParticlesSourceIon.data()), 
         Interface2DConst::reloadParticlesTotalNumIon,  
         thrust::raw_pointer_cast(particlesIon.data()), 
@@ -633,7 +609,6 @@ void Interface2D::sendMHDtoPIC_particle(
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
-        thrust::raw_pointer_cast(reloadParticlesIndexElectron.data()), 
         thrust::raw_pointer_cast(reloadParticlesSourceElectron.data()), 
         Interface2DConst::reloadParticlesTotalNumElectron, 
         thrust::raw_pointer_cast(particlesElectron.data()), 
@@ -718,8 +693,8 @@ __global__ void deleteParticles_kernel(
         double y = particlesSpecies[i].y;
         double deleteXMin = device_xmin_PIC;
         double deleteXMax = device_xmax_PIC;
-        double deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC + PIC2DConst::device_dy_PIC;
-        double deleteYMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC - PIC2DConst::device_dy_PIC;
+        double deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC;
+        double deleteYMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) 
         {
