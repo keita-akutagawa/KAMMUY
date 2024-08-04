@@ -540,7 +540,7 @@ void Interface2D::sendMHDtoPIC_particle(
 
     cudaDeviceSynchronize();
     
-    deleteParticles(particlesIon, particlesElectron, step);
+    //deleteParticles(particlesIon, particlesElectron, step);
 
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
@@ -565,8 +565,8 @@ void Interface2D::sendMHDtoPIC_particle(
         host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index + interfaceLength];
 
         index = j + (PIC2DConst::nx_PIC - 1) * interfaceLength;
-        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index - PIC2DConst::nx_PIC];
-        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index - PIC2DConst::nx_PIC];
+        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index - interfaceLength];
+        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index - interfaceLength];
     }
 
     for (int i = 0; i < PIC2DConst::nx_PIC; i++) {
