@@ -215,8 +215,8 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int ny_PIC = PIC2DConst::device_ny_PIC;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * device_ny_PIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * device_ny_MHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
 
         //PICのグリッドにMHDを合わせる
         eXPIC = E[indexPIC].eX;
@@ -394,7 +394,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         double rhoPIC, uPIC, vPIC, wPIC;
         double jXPIC, jYPIC, jZPIC, niPIC, nePIC, vThiPIC, vThePIC;
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
-        int ny_PIC = PIC2DConst::device_ny_PIC;
         double dx = IdealMHD2DConst::device_dx_MHD, dy = IdealMHD2DConst::device_dy_MHD;
         double mIon = PIC2DConst::device_mIon_PIC, mElectron = PIC2DConst::device_mElectron_PIC;
         double qIon = PIC2DConst::device_qIon_PIC, qElectron = PIC2DConst::device_qElectron_PIC;
@@ -687,7 +686,7 @@ __global__ void deleteParticles_kernel(
         double interfaceMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
 
         if (interfaceMin + PIC2DConst::device_dy_PIC < y && y < interfaceMax - PIC2DConst::device_dy_PIC
-            && device_xmin_PIC + PIC2DConst::device_dx_PIC < x && x < device_xmax_PIC - PIC2DConst::device_dx_PIC) 
+            && device_xmin_PIC < x && x < device_xmax_PIC) 
         {
             int j = floor(y - device_ymin_PIC) - indexOfInterfaceStartInPIC;
             curandState state; 
