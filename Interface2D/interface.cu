@@ -144,17 +144,19 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
         double bXPIC, bYPIC, bZPIC;
         double bXMHD, bYMHD, bZMHD;
         double bXInterface, bYInterface, bZInterface;
+        int ny_MHD = IdealMHD2DConst::device_ny_MHD;
+        int ny_PIC = PIC2DConst::device_ny_PIC;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
 
         //PICのグリッドにMHDを合わせる
         bXPIC = B[indexPIC].bX;
         bYPIC = B[indexPIC].bY;
         bZPIC = B[indexPIC].bZ;
-        bXMHD = 0.25 * (U[indexMHD].bX + U[indexMHD - IdealMHD2DConst::device_ny_MHD].bX + U[indexMHD + 1].bX + U[indexMHD + 1 - IdealMHD2DConst::device_ny_MHD].bX);
-        bYMHD = 0.25 * (U[indexMHD].bY + U[indexMHD + IdealMHD2DConst::device_ny_MHD].bY + U[indexMHD - 1].bY + U[indexMHD - 1 + IdealMHD2DConst::device_ny_MHD].bY);
-        bZMHD = 0.25 * (U[indexMHD].bZ + U[indexMHD + IdealMHD2DConst::device_ny_MHD].bZ + U[indexMHD + 1].bZ + U[indexMHD + 1 + IdealMHD2DConst::device_ny_MHD].bZ);
+        bXMHD = 0.25 * (U[indexMHD].bX + U[indexMHD - ny_MHD].bX + U[indexMHD + 1].bX + U[indexMHD + 1 - ny_MHD].bX);
+        bYMHD = 0.25 * (U[indexMHD].bY + U[indexMHD + ny_MHD].bY + U[indexMHD - 1].bY + U[indexMHD - 1 + ny_MHD].bY);
+        bZMHD = 0.25 * (U[indexMHD].bZ + U[indexMHD + ny_MHD].bZ + U[indexMHD + 1].bZ + U[indexMHD + 1 + ny_MHD].bZ);
 
         bXInterface = interlockingFunctionYHalf[j] * bXMHD + (1.0 - interlockingFunctionYHalf[j]) * bXPIC;
         bYInterface = interlockingFunctionY[j]     * bYMHD + (1.0 - interlockingFunctionY[j])     * bYPIC;
@@ -210,10 +212,11 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         double rho, u, v, w;
         double bXMHD, bYMHD, bZMHD;
         double eXInterface, eYInterface, eZInterface;
-        int ny = IdealMHD2DConst::device_ny_MHD;
+        int ny_MHD = IdealMHD2DConst::device_ny_MHD;
+        int ny_PIC = PIC2DConst::device_ny_PIC;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * device_ny_PIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * device_ny_MHD;
 
         //PICのグリッドにMHDを合わせる
         eXPIC = E[indexPIC].eX;
@@ -224,27 +227,27 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         u = U[indexMHD].rhoU / rho;
         v = U[indexMHD].rhoV / rho;
         w = U[indexMHD].rhoW / rho; 
-        bXMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny].bX);
+        bXMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny_MHD].bX);
         bYMHD = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
         bZMHD = U[indexMHD].bZ;
         eXMHD = -(v * bZMHD - w * bYMHD);
         eYMHD = -(w * bXMHD - u * bZMHD);
         eZMHD = -(u * bYMHD - v * bXMHD);
 
-        rho = U[indexMHD + ny].rho;
-        u = U[indexMHD + ny].rhoU / rho;
-        v = U[indexMHD + ny].rhoV / rho;
-        w = U[indexMHD + ny].rhoW / rho; 
-        bXMHD = 0.5 * (U[indexMHD + ny].bX + U[indexMHD].bX);
-        bYMHD = 0.5 * (U[indexMHD + ny].bY + U[indexMHD - 1 + ny].bY);
-        bZMHD = U[indexMHD + ny].bZ;
+        rho = U[indexMHD + ny_MHD].rho;
+        u = U[indexMHD + ny_MHD].rhoU / rho;
+        v = U[indexMHD + ny_MHD].rhoV / rho;
+        w = U[indexMHD + ny_MHD].rhoW / rho; 
+        bXMHD = 0.5 * (U[indexMHD + ny_MHD].bX + U[indexMHD].bX);
+        bYMHD = 0.5 * (U[indexMHD + ny_MHD].bY + U[indexMHD - 1 + ny_MHD].bY);
+        bZMHD = U[indexMHD + ny_MHD].bZ;
         eXPlusX1MHD = -(v * bZMHD - w * bYMHD);
 
         rho = U[indexMHD + 1].rho;
         u = U[indexMHD + 1].rhoU / rho;
         v = U[indexMHD + 1].rhoV / rho;
         w = U[indexMHD + 1].rhoW / rho; 
-        bXMHD = 0.5 * (U[indexMHD + 1].bX + U[indexMHD + 1 - ny].bX);
+        bXMHD = 0.5 * (U[indexMHD + 1].bX + U[indexMHD + 1 - ny_MHD].bX);
         bYMHD = 0.5 * (U[indexMHD + 1].bY + U[indexMHD].bY);
         bZMHD = U[indexMHD + 1].bZ;
         eYPlusY1MHD = -(w * bXMHD - u * bZMHD);
@@ -302,26 +305,27 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
         double jXPlusX1MHD; 
         double jYPlusY1MHD; 
         double jXInterface, jYInterface, jZInterface;
-        int ny = IdealMHD2DConst::device_ny_MHD;
+        int ny_MHD = IdealMHD2DConst::device_ny_MHD;
+        int ny_PIC = PIC2DConst::device_ny_PIC;
         double dx = IdealMHD2DConst::device_dx_MHD, dy = IdealMHD2DConst::device_dy_MHD;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny_PIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny_MHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
 
         //PICのグリッドにMHDを合わせる
         jXPIC = current[indexPIC].jX;
         jYPIC = current[indexPIC].jY;
         jZPIC = current[indexPIC].jZ;
         jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0 * dy);
-        jYMHD = -(U[indexMHD + ny].bZ - U[indexMHD - ny].bZ) / (2.0 * dx);
+        jYMHD = -(U[indexMHD + ny_MHD].bZ - U[indexMHD - ny_MHD].bZ) / (2.0 * dx);
         jZMHD = 0.25 * (
-                (U[indexMHD + ny].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
-              + (U[indexMHD].bY - U[indexMHD - ny].bY) / dx - (U[indexMHD + 1 - ny].bX - U[indexMHD - ny].bX) / dy
-              + (U[indexMHD - 1 + ny].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
-              + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny].bY) / dx - (U[indexMHD - ny].bX - U[indexMHD - 1 - ny].bX) / dy);
+                (U[indexMHD + ny_MHD].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
+              + (U[indexMHD].bY - U[indexMHD - ny_MHD].bY) / dx - (U[indexMHD + 1 - ny_MHD].bX - U[indexMHD - ny_MHD].bX) / dy
+              + (U[indexMHD - 1 + ny_MHD].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
+              + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny_MHD].bY) / dx - (U[indexMHD - ny_MHD].bX - U[indexMHD - 1 - ny_MHD].bX) / dy);
 
-        jXPlusX1MHD = (U[indexMHD + 1 + ny].bZ - U[indexMHD - 1 + ny].bZ) / (2.0 * dy);
-        jYPlusY1MHD = -(U[indexMHD + ny + 1].bZ - U[indexMHD - ny + 1].bZ) / (2.0 * dx);
+        jXPlusX1MHD = (U[indexMHD + 1 + ny_MHD].bZ - U[indexMHD - 1 + ny_MHD].bZ) / (2.0 * dy);
+        jYPlusY1MHD = -(U[indexMHD + ny_MHD + 1].bZ - U[indexMHD - ny_MHD + 1].bZ) / (2.0 * dx);
 
         jXInterface = interlockingFunctionY[j]     * 0.5 * (jXMHD + jXPlusX1MHD) + (1.0 - interlockingFunctionY[j])     * jXPIC;
         jYInterface = interlockingFunctionYHalf[j] * 0.5 * (jYMHD + jYPlusY1MHD) + (1.0 - interlockingFunctionYHalf[j]) * jYPIC;
@@ -389,17 +393,18 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         double jXMHD, jYMHD, jZMHD, niMHD, neMHD, tiMHD, teMHD;
         double rhoPIC, uPIC, vPIC, wPIC;
         double jXPIC, jYPIC, jZPIC, niPIC, nePIC, vThiPIC, vThePIC;
-        int ny = IdealMHD2DConst::device_ny_MHD;
+        int ny_MHD = IdealMHD2DConst::device_ny_MHD;
+        int ny_PIC = PIC2DConst::device_ny_PIC;
         double dx = IdealMHD2DConst::device_dx_MHD, dy = IdealMHD2DConst::device_dy_MHD;
-        double mIon = PIC2DConst::mIon_PIC, mElectron = PIC2DConst::mElectron_PIC;
-        double qIon = PIC2DConst::qIon_PIC, qElectron = PIC2DConst::qElectron_PIC;
+        double mIon = PIC2DConst::device_mIon_PIC, mElectron = PIC2DConst::device_mElectron_PIC;
+        double qIon = PIC2DConst::device_qIon_PIC, qElectron = PIC2DConst::device_qElectron_PIC;
 
         //整数格子点上で計算する。リロードに使う。
         rhoMHD = U[indexMHD].rho;
         uMHD   = U[indexMHD].rhoU / rhoMHD;
         vMHD   = U[indexMHD].rhoV / rhoMHD;
         wMHD   = U[indexMHD].rhoW / rhoMHD;
-        bXMHD  = 0.5 * (U[indexMHD].bX + U[indexMHD - ny].bX);
+        bXMHD  = 0.5 * (U[indexMHD].bX + U[indexMHD - ny_MHD].bX);
         bYMHD  = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
         bZMHD  = U[indexMHD].bZ;
         eMHD   = U[indexMHD].e;
@@ -407,12 +412,12 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
                * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
                - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
         jXMHD  = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0 * dy);
-        jYMHD  = -(U[indexMHD + ny].bZ - U[indexMHD - ny].bZ) / (2.0 * dx);
+        jYMHD  = -(U[indexMHD + ny_MHD].bZ - U[indexMHD - ny_MHD].bZ) / (2.0 * dx);
         jZMHD  = 0.25 * (
-                 (U[indexMHD + ny].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
-               + (U[indexMHD].bY - U[indexMHD - ny].bY) / dx - (U[indexMHD + 1 - ny].bX - U[indexMHD - ny].bX) / dy
-               + (U[indexMHD - 1 + ny].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
-               + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny].bY) / dx - (U[indexMHD - ny].bX - U[indexMHD - 1 - ny].bX) / dy);
+                 (U[indexMHD + ny_MHD].bY - U[indexMHD].bY) / dx - (U[indexMHD + 1].bX - U[indexMHD].bX) / dy 
+               + (U[indexMHD].bY - U[indexMHD - ny_MHD].bY) / dx - (U[indexMHD + 1 - ny_MHD].bX - U[indexMHD - ny_MHD].bX) / dy
+               + (U[indexMHD - 1 + ny_MHD].bY - U[indexMHD - 1].bY) / dx - (U[indexMHD].bX - U[indexMHD - 1].bX) / dy
+               + (U[indexMHD - 1].bY - U[indexMHD - 1 - ny_MHD].bY) / dx - (U[indexMHD - ny_MHD].bX - U[indexMHD - 1 - ny_MHD].bX) / dy);
 
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;
@@ -819,7 +824,8 @@ __global__ void sendPICtoMHD_kernel(
         double rhoPIC, uPIC, vPIC, wPIC, bXPIC, bYPIC, bZPIC;
         double bXCenterPIC, bYCenterPIC;
         double niMHD, neMHD, tiMHD, teMHD;
-        int ny = IdealMHD2DConst::device_ny_MHD;
+        int ny_MHD = IdealMHD2DConst::device_ny_MHD;
+        int ny_PIC = PIC2DConst::device_ny_PIC;
         double mIon = PIC2DConst::device_mIon_PIC, mElectron = PIC2DConst::device_mElectron_PIC;
 
         //MHDのグリッドにPICを合わせる
@@ -831,7 +837,7 @@ __global__ void sendPICtoMHD_kernel(
         bYMHD = U[indexMHD].bY;
         bZMHD = U[indexMHD].bZ;
         eMHD = U[indexMHD].e;
-        bXCenterMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny].bX);
+        bXCenterMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny_MHD].bX);
         bYCenterMHD = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
         pMHD = (IdealMHD2DConst::device_gamma_MHD - 1.0)
              * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
@@ -846,10 +852,10 @@ __global__ void sendPICtoMHD_kernel(
         uPIC   = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / rhoPIC;
         vPIC   = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / rhoPIC;
         wPIC   = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / rhoPIC;
-        bXPIC  = 0.25 * (B[indexPIC].bX + B[indexPIC + PIC2DConst::device_ny_PIC].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + PIC2DConst::device_ny_PIC].bX);
-        bYPIC  = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - PIC2DConst::device_ny_PIC].bY + B[indexPIC + 1 - PIC2DConst::device_ny_PIC].bY);
-        bZPIC  = 0.25 * (B[indexPIC].bZ + B[indexPIC - PIC2DConst::device_ny_PIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - PIC2DConst::device_ny_PIC].bZ);
-        bXCenterPIC = 0.5 * (B[indexPIC].bX + B[indexPIC - PIC2DConst::device_ny_PIC].bX);
+        bXPIC  = 0.25 * (B[indexPIC].bX + B[indexPIC + ny_PIC].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + ny_PIC].bX);
+        bYPIC  = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - ny_PIC].bY + B[indexPIC + 1 - ny_PIC].bY);
+        bZPIC  = 0.25 * (B[indexPIC].bZ + B[indexPIC - ny_PIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - ny_PIC].bZ);
+        bXCenterPIC = 0.5 * (B[indexPIC].bX + B[indexPIC - ny_PIC].bX);
         bYCenterPIC = 0.5 * (B[indexPIC].bY + B[indexPIC - 1].bY);
 
         rhoMHD       = interlockingFunctionY[j]     * rhoMHD       + (1.0 - interlockingFunctionY[j])     * rhoPIC;
