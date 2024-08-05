@@ -479,6 +479,7 @@ __global__ void reloadParticles_kernel(
         double vth = reloadParticlesDataSpecies[index].vth;
         Particle particleSource, particleReload;
         double x, y, z, vx, vy, vz, gamma;
+        if (index == PIC2DConst::device_nx_PIC * interfaceLength - 1) return; 
 
         for (unsigned long long k = reloadParticlesDataSpecies[index].numberAndIndex; k < reloadParticlesDataSpecies[index + 1].numberAndIndex; k++) {
             curandState state; 
