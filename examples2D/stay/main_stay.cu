@@ -176,8 +176,7 @@ int main()
 
         
         interface2D.resetTimeAveParameters();
-        for (int substep = 0; substep < substeps; substep++) {
-            //pIC2D.oneStepSymmetricXFreeY();
+        for (int substep = 1; substep <= substeps; substep++) {
             pIC2D.oneStepPeriodicXFreeY();
 
             thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
@@ -197,6 +196,8 @@ int main()
             boundaryPIC.freeBoundaryBY(B);
             boundaryPIC.freeBoundaryEY(E);
             boundaryPIC.freeBoundaryCurrentY(current); 
+            boundaryPIC.periodicBoundaryParticleX(particlesIon, particlesElectron);
+            boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
 
             interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
         }
@@ -207,7 +208,6 @@ int main()
         interface2D.sendPICtoMHD(UPast, UNext);
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
         boundaryMHD.periodicBoundaryX2nd(UHalf);
-        //boundaryMHD.symmetricBoundaryX2nd(UHalf);
         boundaryMHD.symmetricBoundaryY2nd(UHalf);
 
         idealMHD2D.oneStepRK2_corrector(UHalf);

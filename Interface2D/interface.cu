@@ -38,6 +38,8 @@ __global__ void initializeReloadParticlesSource_kernel(
         reloadParticlesSourceSpecies[i].vx = curand_normal_double(&stateVx);
         reloadParticlesSourceSpecies[i].vy = curand_normal_double(&stateVy);
         reloadParticlesSourceSpecies[i].vz = curand_normal_double(&stateVz);
+        reloadParticlesSourceSpecies[i].gamma = 0.0;
+        reloadParticlesSourceSpecies[i].isExist = false;
     }
 }
 
@@ -471,10 +473,11 @@ __global__ void reloadParticles_kernel(
             curand_init(step, k, 0, &state);
             double randomValue = curand_uniform_double(&state);
 
+
             if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
-                x = particleSource.x; x += (i + 0.0) * PIC2DConst::device_dx_PIC + device_xmin_PIC;
+                x = particleSource.x; x += (i + 0.5) * PIC2DConst::device_dx_PIC + device_xmin_PIC;
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC + j + 0.5) * PIC2DConst::device_dy_PIC + device_ymin_MHD;
                 z = 0.0;
                 vx = particleSource.vx; vx = u + vx * vth;
@@ -568,14 +571,14 @@ void Interface2D::sendMHDtoPIC_particle(
     reloadParticlesDataElectron = host_reloadParticlesDataElectron;
 
 
-    std::random_device seedIon, seedElectron;
-    std::mt19937 genIon(seedIon()), genElectron(seedElectron());
+    std::mt19937 genIon(step), genElectron(step + 1);
     std::uniform_int_distribution<unsigned long long> distIon(0, Interface2DConst::reloadParticlesTotalNumIon);
     std::uniform_int_distribution<unsigned long long> distElectron(0, Interface2DConst::reloadParticlesTotalNumElectron);
     restartParticlesIndexIon = distIon(genIon);
     restartParticlesIndexElectron = distElectron(genElectron); 
+    std::cout << restartParticlesIndexIon << " " << restartParticlesIndexElectron << std::endl;
 
-
+    std::cout << "reload start" << std::endl;
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
@@ -591,6 +594,8 @@ void Interface2D::sendMHDtoPIC_particle(
 
     cudaDeviceSynchronize();
 
+    std::cout << "reload middle" << std::endl;
+
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
@@ -605,6 +610,8 @@ void Interface2D::sendMHDtoPIC_particle(
     );
 
     cudaDeviceSynchronize();
+
+    std::cout << "reload end" << std::endl;
 
 
     PIC2DConst::existNumIon_PIC = thrust::transform_reduce(
@@ -693,6 +700,7 @@ __global__ void deleteParticles_kernel(
         }
     }
 }
+
 
 void Interface2D::deleteParticles(
     thrust::device_vector<Particle>& particlesIon, 
