@@ -19,7 +19,7 @@ __global__ void initializePICField_kernel(
         E[j + i * device_ny_PIC].eY = 0.0;
         E[j + i * device_ny_PIC].eZ = 0.0;
         B[j + i * device_ny_PIC].bX = 0.0;
-        B[j + i * device_ny_PIC].bY = 0.0; 
+        B[j + i * device_ny_PIC].bY = device_b0_PIC; 
         B[j + i * device_ny_PIC].bZ = 0.0;
     }
 }
@@ -99,13 +99,28 @@ int main()
     initializeDeviceConstants_PIC();
     initializeDeviceConstants_MHD();
     initializeDeviceConstants_Interface();
+    for (int i = 0; i < interfaceLength; i++) {
+        host_interlockingFunctionY[i] = max(
+            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
+            1e-20
+        );
+    }
+    for (int i = 0; i < interfaceLength - 1; i++) {
+        host_interlockingFunctionYHalf[i] = max(
+            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
+            1e-20
+        );
+    }
+
 
     IdealMHD2D idealMHD2D;
     PIC2D pIC2D;
     Interface2D interface2D(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
-        interfaceLength
+        interfaceLength, 
+        host_interlockingFunctionY, 
+        host_interlockingFunctionYHalf
     );
     BoundaryPIC boundaryPIC;
     BoundaryMHD boundaryMHD;

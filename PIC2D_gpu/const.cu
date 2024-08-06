@@ -32,7 +32,7 @@ void initializeDeviceConstants_PIC()
     cudaMemcpyToSymbol(device_existNumIon_PIC, &existNumIon_PIC, sizeof(unsigned long long));
     cudaMemcpyToSymbol(device_existNumElectron_PIC, &existNumElectron_PIC, sizeof(unsigned long long));
 
-    cudaMemcpyToSymbol(device_B0_PIC, &B0_PIC, sizeof(double));
+    cudaMemcpyToSymbol(device_b0_PIC, &b0_PIC, sizeof(double));
 
     cudaMemcpyToSymbol(device_mRatio_PIC, &mRatio_PIC, sizeof(double));
     cudaMemcpyToSymbol(device_mIon_PIC, &mIon_PIC, sizeof(double));

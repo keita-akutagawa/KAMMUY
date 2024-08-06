@@ -54,11 +54,15 @@ const double IdealMHD2DConst::dy_MHD = 1.0;
 const double IdealMHD2DConst::ymin_MHD = 0.0 * dy_MHD;
 const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
 
+
+// Interface
+
 const int interfaceLength = 50;
 const int indexOfInterfaceStartInPIC = 0;
 const int indexOfInterfaceStartInMHD = 150;
 
-// Interface
+thrust::host_vector<double> host_interlockingFunctionY(interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 0.0);
 
 const double Interface2DConst::PI = 3.14159265358979;
 
@@ -66,7 +70,6 @@ const int Interface2DConst::windowSizeForRemoveNoiseByConvolution = 5;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
 const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
-
 
 // PIC
 
@@ -79,7 +82,7 @@ const double PIC2DConst::EPS_PIC = 1e-40;
 const int PIC2DConst::numberDensityIon_PIC = 100;
 const int PIC2DConst::numberDensityElectron_PIC = 100;
 
-const double PIC2DConst::B0_PIC = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron_PIC)) / 1.0;
+const double PIC2DConst::b0_PIC = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron_PIC)) / 1.0;
 
 const double PIC2DConst::mRatio_PIC = 100.0;
 const double PIC2DConst::mElectron_PIC = 1.0;
@@ -95,8 +98,8 @@ const double PIC2DConst::qIon_PIC = qRatio_PIC * qElectron_PIC;
 
 const double PIC2DConst::omegaPe_PIC = sqrt(static_cast<double>(numberDensityElectron_PIC) * pow(qElectron_PIC, 2) / mElectron_PIC / epsilon0_PIC);
 const double PIC2DConst::omegaPi_PIC = sqrt(static_cast<double>(numberDensityIon_PIC) * pow(qIon_PIC, 2) / mIon_PIC / epsilon0_PIC);
-const double PIC2DConst::omegaCe_PIC = abs(qElectron_PIC * B0_PIC / mElectron_PIC);
-const double PIC2DConst::omegaCi_PIC = qIon_PIC * B0_PIC / mIon_PIC;
+const double PIC2DConst::omegaCe_PIC = abs(qElectron_PIC * b0_PIC / mElectron_PIC);
+const double PIC2DConst::omegaCi_PIC = qIon_PIC * b0_PIC / mIon_PIC;
 
 const double PIC2DConst::debyeLength_PIC = sqrt(epsilon0_PIC * tElectron_PIC / static_cast<double>(numberDensityElectron_PIC) / pow(qElectron_PIC, 2));
 const double PIC2DConst::ionInertialLength_PIC = c_PIC / omegaPi_PIC;
@@ -124,12 +127,14 @@ const double PIC2DConst::bulkVzElectron_PIC = 0.0;
 const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
+const double IdealMHD2DConst::b0_MHD = b0_PIC;
+
 const double IdealMHD2DConst::rho0_MHD = mIon_PIC * numberDensityIon_PIC + mElectron_PIC * numberDensityElectron_PIC;
 const double IdealMHD2DConst::u0_MHD = (mIon_PIC * bulkVxIon_PIC + mElectron_PIC * bulkVxElectron_PIC) / rho0_MHD;
 const double IdealMHD2DConst::v0_MHD = (mIon_PIC * bulkVyIon_PIC + mElectron_PIC * bulkVyElectron_PIC) / rho0_MHD;
 const double IdealMHD2DConst::w0_MHD = (mIon_PIC * bulkVzIon_PIC + mElectron_PIC * bulkVzElectron_PIC) / rho0_MHD;
 const double IdealMHD2DConst::bX0_MHD = 0.0;
-const double IdealMHD2DConst::bY0_MHD = 0.0;
+const double IdealMHD2DConst::bY0_MHD = b0_MHD;
 const double IdealMHD2DConst::bZ0_MHD = 0.0;
 const double IdealMHD2DConst::p0_MHD = numberDensityIon_PIC * tIon_PIC + numberDensityElectron_PIC * tElectron_PIC;
 const double IdealMHD2DConst::e0_MHD = p0_MHD / (gamma_MHD - 1.0)
@@ -157,7 +162,7 @@ __constant__ double PIC2DConst::device_EPS_PIC;
 __constant__ int PIC2DConst::device_numberDensityIon_PIC;
 __constant__ int PIC2DConst::device_numberDensityElectron_PIC;
 
-__constant__ double PIC2DConst::device_B0_PIC;
+__constant__ double PIC2DConst::device_b0_PIC;
 
 __constant__ double PIC2DConst::device_mRatio_PIC;
 __constant__ double PIC2DConst::device_mElectron_PIC;
@@ -213,6 +218,8 @@ __constant__ double PIC2DConst::device_bulkVzIon_PIC;
 
 __constant__ double IdealMHD2DConst::device_EPS_MHD;
 __constant__ double IdealMHD2DConst::device_PI_MHD;
+
+__constant__ double IdealMHD2DConst::device_b0_MHD;
 
 __constant__ double IdealMHD2DConst::device_rho0_MHD;
 __constant__ double IdealMHD2DConst::device_u0_MHD;

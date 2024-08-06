@@ -31,7 +31,7 @@ namespace PIC2DConst
     extern unsigned long long existNumIon_PIC;
     extern unsigned long long existNumElectron_PIC;
 
-    extern const double B0_PIC;
+    extern const double b0_PIC;
 
     extern const double mRatio_PIC;
     extern const double mIon_PIC;
@@ -95,7 +95,7 @@ namespace PIC2DConst
     extern __device__ unsigned long long device_existNumIon_PIC;
     extern __device__ unsigned long long device_existNumElectron_PIC;
 
-    extern __constant__ double device_B0_PIC;
+    extern __constant__ double device_b0_PIC;
 
     extern __constant__ double device_mRatio_PIC;
     extern __constant__ double device_mIon_PIC;

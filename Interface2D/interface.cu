@@ -44,7 +44,9 @@ __global__ void initializeReloadParticlesSource_kernel(
 Interface2D::Interface2D(
     int indexStartMHD, 
     int indexStartPIC, 
-    int length
+    int length, 
+    thrust::host_vector<double>& host_interlockingFunctionY, 
+    thrust::host_vector<double>& host_interlockingFunctionYHalf
 )
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 
@@ -54,9 +56,6 @@ Interface2D::Interface2D(
 
        interlockingFunctionY    (interfaceLength, 0.0), 
        interlockingFunctionYHalf(interfaceLength - 1, 0.0),
-
-       host_interlockingFunctionY    (interfaceLength, 0.0), 
-       host_interlockingFunctionYHalf(interfaceLength - 1, 0.0),
 
        zerothMomentIon     (PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        zerothMomentElectron(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
@@ -83,19 +82,6 @@ Interface2D::Interface2D(
        USub (IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
        UHalf(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD)  
 {
-
-    for(int i = 0; i < interfaceLength; i++) {
-        host_interlockingFunctionY[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
-        );
-    }
-    for(int i = 0; i < interfaceLength - 1; i++) {
-        host_interlockingFunctionYHalf[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
-        );
-    }
 
     interlockingFunctionY = host_interlockingFunctionY;
     interlockingFunctionYHalf = host_interlockingFunctionYHalf;

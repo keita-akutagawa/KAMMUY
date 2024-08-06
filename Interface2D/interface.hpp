@@ -23,9 +23,6 @@ private:
     thrust::device_vector<double> interlockingFunctionY;
     thrust::device_vector<double> interlockingFunctionYHalf;
 
-    thrust::host_vector<double> host_interlockingFunctionY;
-    thrust::host_vector<double> host_interlockingFunctionYHalf;
-
     thrust::device_vector<ZerothMoment> zerothMomentIon;
     thrust::device_vector<ZerothMoment> zerothMomentElectron;
     thrust::device_vector<FirstMoment> firstMomentIon;
@@ -58,7 +55,9 @@ public:
     Interface2D(
         int indexStartMHD, 
         int indexStartPIC, 
-        int interfaceLength
+        int interfaceLength, 
+        thrust::host_vector<double>& host_interlockingFunctionY, 
+        thrust::host_vector<double>& host_interlockingFunctionYHalf
     );
 
     void sendMHDtoPIC_magneticField_yDirection(
