@@ -595,7 +595,7 @@ void Interface2D::sendMHDtoPIC_particle(
         PIC2DConst::existNumIon_PIC, 
         step
     );
-    
+
     cudaDeviceSynchronize();
 
     reloadParticles_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -831,32 +831,34 @@ __global__ void sendPICtoMHD_kernel(
         double mIon = PIC2DConst::device_mIon_PIC, mElectron = PIC2DConst::device_mElectron_PIC;
 
         //MHDのグリッドにPICを合わせる
-        rhoMHD = U[indexMHD].rho;
-        uMHD = U[indexMHD].rhoU / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
-        vMHD = U[indexMHD].rhoV / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
-        wMHD = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
-        bXMHD = U[indexMHD].bX;
-        bYMHD = U[indexMHD].bY;
-        bZMHD = U[indexMHD].bZ;
-        eMHD = U[indexMHD].e;
+        rhoMHD      = U[indexMHD].rho;
+        uMHD        = U[indexMHD].rhoU / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
+        vMHD        = U[indexMHD].rhoV / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
+        wMHD        = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS_MHD);
+        bXMHD       = U[indexMHD].bX;
+        bYMHD       = U[indexMHD].bY;
+        bZMHD       = U[indexMHD].bZ;
+        eMHD        = U[indexMHD].e;
         bXCenterMHD = 0.5 * (U[indexMHD].bX + U[indexMHD - ny_MHD].bX);
         bYCenterMHD = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
-        pMHD = (IdealMHD2DConst::device_gamma_MHD - 1.0)
-             * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
-             - 0.5 * (bXCenterMHD * bXCenterMHD + bYCenterMHD * bYCenterMHD + bZMHD * bZMHD));
+        pMHD        = (IdealMHD2DConst::device_gamma_MHD - 1.0)
+                    * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
+                    - 0.5 * (bXCenterMHD * bXCenterMHD + bYCenterMHD * bYCenterMHD + bZMHD * bZMHD));
+        pMHD        = max(pMHD, IdealMHD2DConst::device_EPS_MHD);
+
         //tiMHD, teMHDはMHDの情報のままにするために、この計算が必要。
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
         
-        rhoPIC =  mIon * zerothMomentIon[indexPIC].n + mElectron * ZerothMomentElectron[indexPIC].n;
-        uPIC   = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS_PIC);
-        vPIC   = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS_PIC);
-        wPIC   = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS_PIC);
-        bXPIC  = 0.25 * (B[indexPIC].bX + B[indexPIC + ny_PIC].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + ny_PIC].bX);
-        bYPIC  = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - ny_PIC].bY + B[indexPIC + 1 - ny_PIC].bY);
-        bZPIC  = 0.25 * (B[indexPIC].bZ + B[indexPIC - ny_PIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - ny_PIC].bZ);
+        rhoPIC      =  mIon * zerothMomentIon[indexPIC].n + mElectron * ZerothMomentElectron[indexPIC].n;
+        uPIC        = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS_PIC);
+        vPIC        = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS_PIC);
+        wPIC        = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS_PIC);
+        bXPIC       = 0.25 * (B[indexPIC].bX + B[indexPIC + ny_PIC].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + ny_PIC].bX);
+        bYPIC       = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - ny_PIC].bY + B[indexPIC + 1 - ny_PIC].bY);
+        bZPIC       = 0.25 * (B[indexPIC].bZ + B[indexPIC - ny_PIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - ny_PIC].bZ);
         bXCenterPIC = 0.5 * (B[indexPIC].bX + B[indexPIC - ny_PIC].bX);
         bYCenterPIC = 0.5 * (B[indexPIC].bY + B[indexPIC - 1].bY);
 
