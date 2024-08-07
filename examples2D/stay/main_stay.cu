@@ -174,7 +174,7 @@ int main()
         idealMHD2D.oneStepRK2_predictor();
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
-        
+
         interface2D.resetTimeAveParameters();
         for (int substep = 1; substep <= substeps; substep++) {
             pIC2D.oneStepPeriodicXFreeY();
@@ -200,6 +200,7 @@ int main()
             boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
 
             interface2D.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
+
         }
 
         interface2D.calculateTimeAveParameters(substeps);
