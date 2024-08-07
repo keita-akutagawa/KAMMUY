@@ -874,7 +874,7 @@ __global__ void sendPICtoMHD_kernel(
 
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;
-        pMHD = niMHD * tiMHD + neMHD * teMHD;
+        pMHD  = niMHD * tiMHD + neMHD * teMHD;
 
 
         U[indexMHD].rho  = rhoMHD;

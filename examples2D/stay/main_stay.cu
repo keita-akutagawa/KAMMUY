@@ -69,14 +69,14 @@ __global__ void initializeU_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < device_nx_MHD && j < device_ny_MHD) {
-        U[j + i * device_ny_MHD].rho = device_rho0_MHD;
+        U[j + i * device_ny_MHD].rho  = device_rho0_MHD;
         U[j + i * device_ny_MHD].rhoU = device_rho0_MHD * device_u0_MHD;
         U[j + i * device_ny_MHD].rhoV = device_rho0_MHD * device_v0_MHD;
         U[j + i * device_ny_MHD].rhoW = device_rho0_MHD * device_w0_MHD;
-        U[j + i * device_ny_MHD].bX = device_bX0_MHD;
-        U[j + i * device_ny_MHD].bY = device_bY0_MHD;
-        U[j + i * device_ny_MHD].bZ = device_bZ0_MHD;
-        U[j + i * device_ny_MHD].e = device_e0_MHD;
+        U[j + i * device_ny_MHD].bX   = device_bX0_MHD;
+        U[j + i * device_ny_MHD].bY   = device_bY0_MHD;
+        U[j + i * device_ny_MHD].bZ   = device_bZ0_MHD;
+        U[j + i * device_ny_MHD].e    = device_e0_MHD;
     }
 }
 
