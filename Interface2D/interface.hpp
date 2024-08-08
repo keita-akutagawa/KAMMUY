@@ -50,6 +50,7 @@ private:
     thrust::device_vector<ConservationParameter> UHalf;
 
     MomentCalculater momentCalculater;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D;
 
 
 public:

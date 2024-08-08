@@ -49,7 +49,7 @@ Interface2D::Interface2D(
     int length, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     thrust::host_vector<double>& host_interlockingFunctionYHalf, 
-    InterfaceNoiseRemover2D& interfaceNoiseRemover2D
+    InterfaceNoiseRemover2D& interfaceNoiseRemover
 )
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 
@@ -83,7 +83,9 @@ Interface2D::Interface2D(
        firstMomentElectron_timeAve (PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
 
        USub (IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
-       UHalf(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD)  
+       UHalf(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
+
+       interfaceNoiseRemover2D(interfaceNoiseRemover)
 {
 
     interlockingFunctionY = host_interlockingFunctionY;
@@ -511,6 +513,7 @@ void Interface2D::sendMHDtoPIC_particle(
 )
 {
     setMoments(particlesIon, particlesElectron);
+    interfaceNoiseRemover2D.convolveMoments(zerothMomentIon, zerothMomentElectron, firstMomentIon, firstMomentElectron);
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
@@ -1084,6 +1087,11 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
+    interfaceNoiseRemover2D.convolveMoments(
+        zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
+        firstMomentIon_timeAve, firstMomentElectron_timeAve
+    );
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);

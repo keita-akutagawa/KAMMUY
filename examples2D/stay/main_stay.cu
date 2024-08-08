@@ -115,15 +115,23 @@ int main()
 
     IdealMHD2D idealMHD2D;
     PIC2D pIC2D;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D(
+        indexOfInterfaceStartInMHD, 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSizeForConvolution
+    );
     Interface2D interface2D(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
         host_interlockingFunctionY, 
-        host_interlockingFunctionYHalf
+        host_interlockingFunctionYHalf, 
+        interfaceNoiseRemover2D
     );
     BoundaryPIC boundaryPIC;
     BoundaryMHD boundaryMHD;
+
 
     size_t free_mem = 0;
     size_t total_mem = 0;
@@ -131,6 +139,9 @@ int main()
 
     std::cout << "Free memory: " << free_mem / (1024 * 1024) << " MB" << std::endl;
     std::cout << "Total memory: " << total_mem / (1024 * 1024) << " MB" << std::endl;
+
+    std::cout << "total number of particles is " 
+              << PIC2DConst::totalNumIon_PIC + PIC2DConst::totalNumElectron_PIC << std::endl;
 
 
     idealMHD2D.initializeU();
@@ -212,7 +223,10 @@ int main()
         boundaryMHD.symmetricBoundaryY2nd(UHalf);
 
         idealMHD2D.oneStepRK2_corrector(UHalf);
-
+        thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
+        interfaceNoiseRemover2D.convolveU(U);
+        boundaryMHD.periodicBoundaryX2nd(U);
+        boundaryMHD.symmetricBoundaryY2nd(U);
 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;

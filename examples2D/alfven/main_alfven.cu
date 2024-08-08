@@ -71,7 +71,8 @@ __global__ void initializeU_kernel(
     if (i < device_nx_MHD && j < device_ny_MHD) {
         double rho, u, v, w, bX, bY, bZ, e, p;
         double VA = device_b0_MHD / sqrt(device_rho0_MHD);
-        double k = 2.0 * IdealMHD2DConst::device_PI_MHD / 400;
+        double waveLength = 400;
+        double k = 2.0 * IdealMHD2DConst::device_PI_MHD / waveLength;
 
         rho = device_rho0_MHD;
         u   = 0.1 * VA * cos(k * j * IdealMHD2DConst::device_dx_MHD);

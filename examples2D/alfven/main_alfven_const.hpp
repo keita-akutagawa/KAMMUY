@@ -28,7 +28,7 @@ std::ofstream logfile("results_alfven/log_alfven.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 100;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 1;
+const int recordStep = 10;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
