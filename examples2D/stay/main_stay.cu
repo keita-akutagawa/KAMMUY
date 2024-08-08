@@ -204,6 +204,8 @@ int main()
             interface2D.sendMHDtoPIC_currentField_yDirection(USub, current);
             interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
 
+            interfaceNoiseRemover2D.convolveFields(B, E, current);
+
             boundaryPIC.freeBoundaryBY(B);
             boundaryPIC.freeBoundaryEY(E);
             boundaryPIC.freeBoundaryCurrentY(current); 

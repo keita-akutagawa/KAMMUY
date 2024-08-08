@@ -81,7 +81,7 @@ __global__ void convolveFields_kernel(
         ElectricField convolvedE;
         CurrentField convolvedCurrent;
         int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
+        int windowSizeY = min(min(j, interfaceLength + windowSize - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -285,7 +285,8 @@ __global__ void copyU_kernel(
     if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength + windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
-        int indexForCopy = j + i * (interfaceLength + windowSize);
+        int ny_Interface = interfaceLength + windowSize;
+        int indexForCopy = j + i * ny_Interface;
 
         tmpU[indexForCopy] = U[indexMHD];
     }
@@ -303,14 +304,14 @@ __global__ void convolveU_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
+    if (i < IdealMHD2DConst::device_nx_MHD && windowSize <= j && j < interfaceLength + windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
         int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
         ConservationParameter convolvedU;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
