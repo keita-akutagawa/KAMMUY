@@ -80,12 +80,17 @@ __global__ void convolveFields_kernel(
         MagneticField convolvedB; 
         ElectricField convolvedE;
         CurrentField convolvedCurrent;
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
 
-        for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
-            for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
-                convolvedB       = convolvedB       + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpB[indexForCopy + sizeX * ny_Interface + sizeY];
-                convolvedE       = convolvedE       + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpE[indexForCopy + sizeX * ny_Interface + sizeY];
-                convolvedCurrent = convolvedCurrent + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpCurrent[indexForCopy + sizeX * ny_Interface + sizeY];
+        for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
+            for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
+                convolvedB       = convolvedB + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                                 * tmpB[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedE       = convolvedE + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                                 * tmpE[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedCurrent = convolvedCurrent + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                                 * tmpCurrent[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
         
@@ -181,11 +186,15 @@ __global__ void convolveMoments_kernel(
         int indexForCopy = j + i * ny_Interface;
         ZerothMoment convolvedZerothMoment;
         FirstMoment convolvedFirstMoment;
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
 
         for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
             for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
-                convolvedZerothMoment = convolvedZerothMoment + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpZerothMoment[indexForCopy + sizeX * ny_Interface + sizeY];
-                convolvedFirstMoment  = convolvedFirstMoment  + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpFirstMoment[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedZerothMoment = convolvedZerothMoment + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                                      * tmpZerothMoment[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedFirstMoment  = convolvedFirstMoment + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                                      * tmpFirstMoment[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
 
