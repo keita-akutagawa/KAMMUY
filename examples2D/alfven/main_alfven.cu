@@ -71,7 +71,7 @@ __global__ void initializeU_kernel(
     if (i < device_nx_MHD && j < device_ny_MHD) {
         double rho, u, v, w, bX, bY, bZ, e, p;
         double VA = device_b0_MHD / sqrt(device_rho0_MHD);
-        double waveLength = 400;
+        double waveLength = 500;
         double k = 2.0 * IdealMHD2DConst::device_PI_MHD / waveLength;
 
         rho = device_rho0_MHD;
@@ -222,7 +222,7 @@ int main()
             interface2D.sendMHDtoPIC_particle(USub, particlesIon, particlesElectron, step * substeps + substep);
 
             interfaceNoiseRemover2D.convolveFields(B, E, current);
-            
+
             boundaryPIC.freeBoundaryBY(B);
             boundaryPIC.freeBoundaryEY(E);
             boundaryPIC.freeBoundaryCurrentY(current); 
