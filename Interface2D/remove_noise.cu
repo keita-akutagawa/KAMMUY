@@ -80,8 +80,8 @@ __global__ void convolveFields_kernel(
         MagneticField convolvedB; 
         ElectricField convolvedE;
         CurrentField convolvedCurrent;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - j), windowSize);
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -186,8 +186,8 @@ __global__ void convolveMoments_kernel(
         int indexForCopy = j + i * ny_Interface;
         ZerothMoment convolvedZerothMoment;
         FirstMoment convolvedFirstMoment;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
 
         for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
             for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
