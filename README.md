@@ -9,7 +9,7 @@ This is the modern computing style in a CPU & GPU environment.
 KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditional belief system of the Ainu people in Hokkaido, Japan.
 
 
-【MEMO】\
+【MEMO】
 # not completed !
 
 ## Schemes
