@@ -2,7 +2,7 @@
 
 KAMMUY solves MHD & PIC simultaneously to understand multi-scale phenomena of plasmas. 
 PIC simulation is accelerated by GPUs using CUDA and Thrust library.
-MHD simulation is performed by CPUs. 
+MHD simulation is performed by GPUs or CPUs. 
 KAMMUY adopts heterogeneous computing. 
 This is the modern computing style in a CPU & GPU environment.
 
@@ -10,19 +10,22 @@ KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditi
 
 
 【MEMO】\
-not completed !
+# not completed !
 
 ## Schemes
 ### MHD
 - HLLD
 - MUSCL(minmod)
-- CT 
 - RK2
+- CT (noise remover)
 
 ### PIC
 - Yee lattice
-- Langdon-Marder type correction
+- Langdon-Marder type correction (noise remover)
 
+### Interface
+- interlocking method
+- convolution (noise remover)
 
 ## reference
 - T. Sugiyama & K. Kusano, J. Comput. Phys., 227, 1340, 2007 

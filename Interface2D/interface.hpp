@@ -2,6 +2,7 @@
 #include <thrust/host_vector.h>
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
+#include "remove_noise.hpp"
 #include "../IdealMHD2D_gpu/const.hpp"
 #include "../IdealMHD2D_gpu/conservation_parameter_struct.hpp"
 #include "../PIC2D_gpu/const.hpp"
@@ -57,7 +58,8 @@ public:
         int indexStartPIC, 
         int interfaceLength, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
-        thrust::host_vector<double>& host_interlockingFunctionYHalf
+        thrust::host_vector<double>& host_interlockingFunctionYHalf, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D
     );
 
     void sendMHDtoPIC_magneticField_yDirection(

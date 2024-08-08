@@ -10,6 +10,7 @@
 #include "../../Interface2D/interface.hpp"
 #include "../../PIC2D_gpu/boundary.hpp"
 #include "../../IdealMHD2D_gpu/boundary.hpp"
+#include "../../Interface2D/remove_noise.hpp"
 
 #include "../../IdealMHD2D_gpu/const.hpp"
 #include "../../PIC2D_gpu/const.hpp"
@@ -66,7 +67,7 @@ thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 
 
 const double Interface2DConst::PI = 3.14159265358979;
 
-const int Interface2DConst::windowSizeForRemoveNoiseByConvolution = 5;
+const int Interface2DConst::windowSizeForConvolution = 1;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
 const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
@@ -249,7 +250,7 @@ __device__ double IdealMHD2DConst::device_dt_MHD;
 
 __constant__ double Interface2DConst::device_PI;
 
-__constant__ int Interface2DConst::device_windowSizeForRemoveNoiseByConvolution;
+__constant__ int Interface2DConst::device_windowSizeForConvolution;
 
 __constant__ unsigned long long Interface2DConst::device_reloadParticlesTotalNumIon;
 __constant__ unsigned long long Interface2DConst::device_reloadParticlesTotalNumElectron;

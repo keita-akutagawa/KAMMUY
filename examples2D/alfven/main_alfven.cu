@@ -71,7 +71,7 @@ __global__ void initializeU_kernel(
     if (i < device_nx_MHD && j < device_ny_MHD) {
         double rho, u, v, w, bX, bY, bZ, e, p;
         double VA = device_b0_MHD / sqrt(device_rho0_MHD);
-        double k = 2.0 * IdealMHD2DConst::device_PI_MHD / 200;
+        double k = 2.0 * IdealMHD2DConst::device_PI_MHD / 400;
 
         rho = device_rho0_MHD;
         u   = 0.1 * VA * cos(k * j * IdealMHD2DConst::device_dx_MHD);
@@ -131,15 +131,23 @@ int main()
 
     IdealMHD2D idealMHD2D;
     PIC2D pIC2D;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D(
+        indexOfInterfaceStartInMHD, 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSizeForConvolution
+    );
     Interface2D interface2D(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
         host_interlockingFunctionY, 
-        host_interlockingFunctionYHalf
+        host_interlockingFunctionYHalf, 
+        interfaceNoiseRemover2D
     );
     BoundaryPIC boundaryPIC;
     BoundaryMHD boundaryMHD;
+    
 
     size_t free_mem = 0;
     size_t total_mem = 0;
@@ -231,7 +239,10 @@ int main()
         boundaryMHD.symmetricBoundaryY2nd(UHalf);
 
         idealMHD2D.oneStepRK2_corrector(UHalf);
-
+        thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
+        interfaceNoiseRemover2D.convolveU(U);
+        boundaryMHD.periodicBoundaryX2nd(U);
+        boundaryMHD.symmetricBoundaryY2nd(U);
 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;

@@ -48,7 +48,8 @@ Interface2D::Interface2D(
     int indexStartPIC, 
     int length, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
-    thrust::host_vector<double>& host_interlockingFunctionYHalf
+    thrust::host_vector<double>& host_interlockingFunctionYHalf, 
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D
 )
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 

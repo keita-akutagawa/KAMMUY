@@ -26,6 +26,18 @@ struct MagneticField
     {
         return MagneticField(bX + other.bX, bY + other.bY, bZ + other.bZ);
     }
+
+    __host__ __device__
+    MagneticField operator*(double scalar) const
+    {
+        return MagneticField(scalar * bX, scalar * bY, scalar * bZ);
+    }
+
+    __host__ __device__
+    friend MagneticField operator*(double scalar, const MagneticField& field) 
+    {
+        return MagneticField(scalar * field.bX, scalar * field.bY, scalar * field.bZ);
+    }
 };
 
 
@@ -54,6 +66,18 @@ struct ElectricField
     {
         return ElectricField(eX + other.eX, eY + other.eY, eZ + other.eZ);
     }
+
+    __host__ __device__
+    ElectricField operator*(double scalar) const
+    {
+        return ElectricField(scalar * eX, scalar * eY, scalar * eZ);
+    }
+
+    __host__ __device__
+    friend ElectricField operator*(double scalar, const ElectricField& field) 
+    {
+        return ElectricField(scalar * field.eX, scalar * field.eY, scalar * field.eZ);
+    }
 };
 
 
@@ -81,6 +105,18 @@ struct CurrentField
     CurrentField operator+(const CurrentField& other) const
     {
         return CurrentField(jX + other.jX, jY + other.jY, jZ + other.jZ);
+    }
+
+    __host__ __device__
+    CurrentField operator*(double scalar) const
+    {
+        return CurrentField(scalar * jX, scalar * jY, scalar * jZ);
+    }
+
+    __host__ __device__
+    friend CurrentField operator*(double scalar, const CurrentField& field) 
+    {
+        return CurrentField(scalar * field.jX, scalar * field.jY, scalar * field.jZ);
     }
 };
 
