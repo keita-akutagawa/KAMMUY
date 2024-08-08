@@ -67,7 +67,7 @@ thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 
 
 const double Interface2DConst::PI = 3.14159265358979;
 
-const int Interface2DConst::windowSizeForConvolution = 1;
+const int Interface2DConst::windowSizeForConvolution = 3;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
 const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);

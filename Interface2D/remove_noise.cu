@@ -294,41 +294,23 @@ __global__ void convolveU_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (windowSize <= i && i < IdealMHD2DConst::device_nx_MHD - windowSize && windowSize <= j && j < interfaceLength) {
+    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
         int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
         ConservationParameter convolvedU;
+        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - j), windowSize);
 
-        for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
-            for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
-                convolvedU = convolvedU + 1.0 / pow(2.0 * windowSize + 1, 2) * tmpU[indexForCopy + sizeX * ny_Interface + sizeY];
+        for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
+            for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
+                convolvedU = convolvedU + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                           * tmpU[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
 
         U[indexMHD] = convolvedU;
-
-        if (j == windowSize) {
-            for (int tmp = 1; tmp <= windowSize; tmp++) {
-                U[indexMHD - tmp] = U[indexMHD];
-            }
-        }
-        if (j == interfaceLength - 1) {
-            for (int tmp = 1; tmp <= windowSize; tmp++) {
-                U[indexMHD + tmp] = U[indexMHD];
-            }
-        }
-        if (i == windowSize) {
-            for (int tmp = 1; tmp <= windowSize; tmp++) {
-                U[indexMHD - tmp * ny_MHD] = U[indexMHD];
-            }
-        }
-        if (i == IdealMHD2DConst::device_nx_MHD - windowSize - 1) {
-            for (int tmp = 1; tmp <= windowSize; tmp++) {
-                U[indexMHD + tmp * ny_MHD] = U[indexMHD];
-            }
-        }
     }
 }
 
