@@ -26,7 +26,7 @@ std::string directoryname = "results_stay";
 std::string filenameWithoutStep = "stay";
 std::ofstream logfile("results_stay/log_stay.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 100;
+const int IdealMHD2DConst::totalStep_MHD = 1000;
 const int PIC2DConst::totalStep_PIC = -1;
 const int recordStep = 10;
 const bool isParticleRecord = false;
