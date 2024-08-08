@@ -308,6 +308,27 @@ __global__ void convolveU_kernel(
         }
 
         U[indexMHD] = convolvedU;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD - tmp] = U[indexMHD];
+            }
+        }
+        if (j == interfaceLength - 1) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD + tmp] = U[indexMHD];
+            }
+        }
+        if (i == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD - tmp * ny_MHD] = U[indexMHD];
+            }
+        }
+        if (i == IdealMHD2DConst::device_nx_MHD - windowSize - 1) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD + tmp * ny_MHD] = U[indexMHD];
+            }
+        }
     }
 }
 
