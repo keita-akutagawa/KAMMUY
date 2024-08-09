@@ -35,6 +35,13 @@ const int particleRecordStep = PIC2DConst::totalStep_PIC;
 double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
+double VA = device_b0_MHD / sqrt(device_rho0_MHD);
+double waveLength = 500;
+double waveNumber = 2.0 * IdealMHD2DConst::device_PI_MHD / waveLength;
+__device__ double device_VA;
+__device__ double device_waveLength;
+__device__ double device_waveNumber;
+
 const int PIC2DConst::nx_PIC = 50;
 const double PIC2DConst::dx_PIC = 1.0;
 const double PIC2DConst::xmin_PIC = 0.0 * dx_PIC; 
