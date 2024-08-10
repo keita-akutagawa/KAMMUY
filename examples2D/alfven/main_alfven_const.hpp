@@ -40,11 +40,12 @@ const double PIC2DConst::EPS_PIC = 1e-40;
 const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
-
-double waveLength = 500;
-double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
-__device__ double device_waveLength;
-__device__ double device_waveNumber;
+const double waveAmp = 0.1;
+const double waveLength = 500;
+const double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
+__constant__ double device_waveAmp;
+__constant__ double device_waveLength;
+__constant__ double device_waveNumber;
 
 const int PIC2DConst::nx_PIC = 50;
 const double PIC2DConst::dx_PIC = 1.0;
@@ -55,6 +56,7 @@ const int PIC2DConst::ny_PIC = 500;
 const double PIC2DConst::dy_PIC = 1.0;
 const double PIC2DConst::ymin_PIC = 0.5 * dy_PIC; 
 const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 1.0 * dy_PIC;
+
 
 const int IdealMHD2DConst::nx_MHD = PIC2DConst::nx_PIC;
 const double IdealMHD2DConst::dx_MHD = 1.0;

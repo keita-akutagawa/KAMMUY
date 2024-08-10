@@ -18,9 +18,9 @@ __global__ void initializePICField_kernel(
         E[j + i * device_ny_PIC].eX = 0.0;
         E[j + i * device_ny_PIC].eY = 0.0;
         E[j + i * device_ny_PIC].eZ = 0.0;
-        B[j + i * device_ny_PIC].bX = -0.1 * device_b0_MHD * cos(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
+        B[j + i * device_ny_PIC].bX = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
         B[j + i * device_ny_PIC].bY = device_b0_PIC; 
-        B[j + i * device_ny_PIC].bZ = 0.1 * device_b0_MHD * sin(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
+        B[j + i * device_ny_PIC].bZ = device_waveAmp * device_b0_MHD * sin(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
     }
 }
 
@@ -41,17 +41,17 @@ void PIC2D::initialize()
 
     for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
         double u, v, w;
-        u = 0.1 * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
+        u = waveAmp * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
         v = 0.0;
-        w = -0.1 * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
-        
+        w = -waveAmp * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
+
         initializeParticle.maxwellDistributionForVelocity(
             u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
-            j * numberDensityIon_PIC, (j + 1) * numberDensityIon_PIC, j * 100 + 400, particlesIon
+            j * PIC2DConst::nx_PIC * numberDensityIon_PIC, (j + 1) * PIC2DConst::nx_PIC * numberDensityIon_PIC, j * 100 + 400, particlesIon
         );
         initializeParticle.maxwellDistributionForVelocity(
             u, v, w, vThElectron_PIC, vThElectron_PIC, vThElectron_PIC, 
-            j * numberDensityElectron_PIC, (j + 1) * numberDensityElectron_PIC, j * 100 + 400 + totalNumIon_PIC, particlesElectron
+            j * PIC2DConst::nx_PIC * numberDensityElectron_PIC, (j + 1) * PIC2DConst::nx_PIC * numberDensityElectron_PIC, j * 100 + 400 + totalNumIon_PIC, particlesElectron
         );
     }
     
@@ -79,12 +79,12 @@ __global__ void initializeU_kernel(
         double rho, u, v, w, bX, bY, bZ, e, p;
         
         rho = device_rho0_MHD;
-        u   = 0.1 * device_VA * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        u   = device_waveAmp * device_VA * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
         v   = 0.0;
-        w   = -0.1 * device_VA * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
-        bX  = -0.1 * device_b0_MHD * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        w   = -device_waveAmp * device_VA * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        bX  = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
         bY  = device_b0_MHD;
-        bZ  = 0.1 * device_b0_MHD * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        bZ  = device_waveAmp * device_b0_MHD * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
         p   = device_p0_MHD;
         e   = p / (IdealMHD2DConst::device_gamma_MHD - 1.0)
             + 0.5 * rho * (u * u + v * v + w * w)
@@ -118,6 +118,7 @@ void IdealMHD2D::initializeU()
 int main()
 {
     cudaMemcpyToSymbol(device_VA, &VA, sizeof(double));
+    cudaMemcpyToSymbol(device_waveAmp, &waveAmp, sizeof(double));
     cudaMemcpyToSymbol(device_waveLength, &waveLength, sizeof(double));
     cudaMemcpyToSymbol(device_waveNumber, &waveNumber, sizeof(double));
 
