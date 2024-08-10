@@ -73,8 +73,7 @@ __global__ void convolveFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (PIC2DConst::device_nx_PIC && j < interfaceLength) 
-    {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
