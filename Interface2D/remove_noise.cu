@@ -79,8 +79,8 @@ __global__ void convolveFields_kernel(
         int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
         MagneticField convolvedB; 
-        ElectricField convolvedE;
-        CurrentField convolvedCurrent;
+        ElectricField convolvedE; 
+        CurrentField convolvedCurrent; 
         int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
         int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
@@ -109,7 +109,7 @@ void InterfaceNoiseRemover2D::convolveFields(
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data()), 
@@ -191,8 +191,8 @@ __global__ void convolveMoments_kernel(
         int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
         int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
-        for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
-            for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
+        for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
+            for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
                 convolvedZerothMoment = convolvedZerothMoment + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
                                       * tmpZerothMoment[indexForCopy + sizeX * ny_Interface + sizeY];
                 convolvedFirstMoment  = convolvedFirstMoment + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
@@ -215,7 +215,7 @@ void InterfaceNoiseRemover2D::convolveMoments(
 {
     dim3 threadsPerBlockForIon(16, 16);
     dim3 blocksPerGridForIon((PIC2DConst::nx_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x,
-                       (interfaceLength + windowSize + threadsPerBlockForIon.y - 1) / threadsPerBlockForIon.y);
+                       (interfaceLength + threadsPerBlockForIon.y - 1) / threadsPerBlockForIon.y);
 
     copyMoments_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
         thrust::raw_pointer_cast(zerothMomentIon.data()), 
@@ -244,7 +244,7 @@ void InterfaceNoiseRemover2D::convolveMoments(
 
     dim3 threadsPerBlockForElectron(16, 16);
     dim3 blocksPerGridForElectron((PIC2DConst::nx_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x,
-                       (interfaceLength + windowSize + threadsPerBlockForElectron.y - 1) / threadsPerBlockForElectron.y);
+                       (interfaceLength + threadsPerBlockForElectron.y - 1) / threadsPerBlockForElectron.y);
 
     copyMoments_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
         thrust::raw_pointer_cast(zerothMomentElectron.data()), 
@@ -333,7 +333,7 @@ void InterfaceNoiseRemover2D::convolveU(
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((IdealMHD2DConst::nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 

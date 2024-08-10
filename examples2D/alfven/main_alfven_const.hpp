@@ -28,7 +28,7 @@ std::ofstream logfile("results_alfven/log_alfven.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 100;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 10;
+const int recordStep = 1;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
@@ -78,7 +78,7 @@ const int indexOfInterfaceStartInMHD = 950;
 thrust::host_vector<double> host_interlockingFunctionY(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 0.0);
 
-const int Interface2DConst::windowSizeForConvolution = 5;
+const int Interface2DConst::windowSizeForConvolution = 10;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
 const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
