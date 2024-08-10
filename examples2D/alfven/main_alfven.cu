@@ -15,12 +15,25 @@ __global__ void initializePICField_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < device_nx_PIC && j < device_ny_PIC) {
-        E[j + i * device_ny_PIC].eX = 0.0;
-        E[j + i * device_ny_PIC].eY = 0.0;
-        E[j + i * device_ny_PIC].eZ = 0.0;
-        B[j + i * device_ny_PIC].bX = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
-        B[j + i * device_ny_PIC].bY = device_b0_PIC; 
-        B[j + i * device_ny_PIC].bZ = device_waveAmp * device_b0_MHD * sin(device_waveNumber * (j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD));
+        double u, v, w, bX, bY, bZ, eX, eY, eZ;
+        double y = j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD;
+
+        bX = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * y);
+        bY = device_b0_PIC; 
+        bZ = device_waveAmp * device_b0_MHD * sin(device_waveNumber * y);
+        u = device_waveAmp * device_VA * cos(device_waveNumber * y);
+        v = 0.0;
+        w = -device_waveAmp * device_VA * sin(device_waveNumber * y);
+        eX = -(v * bZ - w * bY);
+        eY = -(w * bX - u * bZ);
+        eZ = -(u * bY - v * bX);
+
+        E[j + i * device_ny_PIC].eX = eX;
+        E[j + i * device_ny_PIC].eY = eY;
+        E[j + i * device_ny_PIC].eZ = eZ;
+        B[j + i * device_ny_PIC].bX = bX;
+        B[j + i * device_ny_PIC].bY = bY; 
+        B[j + i * device_ny_PIC].bZ = bZ;
     }
 }
 

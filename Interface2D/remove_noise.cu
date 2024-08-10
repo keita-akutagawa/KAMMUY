@@ -20,12 +20,12 @@ InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
 
       windowSize(windowSizeForConvolution), 
 
-      tmpB(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpE(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpCurrent(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpZerothMoment(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpFirstMoment(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpU(IdealMHD2DConst::nx_MHD * (interfaceLength + windowSize))
+      tmpB(PIC2DConst::nx_PIC * interfaceLength), 
+      tmpE(PIC2DConst::nx_PIC * interfaceLength), 
+      tmpCurrent(PIC2DConst::nx_PIC * interfaceLength), 
+      tmpZerothMoment(PIC2DConst::nx_PIC * interfaceLength), 
+      tmpFirstMoment(PIC2DConst::nx_PIC * interfaceLength), 
+      tmpU(IdealMHD2DConst::nx_MHD * interfaceLength)
 {
 }
 
@@ -45,10 +45,11 @@ __global__ void copyFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength + windowSize) {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int indexForCopy = j + i * (interfaceLength + windowSize);
+        int ny_Interface = interfaceLength;
+        int indexForCopy = j + i * ny_Interface;
 
         tmpB[indexForCopy] = B[indexPIC];
         tmpE[indexForCopy] = E[indexPIC];
@@ -72,16 +73,17 @@ __global__ void convolveFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (windowSize <= i && i < PIC2DConst::device_nx_PIC - windowSize && windowSize <= j && j < interfaceLength) {
+    if (PIC2DConst::device_nx_PIC && j < interfaceLength) 
+    {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
+        int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
         MagneticField convolvedB; 
         ElectricField convolvedE;
         CurrentField convolvedCurrent;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
+        int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -155,10 +157,11 @@ __global__ void copyMoments_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength + windowSize) {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int indexForCopy = j + i * (interfaceLength + windowSize);
+        int ny_Interface = interfaceLength;
+        int indexForCopy = j + i * ny_Interface;
 
         tmpZerothMoment[indexForCopy] = zerothMomentSpecies[indexPIC];
         tmpFirstMoment [indexForCopy] = firstMomentSpecies [indexPIC];
@@ -179,15 +182,15 @@ __global__ void convolveMoments_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (windowSize <= i && i < PIC2DConst::device_nx_PIC - windowSize && windowSize <= j && j < interfaceLength) {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
+        int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
         ZerothMoment convolvedZerothMoment;
         FirstMoment convolvedFirstMoment;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
+        int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
         for (int sizeX = -windowSize; sizeX <= windowSize; sizeX++) {
             for (int sizeY = -windowSize; sizeY <= windowSize; sizeY++) {
@@ -282,10 +285,10 @@ __global__ void copyU_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength + windowSize) {
+    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
-        int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
+        int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
 
         tmpU[indexForCopy] = U[indexMHD];
@@ -304,14 +307,14 @@ __global__ void convolveU_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && windowSize <= j && j < interfaceLength + windowSize) {
+    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
-        int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
+        int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
         ConservationParameter convolvedU;
         int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
+        int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
