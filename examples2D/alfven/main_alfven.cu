@@ -44,7 +44,7 @@ void PIC2D::initialize()
         u = 0.1 * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
         v = 0.0;
         w = -0.1 * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
-
+        
         initializeParticle.maxwellDistributionForVelocity(
             u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
             j * numberDensityIon_PIC, (j + 1) * numberDensityIon_PIC, j * 100 + 400, particlesIon

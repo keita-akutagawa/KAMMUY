@@ -35,10 +35,14 @@ const int particleRecordStep = PIC2DConst::totalStep_PIC;
 double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
-double VA = device_b0_MHD / sqrt(device_rho0_MHD);
+const double Interface2DConst::PI = 3.14159265358979;
+const double PIC2DConst::EPS_PIC = 1e-40;
+const double IdealMHD2DConst::EPS_MHD = 1e-40;
+const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
+
+
 double waveLength = 500;
-double waveNumber = 2.0 * IdealMHD2DConst::device_PI_MHD / waveLength;
-__device__ double device_VA;
+double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
 __device__ double device_waveLength;
 __device__ double device_waveNumber;
 
@@ -72,8 +76,6 @@ const int indexOfInterfaceStartInMHD = 950;
 thrust::host_vector<double> host_interlockingFunctionY(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 0.0);
 
-const double Interface2DConst::PI = 3.14159265358979;
-
 const int Interface2DConst::windowSizeForConvolution = 5;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
@@ -85,7 +87,6 @@ const double PIC2DConst::c_PIC = 1.0;
 const double PIC2DConst::epsilon0_PIC = 1.0;
 const double PIC2DConst::mu0_PIC = 1.0;
 const double PIC2DConst::dOfLangdonMarderTypeCorrection_PIC = 0.001;
-const double PIC2DConst::EPS_PIC = 1e-40;
 
 const int PIC2DConst::numberDensityIon_PIC = 100;
 const int PIC2DConst::numberDensityElectron_PIC = 100;
@@ -132,9 +133,6 @@ const double PIC2DConst::bulkVzElectron_PIC = 0.0;
 
 // MHD
 
-const double IdealMHD2DConst::EPS_MHD = 1e-40;
-const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
-
 const double IdealMHD2DConst::b0_MHD = b0_PIC;
 
 const double IdealMHD2DConst::rho0_MHD = mIon_PIC * numberDensityIon_PIC + mElectron_PIC * numberDensityElectron_PIC;
@@ -146,6 +144,8 @@ const double IdealMHD2DConst::bY0_MHD = 0.0;
 const double IdealMHD2DConst::bZ0_MHD = 0.0;
 const double IdealMHD2DConst::p0_MHD = numberDensityIon_PIC * tIon_PIC + numberDensityElectron_PIC * tElectron_PIC;
 const double IdealMHD2DConst::e0_MHD = 0.0;
+
+const double VA = b0_MHD / sqrt(rho0_MHD);
 
 const double IdealMHD2DConst::CFL_MHD = 0.7;
 const double IdealMHD2DConst::gamma_MHD = 5.0 / 3.0;
@@ -236,6 +236,8 @@ __constant__ double IdealMHD2DConst::device_bY0_MHD;
 __constant__ double IdealMHD2DConst::device_bZ0_MHD;
 __constant__ double IdealMHD2DConst::device_p0_MHD;
 __constant__ double IdealMHD2DConst::device_e0_MHD;
+
+__device__ double device_VA;
 
 __constant__ double IdealMHD2DConst::device_dx_MHD;
 __constant__ double IdealMHD2DConst::device_xmin_MHD;
