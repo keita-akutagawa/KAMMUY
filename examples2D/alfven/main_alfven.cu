@@ -39,7 +39,7 @@ void PIC2D::initialize()
         0, existNumElectron_PIC, 300, particlesElectron
     );
 
-    for (int j = 0; PIC2DConst::ny_PIC; j++) {
+    for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
         double u, v, w;
         u = 0.1 * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
         v = 0.0;
