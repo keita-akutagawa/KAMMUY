@@ -261,6 +261,12 @@ int main()
             return 0;
         }
 
+        cudaError_t error = cudaGetLastError();
+        if (error != cudaSuccess) {
+            printf("CUDA Error: %s\n", cudaGetErrorString(error));
+            exit(-1);
+        }
+
         IdealMHD2DConst::totalTime_MHD += IdealMHD2DConst::dt_MHD;
     }
 

@@ -471,7 +471,9 @@ __global__ void reloadParticles_kernel(
         double vth = reloadParticlesDataSpecies[index].vth;
         Particle particleSource, particleReload;
         double x, y, z, vx, vy, vz, gamma;
-        if (isnan(vth)) printf("ERROR");
+        if (isnan(vth)) {
+            assert(false); 
+        }
 
         for (unsigned long long k = reloadParticlesDataSpecies[index].numberAndIndex; k < reloadParticlesDataSpecies[index + 1].numberAndIndex; k++) {
             curandState state; 
