@@ -82,8 +82,8 @@ __global__ void initializeU_Upper_kernel(
 
 
 void initializeU(
-    thrust::device_vector<ConservationParameter> U_Lower, 
-    thrust::device_vector<ConservationParameter> U_Upper
+    thrust::device_vector<ConservationParameter>& U_Lower, 
+    thrust::device_vector<ConservationParameter>& U_Upper
 )
 {
     dim3 threadsPerBlock(16, 16);
