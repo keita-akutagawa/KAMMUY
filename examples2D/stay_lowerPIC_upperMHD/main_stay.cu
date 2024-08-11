@@ -106,7 +106,7 @@ int main()
             Interface2DConst::EPS
         );
     }
-    for (int i = 0; i < interfaceLength; i++) {
+    for (int i = 0; i < interfaceLength - 1; i++) {
         host_interlockingFunctionYHalf[i] = max(
             0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
             Interface2DConst::EPS

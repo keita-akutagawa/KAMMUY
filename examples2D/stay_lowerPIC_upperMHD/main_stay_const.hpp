@@ -43,7 +43,7 @@ const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0 * dx_PIC;
 const int PIC2DConst::ny_PIC = 500;
 const double PIC2DConst::dy_PIC = 1.0;
 const double PIC2DConst::ymin_PIC = 0.5 * dy_PIC; 
-const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 1.0 * dy_PIC;
+const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 0.0 * dy_PIC;
 
 const int IdealMHD2DConst::nx_MHD = PIC2DConst::nx_PIC;
 const double IdealMHD2DConst::dx_MHD = 1.0;
@@ -59,7 +59,7 @@ const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
 // Interface
 
 const int interfaceLength = 50;
-const int indexOfInterfaceStartInPIC = 149;
+const int indexOfInterfaceStartInPIC = PIC2DConst::ny_PIC - interfaceLength;
 const int indexOfInterfaceStartInMHD = 0;
 
 thrust::host_vector<double> host_interlockingFunctionY(interfaceLength, 0.0);
