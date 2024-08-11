@@ -42,7 +42,7 @@ const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
 const double waveAmp = 0.1;
-const double waveLength = 500;
+const double waveLength = 500.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
 __constant__ double device_waveAmp;
 __constant__ double device_waveLength;
@@ -53,7 +53,7 @@ const double PIC2DConst::dx_PIC = 1.0;
 const double PIC2DConst::xmin_PIC = 0.0 * dx_PIC; 
 const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0 * dx_PIC;
 
-const int PIC2DConst::ny_PIC = 500;
+const int PIC2DConst::ny_PIC = 200;
 const double PIC2DConst::dy_PIC = 1.0;
 const double PIC2DConst::ymin_PIC = 0.5 * dy_PIC; 
 const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 1.0 * dy_PIC;
@@ -73,13 +73,17 @@ const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
 // Interface
 
 const int interfaceLength = 50;
-const int indexOfInterfaceStartInPIC = 0;
-const int indexOfInterfaceStartInMHD = 950;
+const int indexOfInterfaceStartInPIC_Lower = 0;
+const int indexOfInterfaceStartInMHD_Lower = IdealMHD2DConst::ny_MHD - interfaceLength;
+const int indexOfInterfaceStartInPIC_Upper = PIC2DConst::ny_PIC - interfaceLength;
+const int indexOfInterfaceStartInMHD_Upper = 0;
 
-thrust::host_vector<double> host_interlockingFunctionY(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf(interfaceLength - 1, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY_Lower(interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_Lower(interfaceLength - 1, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY_Upper(interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_Upper(interfaceLength - 1, 0.0);
 
-const int Interface2DConst::windowSizeForConvolution = 5;
+const int Interface2DConst::windowSizeForConvolution = 2;
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
 const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
