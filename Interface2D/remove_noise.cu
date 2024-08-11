@@ -73,7 +73,7 @@ __global__ void convolveFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j <= interfaceLength - windowSize) {
+    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j < interfaceLength - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
@@ -107,7 +107,7 @@ __global__ void convolveFields_kernel(
             }
         }
 
-        if (j == interfaceLength - windowSize) {
+        if (j == interfaceLength - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
                 B[indexPIC + tmp]       = convolvedB;
                 E[indexPIC + tmp]       = convolvedE; 
@@ -197,7 +197,7 @@ __global__ void convolveMoments_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j <= interfaceLength - windowSize) {
+    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j < interfaceLength - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
@@ -226,7 +226,7 @@ __global__ void convolveMoments_kernel(
             }
         }
 
-        if (j == interfaceLength - windowSize) {
+        if (j == interfaceLength - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
                 zerothMomentSpecies[indexPIC + tmp] = convolvedZerothMoment;
                 firstMomentSpecies[indexPIC + tmp]  = convolvedFirstMoment;
@@ -336,7 +336,7 @@ __global__ void convolveU_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
+    if (i < IdealMHD2DConst::device_nx_MHD && windowSize <= j && j < interfaceLength - windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
         int ny_Interface = interfaceLength;
@@ -360,7 +360,7 @@ __global__ void convolveU_kernel(
             }
         }
 
-        if (j == interfaceLength - windowSize) {
+        if (j == interfaceLength - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
                 U[indexMHD + tmp] = convolvedU;
             }

@@ -35,6 +35,7 @@ const int particleRecordStep = PIC2DConst::totalStep_PIC;
 double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
+const double Interface2DConst::EPS = 1e-40;
 const double Interface2DConst::PI = 3.14159265358979;
 const double PIC2DConst::EPS_PIC = 1e-40;
 const double IdealMHD2DConst::EPS_MHD = 1e-40;
@@ -259,6 +260,7 @@ __device__ double IdealMHD2DConst::device_dt_MHD;
 
 // Interface
 
+__constant__ double Interface2DConst::device_EPS;
 __constant__ double Interface2DConst::device_PI;
 
 __constant__ int Interface2DConst::device_windowSizeForConvolution;
