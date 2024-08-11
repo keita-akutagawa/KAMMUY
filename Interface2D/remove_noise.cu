@@ -73,7 +73,7 @@ __global__ void convolveFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j <= interfaceLength - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
@@ -98,6 +98,22 @@ __global__ void convolveFields_kernel(
         B[indexPIC]       = convolvedB;
         E[indexPIC]       = convolvedE; 
         current[indexPIC] = convolvedCurrent;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                B[indexPIC - tmp]       = convolvedB;
+                E[indexPIC - tmp]       = convolvedE; 
+                current[indexPIC - tmp] = convolvedCurrent;
+            }
+        }
+
+        if (j == interfaceLength - windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                B[indexPIC + tmp]       = convolvedB;
+                E[indexPIC + tmp]       = convolvedE; 
+                current[indexPIC + tmp] = convolvedCurrent;
+            }
+        }
     }
 }
 
@@ -181,7 +197,7 @@ __global__ void convolveMoments_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j <= interfaceLength - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
@@ -202,6 +218,20 @@ __global__ void convolveMoments_kernel(
 
         zerothMomentSpecies[indexPIC] = convolvedZerothMoment;
         firstMomentSpecies[indexPIC]  = convolvedFirstMoment;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                zerothMomentSpecies[indexPIC - tmp] = convolvedZerothMoment;
+                firstMomentSpecies[indexPIC - tmp]  = convolvedFirstMoment;
+            }
+        }
+
+        if (j == interfaceLength - windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                zerothMomentSpecies[indexPIC + tmp] = convolvedZerothMoment;
+                firstMomentSpecies[indexPIC + tmp]  = convolvedFirstMoment;
+            }
+        }
     }
 }
 
@@ -323,6 +353,18 @@ __global__ void convolveU_kernel(
         }
 
         U[indexMHD] = convolvedU;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD - tmp] = convolvedU;
+            }
+        }
+
+        if (j == interfaceLength - windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD + tmp] = convolvedU;
+            }
+        }
     }
 }
 

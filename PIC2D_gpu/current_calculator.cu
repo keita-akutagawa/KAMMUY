@@ -67,19 +67,19 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
         qVzOverGamma = qOverGamma * particlesSpecies[i].vz;
 
         atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jX), qVxOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jX), qVxOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jX), qVxOverGamma * cx2 * cy1 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy2 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jX), qVxOverGamma * cx1 * cy1 * min(1, yIndex2));
 
         atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jY), qVyOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jY), qVyOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jY), qVyOverGamma * cx2 * cy1 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy2 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jY), qVyOverGamma * cx1 * cy1 * min(1, yIndex2));
 
         atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex1].jZ), qVzOverGamma * cx2 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jZ), qVzOverGamma * cx2 * cy1);
-        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy2);
-        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy1);
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex1].jZ), qVzOverGamma * cx2 * cy1 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex1 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy2 * min(1, yIndex2));
+        atomicAdd(&(current[yIndex2 + device_ny_PIC * xIndex2].jZ), qVzOverGamma * cx1 * cy1 * min(1, yIndex2));
     }
 };
 

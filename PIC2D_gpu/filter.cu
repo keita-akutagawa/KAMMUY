@@ -120,9 +120,9 @@ struct CalculateRhoOfOneSpeciesFunctor {
         cy2 = 1.0 - cy1;
 
         atomicAdd(&(rho[yIndex1 + device_ny_PIC * xIndex1].rho), q * cx2 * cy2);
-        atomicAdd(&(rho[yIndex2 + device_ny_PIC * xIndex1].rho), q * cx2 * cy1);
-        atomicAdd(&(rho[yIndex1 + device_ny_PIC * xIndex2].rho), q * cx1 * cy2);
-        atomicAdd(&(rho[yIndex2 + device_ny_PIC * xIndex2].rho), q * cx1 * cy1);
+        atomicAdd(&(rho[yIndex2 + device_ny_PIC * xIndex1].rho), q * cx2 * cy1 * min(1, yIndex2));
+        atomicAdd(&(rho[yIndex1 + device_ny_PIC * xIndex2].rho), q * cx1 * cy2 * min(1, yIndex2));
+        atomicAdd(&(rho[yIndex2 + device_ny_PIC * xIndex2].rho), q * cx1 * cy1 * min(1, yIndex2));
     }
 };
 

@@ -429,7 +429,6 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
 
         niPIC   = rhoPIC / (mIon + mElectron);
         nePIC   = niPIC;
-        if (tiMHD < 0.0 || teMHD < 0.0) printf("ERROR");
         vThiPIC = sqrt(2.0 * tiMHD / mIon);
         vThePIC = sqrt(2.0 * teMHD / mElectron);
 

@@ -1,6 +1,6 @@
 CC = nvcc
 CFLAGS = -O3 -arch=sm_89 -rdc=true --extended-lambda -Xcompiler "/wd 4819" -MD
-SRCDIRS = ../../PIC2D_gpu ../../IdealMHD2D_gpu ../../Interface2D
+SRCDIRS = ..\..\PIC2D_gpu ..\..\IdealMHD2D_gpu ..\..\Interface2D
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
 DEPS = $(patsubst %.cu,%.d,$(SOURCES))
@@ -24,7 +24,10 @@ $(MAIN:.cu=.o): $(MAIN)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)
-	./$(EXECUTABLE)
+	$(EXECUTABLE)
 
 clean:
-	rm -f $(OBJS) $(MAIN:.cu=.o) $(MAIN:.cu=.d) $(EXECUTABLE) $(ADITIONALFILES) $(DEPS)
+	del $(OBJS) $(MAIN:.cu=.o) $(MAIN:.cu=.d) $(EXECUTABLE) $(ADITIONALFILES) $(DEPS)
+
+clean_main:
+	del $(MAIN:.cu=.o) $(MAIN:.cu=.d) $(EXECUTABLE) $(ADITIONALFILES)

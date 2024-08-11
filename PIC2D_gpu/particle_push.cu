@@ -70,34 +70,34 @@ ParticleField getParticleFields(
     cy2 = 1.0 - cy1;
 
     particleField.bX += B[yIndex1 + device_ny_PIC * xIndex1].bX * cx2 * cy2;
-    particleField.bX += B[yIndex2 + device_ny_PIC * xIndex1].bX * cx2 * cy1;
-    particleField.bX += B[yIndex1 + device_ny_PIC * xIndex2].bX * cx1 * cy2;
-    particleField.bX += B[yIndex2 + device_ny_PIC * xIndex2].bX * cx1 * cy1;
+    particleField.bX += B[yIndex2 + device_ny_PIC * xIndex1].bX * cx2 * cy1 * min(1, yIndex2);
+    particleField.bX += B[yIndex1 + device_ny_PIC * xIndex2].bX * cx1 * cy2 * min(1, yIndex2);
+    particleField.bX += B[yIndex2 + device_ny_PIC * xIndex2].bX * cx1 * cy1 * min(1, yIndex2);
 
     particleField.bY += B[yIndex1 + device_ny_PIC * xIndex1].bY * cx2 * cy2;
-    particleField.bY += B[yIndex2 + device_ny_PIC * xIndex1].bY * cx2 * cy1;
-    particleField.bY += B[yIndex1 + device_ny_PIC * xIndex2].bY * cx1 * cy2;
-    particleField.bY += B[yIndex2 + device_ny_PIC * xIndex2].bY * cx1 * cy1;
+    particleField.bY += B[yIndex2 + device_ny_PIC * xIndex1].bY * cx2 * cy1 * min(1, yIndex2);
+    particleField.bY += B[yIndex1 + device_ny_PIC * xIndex2].bY * cx1 * cy2 * min(1, yIndex2);
+    particleField.bY += B[yIndex2 + device_ny_PIC * xIndex2].bY * cx1 * cy1 * min(1, yIndex2);
 
     particleField.bZ += B[yIndex1 + device_ny_PIC * xIndex1].bZ * cx2 * cy2;
-    particleField.bZ += B[yIndex2 + device_ny_PIC * xIndex1].bZ * cx2 * cy1;
-    particleField.bZ += B[yIndex1 + device_ny_PIC * xIndex2].bZ * cx1 * cy2;
-    particleField.bZ += B[yIndex2 + device_ny_PIC * xIndex2].bZ * cx1 * cy1;
+    particleField.bZ += B[yIndex2 + device_ny_PIC * xIndex1].bZ * cx2 * cy1 * min(1, yIndex2);
+    particleField.bZ += B[yIndex1 + device_ny_PIC * xIndex2].bZ * cx1 * cy2 * min(1, yIndex2);
+    particleField.bZ += B[yIndex2 + device_ny_PIC * xIndex2].bZ * cx1 * cy1 * min(1, yIndex2);
 
     particleField.eX += E[yIndex1 + device_ny_PIC * xIndex1].eX * cx2 * cy2;
-    particleField.eX += E[yIndex2 + device_ny_PIC * xIndex1].eX * cx2 * cy1;
-    particleField.eX += E[yIndex1 + device_ny_PIC * xIndex2].eX * cx1 * cy2;
-    particleField.eX += E[yIndex2 + device_ny_PIC * xIndex2].eX * cx1 * cy1;
+    particleField.eX += E[yIndex2 + device_ny_PIC * xIndex1].eX * cx2 * cy1 * min(1, yIndex2);
+    particleField.eX += E[yIndex1 + device_ny_PIC * xIndex2].eX * cx1 * cy2 * min(1, yIndex2);
+    particleField.eX += E[yIndex2 + device_ny_PIC * xIndex2].eX * cx1 * cy1 * min(1, yIndex2);
 
     particleField.eY += E[yIndex1 + device_ny_PIC * xIndex1].eY * cx2 * cy2;
-    particleField.eY += E[yIndex2 + device_ny_PIC * xIndex1].eY * cx2 * cy1;
-    particleField.eY += E[yIndex1 + device_ny_PIC * xIndex2].eY * cx1 * cy2;
-    particleField.eY += E[yIndex2 + device_ny_PIC * xIndex2].eY * cx1 * cy1;
+    particleField.eY += E[yIndex2 + device_ny_PIC * xIndex1].eY * cx2 * cy1 * min(1, yIndex2);
+    particleField.eY += E[yIndex1 + device_ny_PIC * xIndex2].eY * cx1 * cy2 * min(1, yIndex2);
+    particleField.eY += E[yIndex2 + device_ny_PIC * xIndex2].eY * cx1 * cy1 * min(1, yIndex2);
 
     particleField.eZ += E[yIndex1 + device_ny_PIC * xIndex1].eZ * cx2 * cy2;
-    particleField.eZ += E[yIndex2 + device_ny_PIC * xIndex1].eZ * cx2 * cy1;
-    particleField.eZ += E[yIndex1 + device_ny_PIC * xIndex2].eZ * cx1 * cy2;
-    particleField.eZ += E[yIndex2 + device_ny_PIC * xIndex2].eZ * cx1 * cy1;
+    particleField.eZ += E[yIndex2 + device_ny_PIC * xIndex1].eZ * cx2 * cy1 * min(1, yIndex2);
+    particleField.eZ += E[yIndex1 + device_ny_PIC * xIndex2].eZ * cx1 * cy2 * min(1, yIndex2);
+    particleField.eZ += E[yIndex2 + device_ny_PIC * xIndex2].eZ * cx1 * cy1 * min(1, yIndex2);
 
 
     return particleField;
