@@ -102,18 +102,16 @@ int main()
     initializeDeviceConstants_Interface();
     for (int i = 0; i < interfaceLength; i++) {
         host_interlockingFunctionY[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
+            0.5 * (1.0 - cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
+            Interface2DConst::EPS
         );
     }
-    for (int i = 0; i < interfaceLength - 1; i++) {
+    for (int i = 0; i < interfaceLength; i++) {
         host_interlockingFunctionYHalf[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
+            0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
+            Interface2DConst::EPS
         );
     }
-    thrust::reverse(host_interlockingFunctionY.begin(), host_interlockingFunctionY.end());
-    thrust::reverse(host_interlockingFunctionYHalf.begin(), host_interlockingFunctionYHalf.end());
 
 
     IdealMHD2D idealMHD2D;

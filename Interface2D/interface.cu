@@ -487,7 +487,7 @@ __global__ void reloadParticles_kernel(
                 ];
 
                 x = particleSource.x; x += i * PIC2DConst::device_dx_PIC + device_xmin_PIC;
-                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j + 0.5) * PIC2DConst::device_dy_PIC;
+                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy_PIC;
                 z = 0.0;
                 vx = particleSource.vx; vx = u + vx * vth;
                 vy = particleSource.vy; vy = v + vy * vth;
@@ -694,9 +694,9 @@ __global__ void deleteParticles_kernel(
         double deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy_PIC;
         double deleteYMax = (indexOfInterfaceStartInPIC + interfaceLength) * PIC2DConst::device_dy_PIC;
 
-        if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) 
+        if (deleteXMin <= x && x <= deleteXMax && deleteYMin <= y && y <= deleteYMax) 
         {
-            int j = floor(y - device_ymin_PIC) - indexOfInterfaceStartInPIC;
+            int j = floor(y) - indexOfInterfaceStartInPIC;
             curandState state; 
             curand_init(step, i, 0, &state);
             double randomValue = curand_uniform_double(&state);

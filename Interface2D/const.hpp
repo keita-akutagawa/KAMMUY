@@ -4,6 +4,7 @@
 
 namespace Interface2DConst
 {
+    extern const double EPS;
     extern const double PI;
 
     extern const int windowSizeForConvolution;
@@ -12,6 +13,7 @@ namespace Interface2DConst
     extern const unsigned long long reloadParticlesTotalNumElectron;
 
 
+    extern __constant__ double device_EPS;
     extern __constant__ double device_PI;
 
     extern __constant__ int device_windowSizeForConvolution;
