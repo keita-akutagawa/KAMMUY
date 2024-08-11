@@ -212,7 +212,8 @@ int main()
     }
 
 
-    IdealMHD2D idealMHD2D_Lower, idealMHD2D_Upper;
+    IdealMHD2D idealMHD2D_Lower;
+    IdealMHD2D idealMHD2D_Upper;
     PIC2D pIC2D;
     InterfaceNoiseRemover2D interfaceNoiseRemover2D_Lower(
         indexOfInterfaceStartInMHD_Lower, 
