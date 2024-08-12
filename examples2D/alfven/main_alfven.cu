@@ -364,9 +364,9 @@ int main()
         boundaryMHD.symmetricBoundaryY2nd(UHalf_Upper);
 
         idealMHD2D_Lower.oneStepRK2_corrector(UHalf_Lower);
-        idealMHD2D_Lower.oneStepRK2_corrector(UHalf_Upper);
-        thrust::device_vector<ConservationParameter>& U_Lower = idealMHD2D_Lower.getURef();
-        thrust::device_vector<ConservationParameter>& U_Upper = idealMHD2D_Upper.getURef();
+        idealMHD2D_Upper.oneStepRK2_corrector(UHalf_Upper);
+        U_Lower = idealMHD2D_Lower.getURef();
+        U_Upper = idealMHD2D_Upper.getURef();
         interfaceNoiseRemover2D_Lower.convolveU(U_Lower);
         interfaceNoiseRemover2D_Upper.convolveU(U_Upper);
         boundaryMHD.periodicBoundaryX2nd(U_Lower);
