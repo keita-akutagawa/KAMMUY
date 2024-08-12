@@ -16,6 +16,7 @@
 #include "moment_struct.hpp"
 #include "../IdealMHD2D_gpu/conservation_parameter_struct.hpp"
 #include "../Interface2D/interface.hpp"
+#include "../Interface2D/remove_noise.hpp"
 
 
 class PIC2D
@@ -70,6 +71,8 @@ public:
         thrust::device_vector<ConservationParameter>& UNext_Upper, 
         Interface2D& interface2D_Lower, 
         Interface2D& interface2D_Upper, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper, 
         int step, int substep, int totalSubstep
     );
 

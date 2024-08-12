@@ -26,9 +26,9 @@ std::string directoryname = "results_alfven";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile("results_alfven/log_alfven.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 100;
+const int IdealMHD2DConst::totalStep_MHD = 10;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 10;
+const int recordStep = 1;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
@@ -79,9 +79,9 @@ const int indexOfInterfaceStartInPIC_Upper = PIC2DConst::ny_PIC - interfaceLengt
 const int indexOfInterfaceStartInMHD_Upper = 0;
 
 thrust::host_vector<double> host_interlockingFunctionY_Lower(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_Lower(interfaceLength - 1, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_Lower(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionY_Upper(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_Upper(interfaceLength - 1, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_Upper(interfaceLength, 0.0);
 
 const int Interface2DConst::windowSizeForConvolution = 2;
 

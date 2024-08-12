@@ -200,7 +200,7 @@ int main()
             Interface2DConst::EPS
         );
     }
-    for (int i = 0; i < interfaceLength - 1; i++) {
+    for (int i = 0; i < interfaceLength; i++) {
         host_interlockingFunctionYHalf_Lower[i] = max(
             0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
             1e-20
@@ -320,6 +320,7 @@ int main()
                 UPast_Lower, UPast_Upper, 
                 UNext_Lower, UNext_Upper, 
                 interface2D_Lower, interface2D_Upper, 
+                interfaceNoiseRemover2D_Lower, interfaceNoiseRemover2D_Upper, 
                 step, substep, totalSubstep
             );
 
@@ -328,9 +329,6 @@ int main()
             thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
             thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
             thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
-
-            interfaceNoiseRemover2D_Lower.convolveFields(B, E, current);
-            interfaceNoiseRemover2D_Upper.convolveFields(B, E, current);
 
             interface2D_Lower.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
             interface2D_Upper.sumUpTimeAveParameters(B, particlesIon, particlesElectron);

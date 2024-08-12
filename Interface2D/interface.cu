@@ -58,7 +58,7 @@ Interface2D::Interface2D(
        indexOfInterfaceEndInPIC(indexStartPIC + length), 
 
        interlockingFunctionY    (interfaceLength, 0.0), 
-       interlockingFunctionYHalf(interfaceLength - 1, 0.0),
+       interlockingFunctionYHalf(interfaceLength, 0.0),
 
        zerothMomentIon     (PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 
        zerothMomentElectron(PIC2DConst::nx_PIC * PIC2DConst::ny_PIC), 

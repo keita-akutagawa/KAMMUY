@@ -1,5 +1,5 @@
-#ifndef CONST_INTERFACE_REMOVE_NOISE_H
-#define CONST_INTERFACE_REMOVE_NOISE_H
+#ifndef INTERFACE_REMOVE_NOISE_H
+#define INTERFACE_REMOVE_NOISE_H
 
 
 #include <thrust/device_vector.h>
@@ -37,9 +37,15 @@ public:
         int windowSizeForConvolution
     );
 
-    void convolveFields(
-        thrust::device_vector<MagneticField>& B, 
-        thrust::device_vector<ElectricField>& E, 
+    void convolve_magneticField(
+        thrust::device_vector<MagneticField>& B
+    );
+
+    void convolve_electricField(
+        thrust::device_vector<ElectricField>& E
+    );
+
+    void convolve_currentField(
         thrust::device_vector<CurrentField>& current
     );
 

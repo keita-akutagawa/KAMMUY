@@ -20,23 +20,20 @@ InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
 
       windowSize(windowSizeForConvolution), 
 
-      tmpB(PIC2DConst::nx_PIC * interfaceLength), 
-      tmpE(PIC2DConst::nx_PIC * interfaceLength), 
-      tmpCurrent(PIC2DConst::nx_PIC * interfaceLength), 
-      tmpZerothMoment(PIC2DConst::nx_PIC * interfaceLength), 
-      tmpFirstMoment(PIC2DConst::nx_PIC * interfaceLength), 
-      tmpU(IdealMHD2DConst::nx_MHD * interfaceLength)
+      tmpB(PIC2DConst::nx_PIC * length), 
+      tmpE(PIC2DConst::nx_PIC * length), 
+      tmpCurrent(PIC2DConst::nx_PIC * length), 
+      tmpZerothMoment(PIC2DConst::nx_PIC * length), 
+      tmpFirstMoment(PIC2DConst::nx_PIC * length), 
+      tmpU(IdealMHD2DConst::nx_MHD * length)
 {
 }
 
 
+template <typename FieldType>
 __global__ void copyFields_kernel(
-    const MagneticField* B, 
-    const ElectricField* E, 
-    const CurrentField* current, 
-    MagneticField* tmpB, 
-    ElectricField* tmpE, 
-    CurrentField* tmpCurrent, 
+    const FieldType* field, 
+    FieldType* tmpField, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
     int windowSize
@@ -51,20 +48,15 @@ __global__ void copyFields_kernel(
         int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
 
-        tmpB[indexForCopy] = B[indexPIC];
-        tmpE[indexForCopy] = E[indexPIC];
-        tmpCurrent[indexForCopy] = current[indexPIC];
+        tmpField[indexForCopy] = field[indexPIC];
     }
 }
 
 
+template <typename FieldType>
 __global__ void convolveFields_kernel(
-    const MagneticField* tmpB, 
-    const ElectricField* tmpE, 
-    const CurrentField* tmpCurrent, 
-    MagneticField* B, 
-    ElectricField* E, 
-    CurrentField* current, 
+    const FieldType* tmpField, 
+    FieldType* field, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
     int windowSize
@@ -78,48 +70,97 @@ __global__ void convolveFields_kernel(
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength;
         int indexForCopy = j + i * ny_Interface;
-        MagneticField convolvedB; 
-        ElectricField convolvedE; 
-        CurrentField convolvedCurrent; 
+        FieldType convolvedField; 
         int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
         int windowSizeY = min(min(j, interfaceLength - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedB       = convolvedB + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
-                                 * tmpB[indexForCopy + sizeX * ny_Interface + sizeY];
-                convolvedE       = convolvedE + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
-                                 * tmpE[indexForCopy + sizeX * ny_Interface + sizeY];
-                convolvedCurrent = convolvedCurrent + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
-                                 * tmpCurrent[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedField = convolvedField + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                           * tmpField[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
         
-        B[indexPIC]       = convolvedB;
-        E[indexPIC]       = convolvedE; 
-        current[indexPIC] = convolvedCurrent;
+        field[indexPIC] = convolvedField;
 
         if (j == windowSize) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
-                B[indexPIC - tmp]       = convolvedB;
-                E[indexPIC - tmp]       = convolvedE; 
-                current[indexPIC - tmp] = convolvedCurrent;
+                field[indexPIC - tmp] = convolvedField;
             }
         }
 
         if (j == interfaceLength - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
-                B[indexPIC + tmp]       = convolvedB;
-                E[indexPIC + tmp]       = convolvedE; 
-                current[indexPIC + tmp] = convolvedCurrent;
+                field[indexPIC + tmp] = convolvedField;
             }
         }
     }
 }
 
-void InterfaceNoiseRemover2D::convolveFields(
-    thrust::device_vector<MagneticField>& B, 
-    thrust::device_vector<ElectricField>& E, 
+
+void InterfaceNoiseRemover2D::convolve_magneticField(
+    thrust::device_vector<MagneticField>& B
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    copyFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(B.data()), 
+        thrust::raw_pointer_cast(tmpB.data()), 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSize
+    );
+
+    cudaDeviceSynchronize();
+    
+
+    convolveFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpB.data()), 
+        thrust::raw_pointer_cast(B.data()), 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSize
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
+void InterfaceNoiseRemover2D::convolve_electricField(
+    thrust::device_vector<ElectricField>& E
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    copyFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(E.data()), 
+        thrust::raw_pointer_cast(tmpE.data()), 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSize
+    );
+
+    cudaDeviceSynchronize();
+    
+
+    convolveFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpE.data()), 
+        thrust::raw_pointer_cast(E.data()), 
+        indexOfInterfaceStartInPIC, 
+        interfaceLength, 
+        windowSize
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
+void InterfaceNoiseRemover2D::convolve_currentField(
     thrust::device_vector<CurrentField>& current
 )
 {
@@ -127,12 +168,8 @@ void InterfaceNoiseRemover2D::convolveFields(
     dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    copyFields_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(B.data()), 
-        thrust::raw_pointer_cast(E.data()), 
+    copyFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
-        thrust::raw_pointer_cast(tmpB.data()), 
-        thrust::raw_pointer_cast(tmpE.data()), 
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
@@ -142,12 +179,8 @@ void InterfaceNoiseRemover2D::convolveFields(
     cudaDeviceSynchronize();
     
 
-    convolveFields_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(tmpB.data()), 
-        thrust::raw_pointer_cast(tmpE.data()), 
+    convolveFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(tmpCurrent.data()), 
-        thrust::raw_pointer_cast(B.data()), 
-        thrust::raw_pointer_cast(E.data()), 
         thrust::raw_pointer_cast(current.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
