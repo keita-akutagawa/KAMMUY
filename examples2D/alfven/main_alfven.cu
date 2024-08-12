@@ -243,7 +243,7 @@ int main()
         host_interlockingFunctionYHalf_Upper, 
         interfaceNoiseRemover2D_Upper
     );
-    BoundaryPIC boundaryPIC;
+    //BoundaryPIC boundaryPIC;
     BoundaryMHD boundaryMHD;
     
 
@@ -264,11 +264,11 @@ int main()
     initializeU(U_Lower, U_Upper);
     pIC2D.initialize();
 
-    const int substeps = int(round(sqrt(PIC2DConst::mRatio_PIC)));
+    const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
         if (step % recordStep == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
-                      << std::setprecision(4) << step * substeps * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
+                      << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
                       << " [omega_pe * t]"
                       << std::endl;
             logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
@@ -299,9 +299,9 @@ int main()
         double dt_Lower_MHD = IdealMHD2DConst::dt_MHD;
         idealMHD2D_Upper.calculateDt();
         double dt_Upper_MHD = IdealMHD2DConst::dt_MHD;
-        double dtCommon = min(min(dt_Lower_MHD / substeps, dt_Upper_MHD / substeps), min(0.7 * PIC2DConst::c_PIC, 0.1 * 1.0 / PIC2DConst::omegaPe_PIC));
+        double dtCommon = min(min(dt_Lower_MHD / totalSubstep, dt_Upper_MHD / totalSubstep), min(0.7 * PIC2DConst::c_PIC, 0.1 * 1.0 / PIC2DConst::omegaPe_PIC));
         PIC2DConst::dt_PIC = dtCommon;
-        IdealMHD2DConst::dt_MHD = substeps * dtCommon;
+        IdealMHD2DConst::dt_MHD = totalSubstep * dtCommon;
 
         idealMHD2D_Lower.setPastU();
         idealMHD2D_Upper.setPastU();
@@ -315,8 +315,13 @@ int main()
 
         interface2D_Lower.resetTimeAveParameters();
         interface2D_Upper.resetTimeAveParameters();
-        for (int substep = 1; substep <= substeps; substep++) {
-            pIC2D.oneStepPeriodicXFreeY();
+        for (int substep = 1; substep <= totalSubstep; substep++) {
+            pIC2D.oneStepPeriodicXFreeY(
+                UPast_Lower, UPast_Upper, 
+                UNext_Lower, UNext_Upper, 
+                interface2D_Lower, interface2D_Upper, 
+                step, substep, totalSubstep
+            );
 
             thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
             thrust::device_vector<ElectricField>& E = pIC2D.getERef();
@@ -324,34 +329,15 @@ int main()
             thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
             thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
 
-            double mixingRatio = (substeps - substep) / substeps;
-            thrust::device_vector<ConservationParameter>& USub_Lower = interface2D_Lower.calculateAndGetSubU(UPast_Lower, UNext_Lower, mixingRatio);
-            thrust::device_vector<ConservationParameter>& USub_Upper = interface2D_Upper.calculateAndGetSubU(UPast_Upper, UNext_Upper, mixingRatio);
-            
-            interface2D_Lower.sendMHDtoPIC_magneticField_yDirection(USub_Lower, B);
-            interface2D_Lower.sendMHDtoPIC_electricField_yDirection(USub_Lower, E);
-            interface2D_Lower.sendMHDtoPIC_currentField_yDirection(USub_Lower, current);
-            interface2D_Lower.sendMHDtoPIC_particle(USub_Lower, particlesIon, particlesElectron, step * substeps + substep);
-            interface2D_Upper.sendMHDtoPIC_magneticField_yDirection(USub_Upper, B);
-            interface2D_Upper.sendMHDtoPIC_electricField_yDirection(USub_Upper, E);
-            interface2D_Upper.sendMHDtoPIC_currentField_yDirection(USub_Upper, current);
-            interface2D_Upper.sendMHDtoPIC_particle(USub_Upper, particlesIon, particlesElectron, step * substeps + substep);
-
             interfaceNoiseRemover2D_Lower.convolveFields(B, E, current);
             interfaceNoiseRemover2D_Upper.convolveFields(B, E, current);
-
-            boundaryPIC.freeBoundaryBY(B);
-            boundaryPIC.freeBoundaryEY(E);
-            boundaryPIC.freeBoundaryCurrentY(current); 
-            boundaryPIC.periodicBoundaryParticleX(particlesIon, particlesElectron);
-            boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
 
             interface2D_Lower.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
             interface2D_Upper.sumUpTimeAveParameters(B, particlesIon, particlesElectron);
         }
 
-        interface2D_Lower.calculateTimeAveParameters(substeps);
-        interface2D_Upper.calculateTimeAveParameters(substeps);
+        interface2D_Lower.calculateTimeAveParameters(totalSubstep);
+        interface2D_Upper.calculateTimeAveParameters(totalSubstep);
 
 
         interface2D_Lower.sendPICtoMHD(UPast_Lower, UNext_Lower);

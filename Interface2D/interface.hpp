@@ -1,3 +1,7 @@
+#ifndef INTERFACE_H
+#define INTERFACE_H
+
+
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "const.hpp"
@@ -124,4 +128,6 @@ private:
     );
 
 };
+
+#endif
 

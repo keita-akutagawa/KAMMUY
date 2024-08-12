@@ -120,11 +120,24 @@ __global__ void getHalfCurrent_kernel(
 }
 
 
-void PIC2D::oneStepPeriodicXFreeY()
+void PIC2D::oneStepPeriodicXFreeY(
+    thrust::device_vector<ConservationParameter>& UPast_Lower, 
+    thrust::device_vector<ConservationParameter>& UPast_Upper, 
+    thrust::device_vector<ConservationParameter>& UNext_Lower, 
+    thrust::device_vector<ConservationParameter>& UNext_Upper, 
+    Interface2D& interface2D_Lower, 
+    Interface2D& interface2D_Upper, 
+    int step, int substep, int totalSubstep
+)
 {
+    double mixingRatio = (totalSubstep - substep) / totalSubstep;
+    thrust::device_vector<ConservationParameter>& USub_Lower = interface2D_Lower.calculateAndGetSubU(UPast_Lower, UNext_Lower, mixingRatio);
+    thrust::device_vector<ConservationParameter>& USub_Upper = interface2D_Upper.calculateAndGetSubU(UPast_Upper, UNext_Upper, mixingRatio);
+
+
     fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0);
     boundaryPIC.freeBoundaryBY(B);
-    
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -162,6 +175,8 @@ void PIC2D::oneStepPeriodicXFreeY()
         thrust::raw_pointer_cast(tmpCurrent.data())
     );
     boundaryPIC.freeBoundaryCurrentY(current);
+    interface2D_Lower.sendMHDtoPIC_currentField_yDirection(USub_Lower, current);
+    interface2D_Upper.sendMHDtoPIC_currentField_yDirection(USub_Upper, current);
 
     fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0);
     boundaryPIC.freeBoundaryBY(B);
@@ -180,6 +195,20 @@ void PIC2D::oneStepPeriodicXFreeY()
     boundaryPIC.openBoundaryParticleY(
         particlesIon, particlesElectron
     );
+
+
+    interface2D_Lower.sendMHDtoPIC_magneticField_yDirection(USub_Lower, B);
+    interface2D_Lower.sendMHDtoPIC_electricField_yDirection(USub_Lower, E);
+    interface2D_Lower.sendMHDtoPIC_particle(USub_Lower, particlesIon, particlesElectron, step * totalSubstep + substep);
+    interface2D_Upper.sendMHDtoPIC_magneticField_yDirection(USub_Upper, B);
+    interface2D_Upper.sendMHDtoPIC_electricField_yDirection(USub_Upper, E);
+    interface2D_Upper.sendMHDtoPIC_particle(USub_Upper, particlesIon, particlesElectron, step * totalSubstep + substep);
+
+    boundaryPIC.freeBoundaryBY(B);
+    boundaryPIC.freeBoundaryEY(E);
+    boundaryPIC.freeBoundaryCurrentY(current); 
+    boundaryPIC.periodicBoundaryParticleX(particlesIon, particlesElectron);
+    boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
 }
 
 
