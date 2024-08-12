@@ -299,7 +299,7 @@ int main()
         double dt_Lower_MHD = IdealMHD2DConst::dt_MHD;
         idealMHD2D_Upper.calculateDt();
         double dt_Upper_MHD = IdealMHD2DConst::dt_MHD;
-        double dtCommon = min(min(dt_Lower_MHD / substeps, dt_Upper_MHD / substeps), 0.5 * PIC2DConst::c_PIC);
+        double dtCommon = min(min(dt_Lower_MHD / substeps, dt_Upper_MHD / substeps), min(0.7 * PIC2DConst::c_PIC, 0.1 * 1.0 / PIC2DConst::omegaPe_PIC));
         PIC2DConst::dt_PIC = dtCommon;
         IdealMHD2DConst::dt_MHD = substeps * dtCommon;
 
