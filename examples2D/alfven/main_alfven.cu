@@ -55,7 +55,7 @@ __global__ void initializeU_Upper_kernel(
 
     if (i < device_nx_MHD && j < device_ny_MHD) {
         double rho, u, v, w, bX, bY, bZ, e, p;
-        double y = j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD + 150 * PIC2DConst::device_dy_PIC;
+        double y = j * PIC2DConst::device_dy_PIC + 9500 * IdealMHD2DConst::device_dy_MHD + 950 * PIC2DConst::device_dy_PIC;
         
         rho = device_rho0_MHD;
         u   = device_waveAmp * device_VA * cos(device_waveNumber * y);
@@ -114,7 +114,7 @@ __global__ void initializePICField_kernel(
 
     if (i < device_nx_PIC && j < device_ny_PIC) {
         double u, v, w, bX, bY, bZ, eX, eY, eZ;
-        double y = j * PIC2DConst::device_dy_PIC + 950 * IdealMHD2DConst::device_dy_MHD;
+        double y = j * PIC2DConst::device_dy_PIC + 9500 * IdealMHD2DConst::device_dy_MHD;
 
         bX = -device_waveAmp * device_b0_PIC * cos(device_waveNumber * y);
         bY = device_b0_PIC; 

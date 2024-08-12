@@ -438,9 +438,9 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         reloadParticlesDataIon     [j + i * interfaceLength].u              = uPIC;
         reloadParticlesDataIon     [j + i * interfaceLength].v              = vPIC;
         reloadParticlesDataIon     [j + i * interfaceLength].w              = wPIC;
-        reloadParticlesDataElectron[j + i * interfaceLength].u              = uPIC - jXPIC / round(nePIC) / abs(qElectron);
-        reloadParticlesDataElectron[j + i * interfaceLength].v              = vPIC - jYPIC / round(nePIC) / abs(qElectron);
-        reloadParticlesDataElectron[j + i * interfaceLength].w              = wPIC - jZPIC / round(nePIC) / abs(qElectron);
+        reloadParticlesDataElectron[j + i * interfaceLength].u              = uPIC - jXPIC / max(round(nePIC), 1.0) / abs(qElectron);
+        reloadParticlesDataElectron[j + i * interfaceLength].v              = vPIC - jYPIC / max(round(nePIC), 1.0) / abs(qElectron);
+        reloadParticlesDataElectron[j + i * interfaceLength].w              = wPIC - jZPIC / max(round(nePIC), 1.0) / abs(qElectron);
         reloadParticlesDataIon     [j + i * interfaceLength].vth            = vThiPIC;
         reloadParticlesDataElectron[j + i * interfaceLength].vth            = vThePIC;
     }
