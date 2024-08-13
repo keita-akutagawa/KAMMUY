@@ -144,8 +144,8 @@ void PIC2D::initialize()
             double xmin, ymin, u, v, w;
             double y = j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD;
 
-            xmin = i * PIC2DConst::dx_PIC;
-            ymin = j * PIC2DConst::dy_PIC;
+            xmin = i * PIC2DConst::dx_PIC + PIC2DConst::xmin_PIC;
+            ymin = j * PIC2DConst::dy_PIC + PIC2DConst::ymin_PIC;
             u = waveAmp * VA * cos(waveNumber * y);
             v = 0.0;
             w = -waveAmp * VA * sin(waveNumber * y);
@@ -160,7 +160,6 @@ void PIC2D::initialize()
             );
         }
     }
-    
     
 
     dim3 threadsPerBlock(16, 16);
