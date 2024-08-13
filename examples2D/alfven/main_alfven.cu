@@ -266,6 +266,7 @@ int main()
     initializeU(U_Lower, U_Upper);
     pIC2D.initialize();
 
+
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
         if (step % recordStep == 0) {
