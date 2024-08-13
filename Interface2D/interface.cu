@@ -49,7 +49,8 @@ Interface2D::Interface2D(
     int length, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     thrust::host_vector<double>& host_interlockingFunctionYHalf, 
-    InterfaceNoiseRemover2D& interfaceNoiseRemover
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper
 )
     :  indexOfInterfaceStartInMHD(indexStartMHD), 
        indexOfInterfaceStartInPIC(indexStartPIC), 
@@ -85,7 +86,8 @@ Interface2D::Interface2D(
        USub (IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
        UHalf(IdealMHD2DConst::nx_MHD * IdealMHD2DConst::ny_MHD), 
 
-       interfaceNoiseRemover2D(interfaceNoiseRemover)
+       interfaceNoiseRemover2D_Lower(interfaceNoiseRemover2D_Lower), 
+       interfaceNoiseRemover2D_Upper(interfaceNoiseRemover2D_Upper)
 {
 
     interlockingFunctionY = host_interlockingFunctionY;
@@ -515,14 +517,14 @@ void Interface2D::sendMHDtoPIC_particle(
 )
 {
     setMoments(particlesIon, particlesElectron);
-    //interfaceNoiseRemover2D.convolveMoments_lower(
-    //    zerothMomentIon, zerothMomentElectron, 
-    //    firstMomentIon, firstMomentElectron
-    //);
-    //interfaceNoiseRemover2D.convolveMoments_upper(
-    //    zerothMomentIon, zerothMomentElectron, 
-    //    firstMomentIon, firstMomentElectron
-    //);
+    interfaceNoiseRemover2D_Lower.convolveMoments_lower(
+        zerothMomentIon, zerothMomentElectron, 
+        firstMomentIon, firstMomentElectron
+    );
+    interfaceNoiseRemover2D_Upper.convolveMoments_upper(
+        zerothMomentIon, zerothMomentElectron, 
+        firstMomentIon, firstMomentElectron
+    );
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
@@ -1096,14 +1098,14 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
-    //interfaceNoiseRemover2D.convolveMoments_lower(
-    //    zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
-    //    firstMomentIon_timeAve, firstMomentElectron_timeAve
-    //);
-    //interfaceNoiseRemover2D.convolveMoments_upper(
-    //    zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
-    //    firstMomentIon_timeAve, firstMomentElectron_timeAve
-    //);
+    interfaceNoiseRemover2D_Lower.convolveMoments_lower(
+        zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
+        firstMomentIon_timeAve, firstMomentElectron_timeAve
+    );
+    interfaceNoiseRemover2D_Upper.convolveMoments_upper(
+        zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
+        firstMomentIon_timeAve, firstMomentElectron_timeAve
+    );
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,

@@ -54,7 +54,8 @@ private:
     thrust::device_vector<ConservationParameter> UHalf;
 
     MomentCalculater momentCalculater;
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D_Lower;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D_Upper;
 
 
 public:
@@ -64,7 +65,8 @@ public:
         int interfaceLength, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
         thrust::host_vector<double>& host_interlockingFunctionYHalf, 
-        InterfaceNoiseRemover2D& interfaceNoiseRemover2D
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper
     );
 
     void sendMHDtoPIC_magneticField_yDirection(

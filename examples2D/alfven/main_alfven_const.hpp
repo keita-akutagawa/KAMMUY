@@ -26,7 +26,7 @@ std::string directoryname = "results_alfven";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile("results_alfven/log_alfven.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 10;
+const int IdealMHD2DConst::totalStep_MHD = 5;
 const int PIC2DConst::totalStep_PIC = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -42,7 +42,7 @@ const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
 const double waveAmp = 0.1;
-const double waveLength = 5000.0;
+const double waveLength = 8000.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
 __constant__ double device_waveAmp;
 __constant__ double device_waveLength;

@@ -152,9 +152,9 @@ void PIC2D::initialize()
 
     for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
         double u, v, w;
-        u = waveAmp * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
+        u = waveAmp * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD));
         v = 0.0;
-        w = -waveAmp * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 950 * IdealMHD2DConst::dy_MHD));
+        w = -waveAmp * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD));
 
         initializeParticle.maxwellDistributionForVelocity(
             u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
@@ -233,14 +233,16 @@ int main()
         interfaceLength, 
         host_interlockingFunctionY_Lower, 
         host_interlockingFunctionYHalf_Lower, 
-        interfaceNoiseRemover2D_Lower
+        interfaceNoiseRemover2D_Lower, 
+        interfaceNoiseRemover2D_Upper
     );
     Interface2D interface2D_Upper(
         indexOfInterfaceStartInMHD_Upper, 
         indexOfInterfaceStartInPIC_Upper, 
         interfaceLength, 
         host_interlockingFunctionY_Upper, 
-        host_interlockingFunctionYHalf_Upper, 
+        host_interlockingFunctionYHalf_Upper,
+        interfaceNoiseRemover2D_Lower,  
         interfaceNoiseRemover2D_Upper
     );
     //BoundaryPIC boundaryPIC;
@@ -343,7 +345,7 @@ int main()
 
 
         // STEP3 : MHD - corrector
-
+        /*
         interface2D_Lower.sendPICtoMHD(UPast_Lower, UNext_Lower);
         interface2D_Upper.sendPICtoMHD(UPast_Upper, UNext_Upper);
         thrust::device_vector<ConservationParameter>& UHalf_Lower = interface2D_Lower.getUHalfRef();
@@ -360,10 +362,7 @@ int main()
         U_Upper = idealMHD2D_Upper.getURef();
         interfaceNoiseRemover2D_Lower.convolveU_lower(U_Lower);
         interfaceNoiseRemover2D_Upper.convolveU_upper(U_Upper);
-        boundaryMHD.periodicBoundaryX2nd(U_Lower);
-        boundaryMHD.symmetricBoundaryY2nd(U_Lower);
-        boundaryMHD.periodicBoundaryX2nd(U_Upper);
-        boundaryMHD.symmetricBoundaryY2nd(U_Upper);
+        */
 
         if (idealMHD2D_Lower.checkCalculationIsCrashed() || idealMHD2D_Upper.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
