@@ -21,14 +21,15 @@ __global__ void initializeU_Lower_kernel(
 
     if (i < device_nx_MHD && j < device_ny_MHD) {
         double rho, u, v, w, bX, bY, bZ, e, p;
+        double y = j * IdealMHD2DConst::device_dy_MHD;
         
         rho = device_rho0_MHD;
-        u   = device_waveAmp * device_VA * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        u   = device_waveAmp * device_VA * cos(device_waveNumber * y);
         v   = 0.0;
-        w   = -device_waveAmp * device_VA * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
-        bX  = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        w   = -device_waveAmp * device_VA * sin(device_waveNumber * y);
+        bX  = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * y);
         bY  = device_b0_MHD;
-        bZ  = device_waveAmp * device_b0_MHD * sin(device_waveNumber * j * IdealMHD2DConst::device_dy_MHD);
+        bZ  = device_waveAmp * device_b0_MHD * sin(device_waveNumber * y);
         p   = device_p0_MHD;
         e   = p / (IdealMHD2DConst::device_gamma_MHD - 1.0)
             + 0.5 * rho * (u * u + v * v + w * w)
@@ -137,34 +138,29 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
-    initializeParticle.uniformForPositionX(
-        0, existNumIon_PIC, 0, particlesIon
-    );
-    initializeParticle.uniformForPositionX(
-        0, existNumElectron_PIC, 100, particlesElectron
-    );
-    initializeParticle.uniformForPositionY(
-        0, existNumIon_PIC, 200, particlesIon
-    );
-    initializeParticle.uniformForPositionY(
-        0, existNumElectron_PIC, 300, particlesElectron
-    );
 
-    for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
-        double u, v, w;
-        u = waveAmp * VA * cos(waveNumber * (j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD));
-        v = 0.0;
-        w = -waveAmp * VA * sin(waveNumber * (j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD));
+    for (int i = 0; i < PIC2DConst::nx_PIC; i++) {
+        for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
+            double xmin, ymin, u, v, w;
+            double y = j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD;
 
-        initializeParticle.maxwellDistributionForVelocity(
-            u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
-            j * PIC2DConst::nx_PIC * numberDensityIon_PIC, (j + 1) * PIC2DConst::nx_PIC * numberDensityIon_PIC, j * 100 + 400, particlesIon
-        );
-        initializeParticle.maxwellDistributionForVelocity(
-            u, v, w, vThElectron_PIC, vThElectron_PIC, vThElectron_PIC, 
-            j * PIC2DConst::nx_PIC * numberDensityElectron_PIC, (j + 1) * PIC2DConst::nx_PIC * numberDensityElectron_PIC, j * 100 + 400 + totalNumIon_PIC, particlesElectron
-        );
+            xmin = i * PIC2DConst::dx_PIC;
+            ymin = j * PIC2DConst::dy_PIC;
+            u = waveAmp * VA * cos(waveNumber * y);
+            v = 0.0;
+            w = -waveAmp * VA * sin(waveNumber * y);
+
+            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
+                xmin, ymin, u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
+                (j + i * ny_PIC) * numberDensityIon_PIC, (j + i * ny_PIC + 1) * numberDensityIon_PIC, j + i * ny_PIC, particlesIon
+            );
+            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
+                xmin, ymin, u, v, w, vThElectron_PIC, vThElectron_PIC, vThElectron_PIC, 
+                (j + i * ny_PIC) * numberDensityElectron_PIC, (j + i * ny_PIC + 1) * numberDensityElectron_PIC, j + i * ny_PIC + nx_PIC * ny_PIC, particlesElectron
+            );
+        }
     }
+    
     
 
     dim3 threadsPerBlock(16, 16);

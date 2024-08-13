@@ -42,7 +42,7 @@ const double IdealMHD2DConst::EPS_MHD = 1e-40;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
 const double waveAmp = 0.1;
-const double waveLength = 8000.0;
+const double waveLength = 5000.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI_MHD / waveLength;
 __constant__ double device_waveAmp;
 __constant__ double device_waveLength;
