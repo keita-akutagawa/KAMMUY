@@ -70,7 +70,7 @@ __global__ void convolveFields_lower_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j < interfaceLength) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength + windowSize;
@@ -87,6 +87,12 @@ __global__ void convolveFields_lower_kernel(
         }
         
         field[indexPIC] = convolvedField;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                field[indexPIC - tmp] = convolvedField;
+            }
+        }
     }
 }
 
@@ -124,11 +130,11 @@ __global__ void convolveU_lower_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
+    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength - windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
         int ny_Interface = interfaceLength + windowSize;
-        int indexForCopy = j + i * ny_Interface;
+        int indexForCopy = j + windowSize + i * ny_Interface;
         ConservationParameter convolvedU;
         int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
         int windowSizeY = min(min(j + windowSize, interfaceLength - 1 - j), windowSize);
@@ -141,6 +147,12 @@ __global__ void convolveU_lower_kernel(
         }
 
         U[indexMHD] = convolvedU;
+
+        if (j == interfaceLength - windowSize - 1) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD + tmp] = convolvedU;
+            }
+        }
     }
 }
 
@@ -405,11 +417,11 @@ __global__ void convolveFields_upper_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength) {
+    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
         int ny_Interface = interfaceLength + windowSize;
-        int indexForCopy = j + i * ny_Interface;
+        int indexForCopy = j + windowSize + i * ny_Interface;
         FieldType convolvedField; 
         int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
         int windowSizeY = min(min(j + windowSize, interfaceLength - 1 - j), windowSize);
@@ -422,6 +434,12 @@ __global__ void convolveFields_upper_kernel(
         }
         
         field[indexPIC] = convolvedField;
+
+        if (j == interfaceLength - windowSize - 1) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                field[indexPIC + tmp] = convolvedField;
+            }
+        }
     }
 }
 
@@ -459,7 +477,7 @@ __global__ void convolveU_upper_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength) {
+    if (i < IdealMHD2DConst::device_nx_MHD && windowSize <= j && j < interfaceLength) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
         int ny_Interface = interfaceLength + windowSize;
@@ -476,6 +494,12 @@ __global__ void convolveU_upper_kernel(
         }
 
         U[indexMHD] = convolvedU;
+
+        if (j == windowSize) {
+            for (int tmp = 1; tmp <= windowSize; tmp++) {
+                U[indexMHD - tmp] = convolvedU;
+            }
+        }
     }
 }
 
