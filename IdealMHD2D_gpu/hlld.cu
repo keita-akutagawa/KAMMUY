@@ -569,7 +569,7 @@ void HLLD::setFlux()
 
 //getter
 
-thrust::device_vector<Flux> HLLD::getFlux()
+thrust::device_vector<Flux>& HLLD::getFlux()
 {
     return flux;
 }

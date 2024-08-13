@@ -3,7 +3,7 @@
 
 using namespace IdealMHD2DConst;
 
-thrust::device_vector<Flux> FluxSolver::getFluxF(
+thrust::device_vector<Flux>& FluxSolver::getFluxF(
     const thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -14,7 +14,7 @@ thrust::device_vector<Flux> FluxSolver::getFluxF(
 }
 
 
-thrust::device_vector<Flux> FluxSolver::getFluxG(
+thrust::device_vector<Flux>& FluxSolver::getFluxG(
     const thrust::device_vector<ConservationParameter>& U
 )
 {

@@ -264,11 +264,14 @@ int main()
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio_PIC)));
     for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
-        if (step % recordStep == 0) {
+        if (step % 10 == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
                       << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
                       << " [omega_pe * t]"
                       << std::endl;
+        }
+
+        if (step % recordStep == 0) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
             pIC2D.saveFields(
                 directoryname, filenameWithoutStep, step
@@ -286,6 +289,7 @@ int main()
                 directoryname, filenameWithoutStep + "_upper", step
             );
         }
+        
         if (isParticleRecord && step % particleRecordStep == 0) {
             pIC2D.saveParticle(
                 directoryname, filenameWithoutStep, step
@@ -361,6 +365,12 @@ int main()
 
 
         if (idealMHD2D_Lower.checkCalculationIsCrashed() || idealMHD2D_Upper.checkCalculationIsCrashed()) {
+            idealMHD2D_Lower.save(
+                directoryname, filenameWithoutStep + "_lower", step
+            );
+            idealMHD2D_Upper.save(
+                directoryname, filenameWithoutStep + "_upper", step
+            );
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
             return 0;
         }

@@ -32,7 +32,7 @@ public:
         const thrust::device_vector<ConservationParameter>& U
     );
 
-    thrust::device_vector<Flux> getFlux();
+    thrust::device_vector<Flux>& getFlux();
 
 private:
 

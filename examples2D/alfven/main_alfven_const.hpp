@@ -26,19 +26,19 @@ std::string directoryname = "results_alfven";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile("results_alfven/log_alfven.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 2000;
+const int IdealMHD2DConst::totalStep_MHD = 10000;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 10;
+const int recordStep = 100;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
 double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
-const double Interface2DConst::EPS = 1e-40;
+const double Interface2DConst::EPS = 1e-20;
 const double Interface2DConst::PI = 3.14159265358979;
-const double PIC2DConst::EPS_PIC = 1e-40;
-const double IdealMHD2DConst::EPS_MHD = 1e-40;
+const double PIC2DConst::EPS_PIC = 1e-20;
+const double IdealMHD2DConst::EPS_MHD = 1e-20;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
 const double waveAmp = 0.1;
@@ -100,7 +100,7 @@ const int PIC2DConst::numberDensityElectron_PIC = 100;
 
 const double PIC2DConst::b0_PIC = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron_PIC)) / 1.0;
 
-const double PIC2DConst::mRatio_PIC = 100.0;
+const double PIC2DConst::mRatio_PIC = 25.0;
 const double PIC2DConst::mElectron_PIC = 1.0;
 const double PIC2DConst::mIon_PIC = mRatio_PIC * mElectron_PIC;
 
