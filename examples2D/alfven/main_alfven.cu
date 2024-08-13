@@ -345,7 +345,7 @@ int main()
 
 
         // STEP3 : MHD - corrector
-        /*
+
         interface2D_Lower.sendPICtoMHD(UPast_Lower, UNext_Lower);
         interface2D_Upper.sendPICtoMHD(UPast_Upper, UNext_Upper);
         thrust::device_vector<ConservationParameter>& UHalf_Lower = interface2D_Lower.getUHalfRef();
@@ -362,7 +362,7 @@ int main()
         U_Upper = idealMHD2D_Upper.getURef();
         interfaceNoiseRemover2D_Lower.convolveU_lower(U_Lower);
         interfaceNoiseRemover2D_Upper.convolveU_upper(U_Upper);
-        */
+
 
         if (idealMHD2D_Lower.checkCalculationIsCrashed() || idealMHD2D_Upper.checkCalculationIsCrashed()) {
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
