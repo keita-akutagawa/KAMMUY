@@ -359,7 +359,7 @@ int main()
         U_Lower = idealMHD2D_Lower.getURef();
         U_Upper = idealMHD2D_Upper.getURef();
         interfaceNoiseRemover2D_Lower.convolveU_lower(U_Lower);
-        interfaceNoiseRemover2D_Upper.convolveU_lower(U_Upper);
+        interfaceNoiseRemover2D_Upper.convolveU_upper(U_Upper);
         boundaryMHD.periodicBoundaryX2nd(U_Lower);
         boundaryMHD.symmetricBoundaryY2nd(U_Lower);
         boundaryMHD.periodicBoundaryX2nd(U_Upper);
