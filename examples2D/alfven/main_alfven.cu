@@ -294,6 +294,8 @@ int main()
             );
         }
 
+
+        // STEP1 : MHD - predictor
         
         idealMHD2D_Lower.calculateDt();
         double dt_Lower_MHD = IdealMHD2DConst::dt_MHD;
@@ -307,11 +309,15 @@ int main()
         idealMHD2D_Upper.setPastU();
         thrust::device_vector<ConservationParameter>& UPast_Lower = idealMHD2D_Lower.getUPastRef();
         thrust::device_vector<ConservationParameter>& UPast_Upper = idealMHD2D_Upper.getUPastRef();
+
         idealMHD2D_Lower.oneStepRK2_predictor();
         idealMHD2D_Upper.oneStepRK2_predictor();
+
         thrust::device_vector<ConservationParameter>& UNext_Lower = idealMHD2D_Lower.getURef();
         thrust::device_vector<ConservationParameter>& UNext_Upper = idealMHD2D_Upper.getURef();
 
+
+        // STEP2 : PIC
 
         interface2D_Lower.resetTimeAveParameters();
         interface2D_Upper.resetTimeAveParameters();
@@ -325,8 +331,6 @@ int main()
             );
 
             thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-            thrust::device_vector<ElectricField>& E = pIC2D.getERef();
-            thrust::device_vector<CurrentField>& current = pIC2D.getCurrentRef();
             thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
             thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
 
@@ -337,6 +341,8 @@ int main()
         interface2D_Lower.calculateTimeAveParameters(totalSubstep);
         interface2D_Upper.calculateTimeAveParameters(totalSubstep);
 
+
+        // STEP3 : MHD - corrector
 
         interface2D_Lower.sendPICtoMHD(UPast_Lower, UNext_Lower);
         interface2D_Upper.sendPICtoMHD(UPast_Upper, UNext_Upper);
@@ -349,10 +355,11 @@ int main()
 
         idealMHD2D_Lower.oneStepRK2_corrector(UHalf_Lower);
         idealMHD2D_Upper.oneStepRK2_corrector(UHalf_Upper);
+
         U_Lower = idealMHD2D_Lower.getURef();
         U_Upper = idealMHD2D_Upper.getURef();
-        interfaceNoiseRemover2D_Lower.convolveU(U_Lower);
-        interfaceNoiseRemover2D_Upper.convolveU(U_Upper);
+        interfaceNoiseRemover2D_Lower.convolveU_lower(U_Lower);
+        interfaceNoiseRemover2D_Upper.convolveU_lower(U_Upper);
         boundaryMHD.periodicBoundaryX2nd(U_Lower);
         boundaryMHD.symmetricBoundaryY2nd(U_Lower);
         boundaryMHD.periodicBoundaryX2nd(U_Upper);

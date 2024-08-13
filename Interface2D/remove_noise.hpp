@@ -37,26 +37,51 @@ public:
         int windowSizeForConvolution
     );
 
-    void convolve_magneticField(
+
+    void convolve_lower_magneticField(
         thrust::device_vector<MagneticField>& B
     );
 
-    void convolve_electricField(
+    void convolve_lower_electricField(
         thrust::device_vector<ElectricField>& E
     );
 
-    void convolve_currentField(
+    void convolve_lower_currentField(
         thrust::device_vector<CurrentField>& current
     );
 
-    void convolveMoments(
+    void convolveMoments_lower(
         thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         thrust::device_vector<FirstMoment>& firstMomentIon, 
         thrust::device_vector<FirstMoment>& firstMomentElectron
     );
 
-    void convolveU(
+    void convolveU_lower(
+        thrust::device_vector<ConservationParameter>& U
+    );
+
+
+    void convolve_upper_magneticField(
+        thrust::device_vector<MagneticField>& B
+    );
+
+    void convolve_upper_electricField(
+        thrust::device_vector<ElectricField>& E
+    );
+
+    void convolve_upper_currentField(
+        thrust::device_vector<CurrentField>& current
+    );
+
+    void convolveMoments_upper(
+        thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
+        thrust::device_vector<FirstMoment>& firstMomentIon, 
+        thrust::device_vector<FirstMoment>& firstMomentElectron
+    );
+
+    void convolveU_upper(
         thrust::device_vector<ConservationParameter>& U
     );
 

@@ -515,7 +515,7 @@ void Interface2D::sendMHDtoPIC_particle(
 )
 {
     setMoments(particlesIon, particlesElectron);
-    interfaceNoiseRemover2D.convolveMoments(zerothMomentIon, zerothMomentElectron, firstMomentIon, firstMomentElectron);
+    interfaceNoiseRemover2D.convolveMoments_lower(zerothMomentIon, zerothMomentElectron, firstMomentIon, firstMomentElectron);
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
@@ -1089,7 +1089,7 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
-    interfaceNoiseRemover2D.convolveMoments(
+    interfaceNoiseRemover2D.convolveMoments_lower(
         zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
         firstMomentIon_timeAve, firstMomentElectron_timeAve
     );
