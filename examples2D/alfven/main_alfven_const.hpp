@@ -28,7 +28,7 @@ std::ofstream logfile("results_alfven/log_alfven.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 10000;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 10;
+const int recordStep = 100;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
@@ -72,7 +72,7 @@ const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
 
 // Interface
 
-const int Interface2DConst::windowSizeForConvolution = 2;
+const int Interface2DConst::windowSizeForConvolution = 5;
 
 const int interfaceLength = 50;
 const int indexOfInterfaceStartInPIC_Lower = 0;

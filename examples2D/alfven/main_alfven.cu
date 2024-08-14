@@ -257,7 +257,6 @@ int main()
               << PIC2DConst::totalNumIon_PIC + PIC2DConst::totalNumElectron_PIC << std::endl;
 
 
-
     thrust::device_vector<ConservationParameter>& U_Lower = idealMHD2D_Lower.getURef();
     thrust::device_vector<ConservationParameter>& U_Upper = idealMHD2D_Upper.getURef();
     initializeU(U_Lower, U_Upper);
