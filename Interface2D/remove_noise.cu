@@ -7,25 +7,25 @@ using namespace Interface2DConst;
 
 
 InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
-    int indexStartMHD, 
-    int indexStartPIC, 
-    int length, 
-    int windowSizeForConvolution
+    int indexOfInterfaceStartInMHD, 
+    int indexOfInterfaceStartInPIC, 
+    int interfaceLength, 
+    int windowSizeForConvolution, 
+    int nx_Interface, int ny_Interface
 )
-    : indexOfInterfaceStartInMHD(indexStartMHD), 
-      indexOfInterfaceStartInPIC(indexStartPIC), 
-      interfaceLength(length), 
-      indexOfInterfaceEndInMHD(indexStartMHD + length), 
-      indexOfInterfaceEndInPIC(indexStartPIC + length), 
-
+    : indexOfInterfaceStartInMHD(indexOfInterfaceStartInMHD), 
+      indexOfInterfaceStartInPIC(indexOfInterfaceStartInPIC), 
+      interfaceLength(interfaceLength), 
       windowSize(windowSizeForConvolution), 
+      nx_Interface(nx_Interface), 
+      ny_Interface(ny_Interface), 
 
-      tmpB(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpE(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpCurrent(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpZerothMoment(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpFirstMoment(PIC2DConst::nx_PIC * (interfaceLength + windowSize)), 
-      tmpU(IdealMHD2DConst::nx_MHD * (interfaceLength + windowSize))
+      tmpB(nx_Interface * ny_Interface), 
+      tmpE(nx_Interface * ny_Interface), 
+      tmpCurrent(nx_Interface * ny_Interface), 
+      tmpZerothMoment(nx_Interface * ny_Interface), 
+      tmpFirstMoment(nx_Interface * ny_Interface), 
+      tmpU(nx_Interface * ny_Interface)
 {
 }
 
@@ -41,16 +41,16 @@ __global__ void copyFields_lower_kernel(
     FieldType* tmpField, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength + windowSize) {
+    if (i < nx_Interface && j < ny_Interface) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
 
         tmpField[indexForCopy] = field[indexPIC];
@@ -64,20 +64,20 @@ __global__ void convolveFields_lower_kernel(
     FieldType* field, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && windowSize <= j && j < interfaceLength) {
+    if (i < nx_Interface && windowSize <= j && j < ny_Interface - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
         int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
         FieldType convolvedField; 
-        int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
+        int windowSizeX = min(min(i, nx_Interface - 1 - i), windowSize);
+        int windowSizeY = min(min(j, ny_Interface - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -102,16 +102,17 @@ __global__ void copyU_lower_kernel(
     ConservationParameter* tmpU, 
     int indexOfInterfaceStartInMHD, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength + windowSize) {
+    if (i < IdealMHD2DConst::device_nx_MHD && j < ny_Interface) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
-        int indexMHD = indexOfInterfaceStartInMHD + j - windowSize + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
+        int indexMHD = indexOfInterfaceStartInMHD
+                     + j - (ny_Interface - interfaceLength) + i * ny_MHD;
         int indexForCopy = j + i * ny_Interface;
 
         tmpU[indexForCopy] = U[indexMHD];
@@ -124,20 +125,21 @@ __global__ void convolveU_lower_kernel(
     ConservationParameter* U, 
     int indexOfInterfaceStartInMHD, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength - windowSize) {
+    if (i < nx_Interface && windowSize <= j && j < ny_Interface - windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
-        int indexForCopy = j + windowSize + i * ny_Interface;
+        int indexMHD = indexOfInterfaceStartInMHD
+                     + j - (ny_Interface - interfaceLength) + i * ny_MHD;
+        int indexForCopy = j + i * ny_Interface;
         ConservationParameter convolvedU;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
-        int windowSizeY = min(min(j + windowSize, interfaceLength - 1 - j), windowSize);
+        int windowSizeX = min(min(i, nx_Interface - 1 - i), windowSize);
+        int windowSizeY = min(min(j, ny_Interface - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -148,7 +150,7 @@ __global__ void convolveU_lower_kernel(
 
         U[indexMHD] = convolvedU;
 
-        if (j == interfaceLength - windowSize - 1) {
+        if (j == ny_Interface - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
                 U[indexMHD + tmp] = convolvedU;
             }
@@ -170,7 +172,8 @@ void InterfaceNoiseRemover2D::convolve_lower_magneticField(
         thrust::raw_pointer_cast(tmpB.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -181,7 +184,8 @@ void InterfaceNoiseRemover2D::convolve_lower_magneticField(
         thrust::raw_pointer_cast(B.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -201,7 +205,8 @@ void InterfaceNoiseRemover2D::convolve_lower_electricField(
         thrust::raw_pointer_cast(tmpE.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -212,7 +217,8 @@ void InterfaceNoiseRemover2D::convolve_lower_electricField(
         thrust::raw_pointer_cast(E.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -232,7 +238,8 @@ void InterfaceNoiseRemover2D::convolve_lower_currentField(
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -243,7 +250,8 @@ void InterfaceNoiseRemover2D::convolve_lower_currentField(
         thrust::raw_pointer_cast(current.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -266,7 +274,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(tmpZerothMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -276,7 +285,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(zerothMomentIon.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -287,7 +297,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(tmpZerothMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -297,7 +308,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(zerothMomentElectron.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -309,7 +321,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(tmpFirstMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -319,7 +332,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(firstMomentIon.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -330,7 +344,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(tmpFirstMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -340,7 +355,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
         thrust::raw_pointer_cast(firstMomentElectron.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -360,7 +376,8 @@ void InterfaceNoiseRemover2D::convolveU_lower(
         thrust::raw_pointer_cast(tmpU.data()),
         indexOfInterfaceStartInMHD, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -370,7 +387,8 @@ void InterfaceNoiseRemover2D::convolveU_lower(
         thrust::raw_pointer_cast(U.data()), 
         indexOfInterfaceStartInMHD, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -388,16 +406,17 @@ __global__ void copyFields_upper_kernel(
     FieldType* tmpField, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength + windowSize) {
+    if (i < nx_Interface && j < ny_Interface) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
-        int indexPIC = indexOfInterfaceStartInPIC + j - windowSize + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
+        int indexPIC = indexOfInterfaceStartInPIC
+                     + j - (ny_Interface - interfaceLength) + i * ny_PIC;
         int indexForCopy = j + i * ny_Interface;
 
         tmpField[indexForCopy] = field[indexPIC];
@@ -411,20 +430,21 @@ __global__ void convolveFields_upper_kernel(
     FieldType* field, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < PIC2DConst::device_nx_PIC && j < interfaceLength - windowSize) {
+    if (i < nx_Interface && windowSize <= j && j < ny_Interface - windowSize) {
         int ny_PIC = PIC2DConst::device_ny_PIC;
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * ny_PIC;
-        int ny_Interface = interfaceLength + windowSize;
-        int indexForCopy = j + windowSize + i * ny_Interface;
+        int indexPIC = indexOfInterfaceStartInPIC
+                     + j - (ny_Interface - interfaceLength) + i * ny_PIC;
+        int indexForCopy = j + i * ny_Interface;
         FieldType convolvedField; 
-        int windowSizeX = min(min(i, PIC2DConst::device_nx_PIC - 1 - i), windowSize);
-        int windowSizeY = min(min(j + windowSize, interfaceLength - 1 - j), windowSize);
+        int windowSizeX = min(min(i, nx_Interface - 1 - i), windowSize);
+        int windowSizeY = min(min(j, ny_Interface - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -435,7 +455,7 @@ __global__ void convolveFields_upper_kernel(
         
         field[indexPIC] = convolvedField;
 
-        if (j == interfaceLength - windowSize - 1) {
+        if (j == ny_Interface - windowSize - 1) {
             for (int tmp = 1; tmp <= windowSize; tmp++) {
                 field[indexPIC + tmp] = convolvedField;
             }
@@ -449,16 +469,16 @@ __global__ void copyU_upper_kernel(
     ConservationParameter* tmpU, 
     int indexOfInterfaceStartInMHD, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && j < interfaceLength + windowSize) {
+    if (i < nx_Interface && j < ny_Interface) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
 
         tmpU[indexForCopy] = U[indexMHD];
@@ -471,20 +491,20 @@ __global__ void convolveU_upper_kernel(
     ConservationParameter* U, 
     int indexOfInterfaceStartInMHD, 
     int interfaceLength, 
-    int windowSize
+    int windowSize, 
+    int nx_Interface, int ny_Interface
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < IdealMHD2DConst::device_nx_MHD && windowSize <= j && j < interfaceLength) {
+    if (i < nx_Interface && windowSize <= j && j < ny_Interface - windowSize) {
         int ny_MHD = IdealMHD2DConst::device_ny_MHD;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * ny_MHD;
-        int ny_Interface = interfaceLength + windowSize;
         int indexForCopy = j + i * ny_Interface;
         ConservationParameter convolvedU;
-        int windowSizeX = min(min(i, IdealMHD2DConst::device_nx_MHD - 1 - i), windowSize);
-        int windowSizeY = min(min(j, interfaceLength + windowSize - 1 - j), windowSize);
+        int windowSizeX = min(min(i, nx_Interface - 1 - i), windowSize);
+        int windowSizeY = min(min(j, ny_Interface - 1 - j), windowSize);
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
@@ -517,7 +537,8 @@ void InterfaceNoiseRemover2D::convolve_upper_magneticField(
         thrust::raw_pointer_cast(tmpB.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -528,7 +549,8 @@ void InterfaceNoiseRemover2D::convolve_upper_magneticField(
         thrust::raw_pointer_cast(B.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -548,7 +570,8 @@ void InterfaceNoiseRemover2D::convolve_upper_electricField(
         thrust::raw_pointer_cast(tmpE.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -559,7 +582,8 @@ void InterfaceNoiseRemover2D::convolve_upper_electricField(
         thrust::raw_pointer_cast(E.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -579,7 +603,8 @@ void InterfaceNoiseRemover2D::convolve_upper_currentField(
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -590,7 +615,8 @@ void InterfaceNoiseRemover2D::convolve_upper_currentField(
         thrust::raw_pointer_cast(current.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -613,7 +639,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(tmpZerothMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -623,7 +650,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(zerothMomentIon.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -634,7 +662,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(tmpZerothMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -644,7 +673,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(zerothMomentElectron.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -656,7 +686,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(tmpFirstMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -666,7 +697,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(firstMomentIon.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -677,7 +709,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(tmpFirstMoment.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -687,7 +720,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
         thrust::raw_pointer_cast(firstMomentElectron.data()), 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
     
     cudaDeviceSynchronize();
@@ -707,7 +741,8 @@ void InterfaceNoiseRemover2D::convolveU_upper(
         thrust::raw_pointer_cast(tmpU.data()),
         indexOfInterfaceStartInMHD, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();
@@ -717,7 +752,8 @@ void InterfaceNoiseRemover2D::convolveU_upper(
         thrust::raw_pointer_cast(U.data()), 
         indexOfInterfaceStartInMHD, 
         interfaceLength, 
-        windowSize
+        windowSize, 
+        nx_Interface, ny_Interface
     );
 
     cudaDeviceSynchronize();

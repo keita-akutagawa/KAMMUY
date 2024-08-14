@@ -17,10 +17,9 @@ private:
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
     int interfaceLength; 
-    int indexOfInterfaceEndInMHD;
-    int indexOfInterfaceEndInPIC;
-
     int windowSize;
+    int nx_Interface; 
+    int ny_Interface;
 
     thrust::device_vector<MagneticField> tmpB;
     thrust::device_vector<ElectricField> tmpE;
@@ -34,7 +33,9 @@ public:
         int indexStartMHD, 
         int indexStartPIC, 
         int interfaceLength, 
-        int windowSizeForConvolution
+        int windowSizeForConvolution, 
+        int nx_Interface, 
+        int ny_Interface
     );
 
 

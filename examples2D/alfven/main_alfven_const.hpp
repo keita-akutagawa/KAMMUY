@@ -28,17 +28,17 @@ std::ofstream logfile("results_alfven/log_alfven.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 10000;
 const int PIC2DConst::totalStep_PIC = -1;
-const int recordStep = 100;
+const int recordStep = 10;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep_PIC;
 
 double PIC2DConst::totalTime_PIC = 0.0;
 double IdealMHD2DConst::totalTime_MHD = 0.0;
 
-const double Interface2DConst::EPS = 1e-20;
+const double Interface2DConst::EPS = 1.0e-20;
 const double Interface2DConst::PI = 3.14159265358979;
-const double PIC2DConst::EPS_PIC = 1e-20;
-const double IdealMHD2DConst::EPS_MHD = 1e-20;
+const double PIC2DConst::EPS_PIC = 1.0e-20;
+const double IdealMHD2DConst::EPS_MHD = 1.0e-20;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
 const double waveAmp = 0.1;
@@ -72,21 +72,23 @@ const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
 
 // Interface
 
+const int Interface2DConst::windowSizeForConvolution = 2;
+
 const int interfaceLength = 50;
 const int indexOfInterfaceStartInPIC_Lower = 0;
 const int indexOfInterfaceStartInMHD_Lower = IdealMHD2DConst::ny_MHD - interfaceLength;
 const int indexOfInterfaceStartInPIC_Upper = PIC2DConst::ny_PIC - interfaceLength;
 const int indexOfInterfaceStartInMHD_Upper = 0;
+const int nx_Interface = PIC2DConst::nx_PIC;
+const int ny_Interface = interfaceLength + 5 * Interface2DConst::windowSizeForConvolution;
 
 thrust::host_vector<double> host_interlockingFunctionY_Lower(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_Lower(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionY_Upper(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_Upper(interfaceLength, 0.0);
 
-const int Interface2DConst::windowSizeForConvolution = 5;
-
-const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
-const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 50);
+const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 0);
 
 // PIC
 
@@ -105,7 +107,7 @@ const double PIC2DConst::mElectron_PIC = 1.0;
 const double PIC2DConst::mIon_PIC = mRatio_PIC * mElectron_PIC;
 
 const double PIC2DConst::tRatio_PIC = 1.0;
-const double PIC2DConst::tElectron_PIC = 0.5f * mElectron_PIC * pow(0.1 * c_PIC, 2);
+const double PIC2DConst::tElectron_PIC = 0.5f * mElectron_PIC * pow(0.3 * c_PIC, 2);
 const double PIC2DConst::tIon_PIC = tRatio_PIC * tElectron_PIC;
 
 const double PIC2DConst::qRatio_PIC = -1.0;

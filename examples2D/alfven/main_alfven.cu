@@ -214,13 +214,15 @@ int main()
         indexOfInterfaceStartInMHD_Lower, 
         indexOfInterfaceStartInPIC_Lower, 
         interfaceLength, 
-        windowSizeForConvolution
+        windowSizeForConvolution, 
+        nx_Interface, ny_Interface
     );
     InterfaceNoiseRemover2D interfaceNoiseRemover2D_Upper(
         indexOfInterfaceStartInMHD_Upper, 
         indexOfInterfaceStartInPIC_Upper, 
         interfaceLength, 
-        windowSizeForConvolution
+        windowSizeForConvolution, 
+        nx_Interface, ny_Interface
     );
     Interface2D interface2D_Lower(
         indexOfInterfaceStartInMHD_Lower, 
@@ -365,6 +367,16 @@ int main()
 
 
         if (idealMHD2D_Lower.checkCalculationIsCrashed() || idealMHD2D_Upper.checkCalculationIsCrashed()) {
+            logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
+            pIC2D.saveFields(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveZerothMoments(
+                directoryname, filenameWithoutStep, step
+            );
+            pIC2D.saveFirstMoments(
+                directoryname, filenameWithoutStep, step
+            );
             idealMHD2D_Lower.save(
                 directoryname, filenameWithoutStep + "_lower", step
             );
