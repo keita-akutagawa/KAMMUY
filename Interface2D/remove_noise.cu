@@ -81,7 +81,7 @@ __global__ void convolveFields_lower_kernel(
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedField = convolvedField + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                convolvedField = convolvedField + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
                            * tmpField[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
@@ -143,7 +143,7 @@ __global__ void convolveU_lower_kernel(
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedU = convolvedU + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                convolvedU = convolvedU + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
                            * tmpU[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
@@ -164,8 +164,8 @@ void InterfaceNoiseRemover2D::convolve_lower_magneticField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_lower_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data()), 
@@ -197,8 +197,8 @@ void InterfaceNoiseRemover2D::convolve_lower_electricField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_lower_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), 
@@ -230,8 +230,8 @@ void InterfaceNoiseRemover2D::convolve_lower_currentField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_lower_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
@@ -266,8 +266,8 @@ void InterfaceNoiseRemover2D::convolveMoments_lower(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_lower_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(zerothMomentIon.data()), 
@@ -368,8 +368,8 @@ void InterfaceNoiseRemover2D::convolveU_lower(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((IdealMHD2DConst::nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyU_lower_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
@@ -448,8 +448,8 @@ __global__ void convolveFields_upper_kernel(
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedField = convolvedField + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
-                           * tmpField[indexForCopy + sizeX * ny_Interface + sizeY];
+                convolvedField = convolvedField + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
+                               * tmpField[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
         
@@ -508,7 +508,7 @@ __global__ void convolveU_upper_kernel(
 
         for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
             for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedU = convolvedU + 1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0)
+                convolvedU = convolvedU + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
                            * tmpU[indexForCopy + sizeX * ny_Interface + sizeY];
             }
         }
@@ -529,8 +529,8 @@ void InterfaceNoiseRemover2D::convolve_upper_magneticField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_upper_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data()), 
@@ -562,8 +562,8 @@ void InterfaceNoiseRemover2D::convolve_upper_electricField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_upper_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), 
@@ -595,8 +595,8 @@ void InterfaceNoiseRemover2D::convolve_upper_currentField(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_upper_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
@@ -631,8 +631,8 @@ void InterfaceNoiseRemover2D::convolveMoments_upper(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + windowSize + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyFields_upper_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(zerothMomentIon.data()), 
@@ -733,8 +733,8 @@ void InterfaceNoiseRemover2D::convolveU_upper(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((IdealMHD2DConst::nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((nx_Interface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_Interface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     copyU_upper_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 

@@ -180,8 +180,8 @@ void PIC2D::oneStepPeriodicXFreeY(
     interface2D_Lower.sendMHDtoPIC_currentField_yDirection(USub_Lower, current);
     interface2D_Upper.sendMHDtoPIC_currentField_yDirection(USub_Upper, current);
     boundaryPIC.freeBoundaryCurrentY(current);
-    interfaceNoiseRemover2D_Lower.convolve_lower_currentField(current);
-    interfaceNoiseRemover2D_Upper.convolve_upper_currentField(current);
+    //interfaceNoiseRemover2D_Lower.convolve_lower_currentField(current);
+    //interfaceNoiseRemover2D_Upper.convolve_upper_currentField(current);
 
     fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0);
     boundaryPIC.freeBoundaryBY(B);
@@ -214,10 +214,10 @@ void PIC2D::oneStepPeriodicXFreeY(
     boundaryPIC.periodicBoundaryParticleX(particlesIon, particlesElectron);
     boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
 
-    interfaceNoiseRemover2D_Lower.convolve_lower_magneticField(B);
-    interfaceNoiseRemover2D_Upper.convolve_upper_magneticField(B);
-    interfaceNoiseRemover2D_Lower.convolve_lower_electricField(E); 
-    interfaceNoiseRemover2D_Upper.convolve_upper_electricField(E);
+    //interfaceNoiseRemover2D_Lower.convolve_lower_magneticField(B);
+    //interfaceNoiseRemover2D_Upper.convolve_upper_magneticField(B);
+    //interfaceNoiseRemover2D_Lower.convolve_lower_electricField(E); 
+    //interfaceNoiseRemover2D_Upper.convolve_upper_electricField(E);
 }
 
 

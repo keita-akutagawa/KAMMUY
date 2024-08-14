@@ -48,7 +48,7 @@ __constant__ double device_waveAmp;
 __constant__ double device_waveLength;
 __constant__ double device_waveNumber;
 
-const int PIC2DConst::nx_PIC = 50;
+const int PIC2DConst::nx_PIC = 20;
 const double PIC2DConst::dx_PIC = 1.0;
 const double PIC2DConst::xmin_PIC = 0.0 * dx_PIC; 
 const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0 * dx_PIC;
