@@ -1,4 +1,4 @@
-#include "main_alfven_const.hpp"
+#include "main_fast_mode_const.hpp"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -23,14 +23,14 @@ __global__ void initializeU_Lower_kernel(
         double rho, u, v, w, bX, bY, bZ, e, p;
         double y = j * IdealMHD2DConst::device_dy_MHD;
         
-        rho = device_rho0_MHD;
-        u   = device_waveAmp * device_VA * cos(device_waveNumber * y);
-        v   = 0.0;
-        w   = -device_waveAmp * device_VA * sin(device_waveNumber * y);
-        bX  = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * y);
-        bY  = device_b0_MHD;
-        bZ  = device_waveAmp * device_b0_MHD * sin(device_waveNumber * y);
-        p   = device_p0_MHD;
+        rho = device_rho0_MHD * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+        u   = 0.0;
+        v   = device_waveAmp * device_Cf * sin(device_waveNumber * y);
+        w   = 0.0;
+        bX  = 0.0;
+        bY  = 0.0;
+        bZ  = device_b0_MHD * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+        p   = device_p0_MHD * (1.0 + device_gamma_MHD * device_waveAmp * sin(device_waveNumber * y));
         e   = p / (IdealMHD2DConst::device_gamma_MHD - 1.0)
             + 0.5 * rho * (u * u + v * v + w * w)
             + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -58,14 +58,14 @@ __global__ void initializeU_Upper_kernel(
         double rho, u, v, w, bX, bY, bZ, e, p;
         double y = j * PIC2DConst::device_dy_PIC + 9500 * IdealMHD2DConst::device_dy_MHD + 950 * PIC2DConst::device_dy_PIC;
         
-        rho = device_rho0_MHD;
-        u   = device_waveAmp * device_VA * cos(device_waveNumber * y);
-        v   = 0.0;
-        w   = -device_waveAmp * device_VA * sin(device_waveNumber * y);
-        bX  = -device_waveAmp * device_b0_MHD * cos(device_waveNumber * y);
-        bY  = device_b0_MHD;
-        bZ  = device_waveAmp * device_b0_MHD * sin(device_waveNumber * y);
-        p   = device_p0_MHD;
+        rho = device_rho0_MHD * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+        u   = 0.0;
+        v   = device_waveAmp * device_Cf * sin(device_waveNumber * y);
+        w   = 0.0;
+        bX  = 0.0;
+        bY  = 0.0;
+        bZ  = device_b0_MHD * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+        p   = device_p0_MHD * (1.0 + device_gamma_MHD * device_waveAmp * sin(device_waveNumber * y));
         e   = p / (IdealMHD2DConst::device_gamma_MHD - 1.0)
             + 0.5 * rho * (u * u + v * v + w * w)
             + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -117,12 +117,12 @@ __global__ void initializePICField_kernel(
         double u, v, w, bX, bY, bZ, eX, eY, eZ;
         double y = j * PIC2DConst::device_dy_PIC + 9500 * IdealMHD2DConst::device_dy_MHD;
 
-        bX = -device_waveAmp * device_b0_PIC * cos(device_waveNumber * y);
-        bY = device_b0_PIC; 
-        bZ = device_waveAmp * device_b0_PIC * sin(device_waveNumber * y);
-        u = device_waveAmp * device_VA * cos(device_waveNumber * y);
-        v = 0.0;
-        w = -device_waveAmp * device_VA * sin(device_waveNumber * y);
+        u   = 0.0;
+        v   = device_waveAmp * device_Cf * sin(device_waveNumber * y);
+        w   = 0.0;
+        bX  = 0.0;
+        bY  = 0.0;
+        bZ  = device_b0_PIC * (1.0 + device_waveAmp * sin(device_waveNumber * y));
         eX = -(v * bZ - w * bY);
         eY = -(w * bX - u * bZ);
         eZ = -(u * bY - v * bX);
@@ -138,28 +138,37 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
-
+    int countIon = 0, countElectron = 0;
     for (int i = 0; i < PIC2DConst::nx_PIC; i++) {
         for (int j = 0; j < PIC2DConst::ny_PIC; j++) {
-            double xmin, ymin, u, v, w;
+            double xmin, ymin, rho, ni, ne, u, v, w;
             double y = j * PIC2DConst::dy_PIC + 9500 * IdealMHD2DConst::dy_MHD;
 
             xmin = i * PIC2DConst::dx_PIC + PIC2DConst::xmin_PIC;
             ymin = j * PIC2DConst::dy_PIC + PIC2DConst::ymin_PIC;
-            u = waveAmp * VA * cos(waveNumber * y);
-            v = 0.0;
-            w = -waveAmp * VA * sin(waveNumber * y);
+            rho = device_rho0_PIC * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+            ni  = rho / (PIC2DConst::mIon_PIC + PIC2DConst::mElectron_PIC);
+            ne  = ni; 
+            u   = 0.0;
+            v   = device_waveAmp * device_Cf * sin(device_waveNumber * y);
+            w   = 0.0;
 
             initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
                 xmin, ymin, u, v, w, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
-                (j + i * ny_PIC) * numberDensityIon_PIC, (j + i * ny_PIC + 1) * numberDensityIon_PIC, j + i * ny_PIC, particlesIon
+                countIon, countIon + ni, j + i * ny_PIC, particlesIon
             );
             initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
                 xmin, ymin, u, v, w, vThElectron_PIC, vThElectron_PIC, vThElectron_PIC, 
-                (j + i * ny_PIC) * numberDensityElectron_PIC, (j + i * ny_PIC + 1) * numberDensityElectron_PIC, j + i * ny_PIC + nx_PIC * ny_PIC, particlesElectron
+                countElectron, countElectron + ne, j + i * ny_PIC + nx_PIC * ny_PIC, particlesElectron
             );
+
+            countIon      += ni;
+            countElectron += ne;
         }
     }
+
+    PIC2DConst::existNumIon_PIC      = countIon;
+    PIC2DConst::existNumElectron_PIC = countElectron; 
     
 
     dim3 threadsPerBlock(16, 16);
@@ -177,7 +186,7 @@ void PIC2D::initialize()
 
 int main()
 {
-    cudaMemcpyToSymbol(device_VA, &VA, sizeof(double));
+    cudaMemcpyToSymbol(device_Cf, &Cf, sizeof(double));
     cudaMemcpyToSymbol(device_waveAmp, &waveAmp, sizeof(double));
     cudaMemcpyToSymbol(device_waveLength, &waveLength, sizeof(double));
     cudaMemcpyToSymbol(device_waveNumber, &waveNumber, sizeof(double));
@@ -270,14 +279,13 @@ int main()
                       << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
                       << " [omega_pe * t]"
                       << std::endl;
+        }
+
+        if (step % recordStep == 0) {
             logfile << std::to_string(step) << " step done : total time is "
                     << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
                     << " [omega_pe * t]"
                     << std::endl;
-        }
-
-        if (step % recordStep == 0) {
-            logfile << std::setprecision(6) << PIC2DConst::totalTime_PIC << std::endl;
             pIC2D.saveFields(
                 directoryname, filenameWithoutStep, step
             );

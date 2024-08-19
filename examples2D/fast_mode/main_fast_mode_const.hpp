@@ -22,9 +22,9 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "results_alfven";
-std::string filenameWithoutStep = "alfven";
-std::ofstream logfile("results_alfven/log_alfven.txt");
+std::string directoryname = "results_fast_mode";
+std::string filenameWithoutStep = "fast_mode";
+std::ofstream logfile("results_fast_mode/log_fast_mode.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 20000;
 const int PIC2DConst::totalStep_PIC = -1;
@@ -152,9 +152,11 @@ const double IdealMHD2DConst::bX0_MHD = 0.0;
 const double IdealMHD2DConst::bY0_MHD = 0.0;
 const double IdealMHD2DConst::bZ0_MHD = 0.0;
 const double IdealMHD2DConst::p0_MHD = numberDensityIon_PIC * tIon_PIC + numberDensityElectron_PIC * tElectron_PIC;
-const double IdealMHD2DConst::e0_MHD = 0.0;
+const double IdealMHD2DConst::e0_MHD = p0_MHD / (gamma_MHD - 1.0)
+                                     + 0.5 * rho0_MHD * (u0_MHD * u0_MHD + v0_MHD * v0_MHD + w0_MHD * w0_MHD)
+                                     + 0.5 * (bX0_MHD * bX0_MHD + bY0_MHD * bY0_MHD + bZ0_MHD * bZ0_MHD);
 
-const double VA = b0_MHD / sqrt(rho0_MHD);
+const double Cf = sqrt(b0_MHD * b0_MHD / rho0_MHD + gamma_MHD * p0_MHD / rho0_MHD);
 
 const double IdealMHD2DConst::CFL_MHD = 0.7;
 const double IdealMHD2DConst::gamma_MHD = 5.0 / 3.0;
@@ -246,7 +248,7 @@ __constant__ double IdealMHD2DConst::device_bZ0_MHD;
 __constant__ double IdealMHD2DConst::device_p0_MHD;
 __constant__ double IdealMHD2DConst::device_e0_MHD;
 
-__device__ double device_VA;
+__device__ double device_Cf;
 
 __constant__ double IdealMHD2DConst::device_dx_MHD;
 __constant__ double IdealMHD2DConst::device_xmin_MHD;
