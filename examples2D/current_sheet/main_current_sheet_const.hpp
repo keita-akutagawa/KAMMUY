@@ -22,9 +22,15 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "results_current_sheet";
+std::string directoryname = "/cfca-work/akutagawakt/KAMMUY/results_current_sheet";
 std::string filenameWithoutStep = "current_sheet";
-std::ofstream logfile("results_current_sheet/log_current_sheet.txt");
+std::ofstream logfile("/cfca-work/akutagawakt/KAMMUY/results_current_sheet/log_current_sheet.txt");
+
+
+const double betaUpstream = 0.2 * 0.2;
+const double sheatThickness = 0.5 * PIC2DConst::ionInertialLength_PIC;
+__constant__ double device_betaUpstream;
+__constant__ double device_sheatThickness;
 
 const int IdealMHD2DConst::totalStep_MHD = 100000;
 const int PIC2DConst::totalStep_PIC = -1;
@@ -99,9 +105,9 @@ const double PIC2DConst::mRatio_PIC = 25.0;
 const double PIC2DConst::mElectron_PIC = 1.0;
 const double PIC2DConst::mIon_PIC = mRatio_PIC * mElectron_PIC;
 
-const float tRatio = 1.0f;
-const float tElectron = (B0 * B0 / 2.0 / mu0) / (numberDensityIon + numberDensityElectron * tRatio);
-const float tIon = tRatio * tElectron;
+const double PIC2DConst::tRatio_PIC = 1.0f;
+const double PIC2DConst::tElectron_PIC = (b0_PIC * b0_PIC / 2.0 / mu0_PIC) / (numberDensityIon_PIC + numberDensityElectron_PIC * tRatio_PIC);
+const double PIC2DConst::tIon_PIC = tRatio_PIC * tElectron_PIC;
 
 const double PIC2DConst::qRatio_PIC = -1.0;
 const double PIC2DConst::qElectron_PIC = -1.0 * sqrt(epsilon0_PIC * tElectron_PIC / static_cast<double>(numberDensityElectron_PIC));
@@ -117,12 +123,12 @@ const double PIC2DConst::ionInertialLength_PIC = c_PIC / omegaPi_PIC;
 
 double PIC2DConst::dt_PIC = 0.0;
 
-const unsigned long long harrisNumIon = round(nx * numberDensityIon * 2.0f * sheatThickness);
-const unsigned long long backgroundNumIon = round(0.2f * nx * ny * numberDensityIon);
-const unsigned long long harrisNumElectron = round(nx * numberDensityElectron * 2.0f * sheatThickness);
-const unsigned long long backgroundNumElectron = round(0.2f * nx * ny * numberDensityElectron);
-const unsigned long long PIC2DConst::existNumIon = harrisNumIon + backgroundNumIon;
-const unsigned long long PIC2DConst::existNumElectron = harrisNumElectron + backgroundNumElectron;
+const unsigned long long harrisNumIon_PIC = round(nx_PIC * numberDensityIon_PIC * 2.0f * sheatThickness);
+const unsigned long long backgroundNumIon_PIC = round(0.2 * nx_PIC * ny_PIC * numberDensityIon_PIC);
+const unsigned long long harrisNumElectron_PIC = round(nx_PIC * numberDensityElectron_PIC * 2.0f * sheatThickness);
+const unsigned long long backgroundNumElectron_PIC = round(0.2 * nx_PIC * ny_PIC * numberDensityElectron_PIC);
+unsigned long long PIC2DConst::existNumIon_PIC = harrisNumIon_PIC + backgroundNumIon_PIC;
+unsigned long long PIC2DConst::existNumElectron_PIC = harrisNumElectron_PIC + backgroundNumElectron_PIC;
 const unsigned long long PIC2DConst::totalNumIon_PIC = existNumIon_PIC + Interface2DConst::reloadParticlesTotalNumIon;
 const unsigned long long PIC2DConst::totalNumElectron_PIC = existNumElectron_PIC + Interface2DConst::reloadParticlesTotalNumElectron;
 const unsigned long long PIC2DConst::totalNumParticles_PIC = totalNumIon_PIC + totalNumElectron_PIC;
@@ -136,14 +142,14 @@ const double PIC2DConst::bulkVxElectron_PIC = 0.0;
 const double PIC2DConst::bulkVyElectron_PIC = 0.0;
 const double PIC2DConst::bulkVzElectron_PIC = 0.0;
 
-const float vThIonB_PIC = sqrt(2.0 * tIon * 0.2 / mIon);
-const float vThElectronB_PIC = sqrt(2.0 * tElectron * 0.2 / mElectron);
-const float bulkVxElectronB_PIC = 0.0;
-const float bulkVyElectronB_PIC = 0.0;
-const float bulkVzElectronB_PIC = 0.0;
-const float bulkVxIonB_PIC = 0.0;
-const float bulkVyIonB_PIC = 0.0;
-const float bulkVzIonB_PIC = 0.0;
+const double vThIonB_PIC = sqrt(2.0 * tIon_PIC * 0.2 / mIon_PIC);
+const double vThElectronB_PIC = sqrt(2.0 * tElectron_PIC * 0.2 / mElectron_PIC);
+const double bulkVxElectronB_PIC = 0.0;
+const double bulkVyElectronB_PIC = 0.0;
+const double bulkVzElectronB_PIC = 0.0;
+const double bulkVxIonB_PIC = 0.0;
+const double bulkVyIonB_PIC = 0.0;
+const double bulkVzIonB_PIC = 0.0;
 
 
 // MHD

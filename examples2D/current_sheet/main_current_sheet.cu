@@ -6,10 +6,6 @@
 #include <cuda_runtime.h>
 
 
-const double betaUpstream = 0.2 * 0.2;
-const double sheatThickness = 0.5 * PIC2DConst::ionInertialLength_PIC;
-__constant__ double device_betaUpstream;
-__constant__ double device_sheatThickness;
 
 
 // 別にinitializeUを作ることにする。
@@ -120,7 +116,7 @@ __global__ void initializePICField_kernel(
     if (i < device_nx_PIC && j < device_ny_PIC) {
         double bX, bY, bZ, eX, eY, eZ;
         double y = j * device_dy_PIC;
-        double yCenter = 0.5 * (device_ymax - device_ymin);
+        double yCenter = 0.5 * (device_ymax_PIC - device_ymin_PIC);
 
         bX = device_b0_PIC * tanh((y - yCenter) / device_sheatThickness);
         bY = 0.0;
@@ -141,40 +137,40 @@ __global__ void initializePICField_kernel(
 void PIC2D::initialize()
 {
     initializeParticle.uniformForPositionX(
-        0, totalNumIon, 0, particlesIon
+        0, existNumIon_PIC, 0, particlesIon
     );
     initializeParticle.uniformForPositionX(
-        0, totalNumElectron, 100, particlesElectron
+        0, existNumElectron_PIC, 100, particlesElectron
     );
 
     initializeParticle.harrisForPositionY(
-        0, harrisNumIon, 200, sheatThickness, particlesIon
+        0, harrisNumIon_PIC, 200, sheatThickness, particlesIon
     );
     initializeParticle.uniformForPositionY(
-        harrisNumIon, totalNumIon, 300, particlesIon
+        harrisNumIon_PIC, existNumIon_PIC, 300, particlesIon
     );
     initializeParticle.harrisForPositionY(
-        0, harrisNumElectron, 400, sheatThickness, particlesElectron
+        0, harrisNumElectron_PIC, 400, sheatThickness, particlesElectron
     );
     initializeParticle.uniformForPositionY(
-        harrisNumElectron, totalNumElectron, 500, particlesElectron
+        harrisNumElectron_PIC, existNumElectron_PIC, 500, particlesElectron
     );
 
     initializeParticle.maxwellDistributionForVelocity(
-        bulkVxIon, bulkVyIon, bulkVzIon, vThIon, vThIon, vThIon, 
-        0, harrisNumIon, 600, particlesIon
+        bulkVxIon_PIC, bulkVyIon_PIC, bulkVzIon_PIC, vThIon_PIC, vThIon_PIC, vThIon_PIC, 
+        0, harrisNumIon_PIC, 600, particlesIon
     );
     initializeParticle.maxwellDistributionForVelocity(
-        bulkVxIonB, bulkVyIonB, bulkVzIonB, vThIonB, vThIonB, vThIonB, 
-        harrisNumIon, totalNumIon, 700, particlesIon
+        bulkVxIonB_PIC, bulkVyIonB_PIC, bulkVzIonB_PIC, vThIonB_PIC, vThIonB_PIC, vThIonB_PIC, 
+        harrisNumIon_PIC, existNumIon_PIC, 700, particlesIon
     );
     initializeParticle.maxwellDistributionForVelocity(
-        bulkVxElectron, bulkVyElectron, bulkVzElectron, vThElectron, vThElectron, vThElectron, 
-        0, harrisNumElectron, 800, particlesElectron
+        bulkVxElectron_PIC, bulkVyElectron_PIC, bulkVzElectron_PIC, vThElectron_PIC, vThElectron_PIC, vThElectron_PIC, 
+        0, harrisNumElectron_PIC, 800, particlesElectron
     );
     initializeParticle.maxwellDistributionForVelocity(
-        bulkVxElectronB, bulkVyElectronB, bulkVzElectronB, vThElectronB, vThElectronB, vThElectronB, 
-        harrisNumElectron, totalNumElectron, 900, particlesElectron
+        bulkVxElectronB_PIC, bulkVyElectronB_PIC, bulkVzElectronB_PIC, vThElectronB_PIC, vThElectronB_PIC, vThElectronB_PIC, 
+        harrisNumElectron_PIC, existNumElectron_PIC, 900, particlesElectron
     );
     
 

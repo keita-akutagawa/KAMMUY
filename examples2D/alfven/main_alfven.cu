@@ -270,10 +270,6 @@ int main()
                       << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
                       << " [omega_pe * t]"
                       << std::endl;
-            logfile << std::to_string(step) << " step done : total time is "
-                    << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt_PIC * PIC2DConst::omegaPe_PIC
-                    << " [omega_pe * t]"
-                    << std::endl;
         }
 
         if (step % recordStep == 0) {
