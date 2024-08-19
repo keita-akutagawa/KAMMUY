@@ -22,9 +22,9 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "/cfca-work/akutagawakt/KAMMUY/results_current_sheet";
+std::string directoryname = "results_current_sheet";
 std::string filenameWithoutStep = "current_sheet";
-std::ofstream logfile("/cfca-work/akutagawakt/KAMMUY/results_current_sheet/log_current_sheet.txt");
+std::ofstream logfile("results_current_sheet/log_current_sheet.txt");
 
 const int IdealMHD2DConst::totalStep_MHD = 100000;
 const int PIC2DConst::totalStep_PIC = -1;
