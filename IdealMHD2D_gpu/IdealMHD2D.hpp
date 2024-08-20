@@ -32,9 +32,15 @@ public:
 
     void setPastU();
 
-    void oneStepRK2_predictor();
+    void oneStepRK2PeriodicXSymmetricY_predictor();
 
-    void oneStepRK2_corrector(
+    void oneStepRK2PeriodicXSymmetricY_corrector(
+        thrust::device_vector<ConservationParameter>& UHalf
+    );
+
+    void oneStepRK2SymmetricXSymmetricY_predictor();
+
+    void oneStepRK2SymmetricXSymmetricY_corrector(
         thrust::device_vector<ConservationParameter>& UHalf
     );
 

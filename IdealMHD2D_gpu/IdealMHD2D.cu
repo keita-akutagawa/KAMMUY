@@ -140,7 +140,7 @@ struct oneStepSecondFunctor {
 };
 
 
-void IdealMHD2D::oneStepRK2_predictor()
+void IdealMHD2D::oneStepRK2PeriodicXSymmetricY_predictor()
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -178,7 +178,6 @@ void IdealMHD2D::oneStepRK2_predictor()
     ct.divBClean(bXOld, bYOld, UBar);
 
     boundaryMHD.periodicBoundaryX2nd(UBar);
-    //boundaryMHD.symmetricBoundaryX2nd(UBar);
     boundaryMHD.symmetricBoundaryY2nd(UBar);
 
     shiftUToCenterForCT(UBar);
@@ -201,13 +200,12 @@ void IdealMHD2D::oneStepRK2_predictor()
     ct.divBClean(bXOld, bYOld, U);
 
     boundaryMHD.periodicBoundaryX2nd(U);
-    //boundaryMHD.symmetricBoundaryX2nd(U);
     boundaryMHD.symmetricBoundaryY2nd(U);
 }
 
 
 // dtの計算はしないこと。
-void IdealMHD2D::oneStepRK2_corrector(
+void IdealMHD2D::oneStepRK2PeriodicXSymmetricY_corrector(
     thrust::device_vector<ConservationParameter>& UHalf
 )
 {
@@ -235,7 +233,104 @@ void IdealMHD2D::oneStepRK2_corrector(
     ct.divBClean(bXOld, bYOld, U);
 
     boundaryMHD.periodicBoundaryX2nd(U);
-    //boundaryMHD.symmetricBoundaryX2nd(U);
+    boundaryMHD.symmetricBoundaryY2nd(U);
+
+}
+
+
+void IdealMHD2D::oneStepRK2SymmetricXSymmetricY_predictor()
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    copyBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(bXOld.data()), 
+        thrust::raw_pointer_cast(U.data())
+    );
+    copyBY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(bYOld.data()), 
+        thrust::raw_pointer_cast(U.data())
+    );
+    thrust::copy(U.begin(), U.end(), UBar.begin());
+
+    //calculateDt();
+
+    shiftUToCenterForCT(U);
+    fluxF = fluxSolver.getFluxF(U);
+    fluxG = fluxSolver.getFluxG(U);
+    backUToCenterHalfForCT(U);
+
+    auto tupleForFluxFirst = thrust::make_tuple(
+        U.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
+    );
+    auto tupleForFluxFirstIterator = thrust::make_zip_iterator(tupleForFluxFirst);
+    thrust::transform(
+        tupleForFluxFirstIterator + ny_MHD, 
+        tupleForFluxFirstIterator + nx_MHD * ny_MHD, 
+        UBar.begin() + ny_MHD, 
+        oneStepFirstFunctor()
+    );
+
+    ct.setOldFlux2D(fluxF, fluxG);
+    ct.divBClean(bXOld, bYOld, UBar);
+
+    boundaryMHD.symmetricBoundaryX2nd(UBar);
+    boundaryMHD.symmetricBoundaryY2nd(UBar);
+
+    shiftUToCenterForCT(UBar);
+    fluxF = fluxSolver.getFluxF(UBar);
+    fluxG = fluxSolver.getFluxG(UBar);
+    backUToCenterHalfForCT(UBar);
+
+    thrust::copy(U.begin(), U.end(), tmpU.begin());
+    auto tupleForFluxSecond = thrust::make_tuple(
+        tmpU.begin(), UBar.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
+    );
+    auto tupleForFluxSecondIterator = thrust::make_zip_iterator(tupleForFluxSecond);
+    thrust::transform(
+        tupleForFluxSecondIterator + ny_MHD, 
+        tupleForFluxSecondIterator + nx_MHD * ny_MHD, 
+        U.begin() + ny_MHD, 
+        oneStepSecondFunctor()
+    );
+
+    ct.divBClean(bXOld, bYOld, U);
+
+    boundaryMHD.symmetricBoundaryX2nd(U);
+    boundaryMHD.symmetricBoundaryY2nd(U);
+}
+
+
+// dtの計算はしないこと。
+void IdealMHD2D::oneStepRK2SymmetricXSymmetricY_corrector(
+    thrust::device_vector<ConservationParameter>& UHalf
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx_MHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_MHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    shiftUToCenterForCT(UHalf);
+    fluxF = fluxSolver.getFluxF(UHalf);
+    fluxG = fluxSolver.getFluxG(UHalf);
+    backUToCenterHalfForCT(UHalf);
+
+    auto tupleForFluxFirst = thrust::make_tuple(
+        UPast.begin(), fluxF.begin(), fluxF.begin() - ny_MHD, fluxG.begin(), fluxG.begin() - 1
+    );
+    auto tupleForFluxFirstIterator = thrust::make_zip_iterator(tupleForFluxFirst);
+    thrust::transform(
+        tupleForFluxFirstIterator + ny_MHD, 
+        tupleForFluxFirstIterator + nx_MHD * ny_MHD, 
+        U.begin() + ny_MHD, 
+        oneStepFirstFunctor()
+    );
+
+    ct.setOldFlux2D(fluxF, fluxG);
+    ct.divBClean(bXOld, bYOld, U);
+
+    boundaryMHD.symmetricBoundaryX2nd(U);
     boundaryMHD.symmetricBoundaryY2nd(U);
 
 }

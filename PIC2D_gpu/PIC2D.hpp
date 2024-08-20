@@ -76,9 +76,17 @@ public:
         int step, int substep, int totalSubstep
     );
 
-    void oneStepSymmetricXWallY();
-
-    void oneStepSymmetricXFreeY();
+    void oneStepFreeXFreeY(
+        thrust::device_vector<ConservationParameter>& UPast_Lower, 
+        thrust::device_vector<ConservationParameter>& UPast_Upper, 
+        thrust::device_vector<ConservationParameter>& UNext_Lower, 
+        thrust::device_vector<ConservationParameter>& UNext_Upper, 
+        Interface2D& interface2D_Lower, 
+        Interface2D& interface2D_Upper, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper, 
+        int step, int substep, int totalSubstep
+    );
 
     void sortParticle();
 
