@@ -1098,6 +1098,8 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
+    interfaceNoiseRemover2D_Lower.convolve_lower_magneticField(B_timeAve);
+    interfaceNoiseRemover2D_Upper.convolve_upper_magneticField(B_timeAve);
     interfaceNoiseRemover2D_Lower.convolveMoments_lower(
         zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
         firstMomentIon_timeAve, firstMomentElectron_timeAve

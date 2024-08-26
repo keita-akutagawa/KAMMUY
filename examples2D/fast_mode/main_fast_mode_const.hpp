@@ -26,7 +26,7 @@ std::string directoryname = "results_fast_mode";
 std::string filenameWithoutStep = "fast_mode";
 std::ofstream logfile("results_fast_mode/log_fast_mode.txt");
 
-const int IdealMHD2DConst::totalStep_MHD = 20000;
+const int IdealMHD2DConst::totalStep_MHD = 10000;
 const int PIC2DConst::totalStep_PIC = -1;
 const int recordStep = 100;
 const bool isParticleRecord = false;
@@ -87,8 +87,8 @@ thrust::host_vector<double> host_interlockingFunctionYHalf_Lower(interfaceLength
 thrust::host_vector<double> host_interlockingFunctionY_Upper(interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_Upper(interfaceLength, 0.0);
 
-const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * (interfaceLength + 0);
-const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * (interfaceLength + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNumIon = PIC2DConst::numberDensityIon_PIC * PIC2DConst::nx_PIC * PIC2DConst::ny_PIC;
+const unsigned long long Interface2DConst::reloadParticlesTotalNumElectron = PIC2DConst::numberDensityElectron_PIC * PIC2DConst::nx_PIC * PIC2DConst::ny_PIC;
 
 // PIC
 
@@ -107,7 +107,7 @@ const double PIC2DConst::mElectron_PIC = 1.0;
 const double PIC2DConst::mIon_PIC = mRatio_PIC * mElectron_PIC;
 
 const double PIC2DConst::tRatio_PIC = 1.0;
-const double PIC2DConst::tElectron_PIC = 0.5f * mElectron_PIC * pow(0.3 * c_PIC, 2);
+const double PIC2DConst::tElectron_PIC = 0.5 * mElectron_PIC * pow(0.3 * c_PIC, 2);
 const double PIC2DConst::tIon_PIC = tRatio_PIC * tElectron_PIC;
 
 const double PIC2DConst::qRatio_PIC = -1.0;

@@ -7,7 +7,6 @@
 
 
 
-
 // 別にinitializeUを作ることにする。
 void IdealMHD2D::initializeU()
 {
@@ -116,10 +115,16 @@ __global__ void initializePICField_kernel(
     if (i < device_nx_PIC && j < device_ny_PIC) {
         double bX, bY, bZ, eX, eY, eZ;
         double y = j * device_dy_PIC;
+        double xCenter = 0.5 * (device_xmax_PIC - device_xmin_PIC);
         double yCenter = 0.5 * (device_ymax_PIC - device_ymin_PIC);
 
-        bX = device_b0_PIC * tanh((y - yCenter) / device_sheatThickness);
-        bY = 0.0;
+        bX = device_b0_PIC * tanh((y - yCenter) / device_sheatThickness)
+           - device_b0_PIC * device_triggerRatio * (j * device_dy_PIC - yCenter) / device_sheatThickness
+           * exp(-(pow((i * device_dx_PIC - xCenter), 2) + pow((j * device_dy_PIC - yCenter), 2))
+           / pow(2.0f * device_sheatThickness, 2));;
+        bY = device_b0_PIC * device_triggerRatio * (i * device_dx_PIC - xCenter) / device_sheatThickness
+           * exp(-(pow((i * device_dx_PIC - xCenter), 2) + pow((j * device_dy_PIC - yCenter), 2))
+           / pow(2.0f * device_sheatThickness, 2)); 
         bZ = 0.0;
         eX = 0.0;
         eY = 0.0;
@@ -191,7 +196,8 @@ int main()
 {
     cudaMemcpyToSymbol(device_sheatThickness, &sheatThickness, sizeof(double));
     cudaMemcpyToSymbol(device_betaUpstream, &betaUpstream, sizeof(double));
-    
+    cudaMemcpyToSymbol(device_triggerRatio, &triggerRatio, sizeof(double));
+     
     initializeDeviceConstants_PIC();
     initializeDeviceConstants_MHD();
     initializeDeviceConstants_Interface();
@@ -326,8 +332,8 @@ int main()
         thrust::device_vector<ConservationParameter>& UPast_Lower = idealMHD2D_Lower.getUPastRef();
         thrust::device_vector<ConservationParameter>& UPast_Upper = idealMHD2D_Upper.getUPastRef();
 
-        idealMHD2D_Lower.oneStepRK2_predictor();
-        idealMHD2D_Upper.oneStepRK2_predictor();
+        idealMHD2D_Lower.oneStepRK2PeriodicXSymmetricY_predictor();
+        idealMHD2D_Upper.oneStepRK2PeriodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext_Lower = idealMHD2D_Lower.getURef();
         thrust::device_vector<ConservationParameter>& UNext_Upper = idealMHD2D_Upper.getURef();
@@ -369,8 +375,8 @@ int main()
         boundaryMHD.periodicBoundaryX2nd(UHalf_Upper);
         boundaryMHD.symmetricBoundaryY2nd(UHalf_Upper);
 
-        idealMHD2D_Lower.oneStepRK2_corrector(UHalf_Lower);
-        idealMHD2D_Upper.oneStepRK2_corrector(UHalf_Upper);
+        idealMHD2D_Lower.oneStepRK2PeriodicXSymmetricY_corrector(UHalf_Lower);
+        idealMHD2D_Upper.oneStepRK2PeriodicXSymmetricY_corrector(UHalf_Upper);
 
         U_Lower = idealMHD2D_Lower.getURef();
         U_Upper = idealMHD2D_Upper.getURef();

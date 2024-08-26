@@ -22,15 +22,18 @@ using namespace PIC2DConst;
 using namespace Interface2DConst;
 
 
-std::string directoryname = "/cfca-work/akutagawakt/KAMMUY/results_current_sheet";
+std::string directoryname = "results_current_sheet";
 std::string filenameWithoutStep = "current_sheet";
-std::ofstream logfile("/cfca-work/akutagawakt/KAMMUY/results_current_sheet/log_current_sheet.txt");
+std::ofstream logfile("results_current_sheet/log_current_sheet.txt");
 
 
-const double betaUpstream = 0.2 * 0.2;
-const double sheatThickness = 0.5 * PIC2DConst::ionInertialLength_PIC;
+// 密度を0.2倍にする。温度は全域で一定
+const double betaUpstream = 0.2;
+const double sheatThickness = 1.0 * PIC2DConst::ionInertialLength_PIC;
+const double triggerRatio = 0.1;
 __constant__ double device_betaUpstream;
 __constant__ double device_sheatThickness;
+__constant__ double device_triggerRatio;
 
 const int IdealMHD2DConst::totalStep_MHD = 100000;
 const int PIC2DConst::totalStep_PIC = -1;
@@ -47,12 +50,12 @@ const double PIC2DConst::EPS_PIC = 1.0e-20;
 const double IdealMHD2DConst::EPS_MHD = 1.0e-20;
 const double IdealMHD2DConst::PI_MHD = 3.14159265358979;
 
-const int PIC2DConst::nx_PIC = 1000;
+const int PIC2DConst::nx_PIC = 2000;
 const double PIC2DConst::dx_PIC = 1.0;
 const double PIC2DConst::xmin_PIC = 0.0 * dx_PIC; 
 const double PIC2DConst::xmax_PIC = nx_PIC * dx_PIC - 0.0 * dx_PIC;
 
-const int PIC2DConst::ny_PIC = 1000;
+const int PIC2DConst::ny_PIC = 400;
 const double PIC2DConst::dy_PIC = 1.0;
 const double PIC2DConst::ymin_PIC = 0.0 * dy_PIC; 
 const double PIC2DConst::ymax_PIC = ny_PIC * dy_PIC - 0.0 * dy_PIC;
@@ -63,7 +66,7 @@ const double IdealMHD2DConst::dx_MHD = 1.0;
 const double IdealMHD2DConst::xmin_MHD = 0.0 * dx_MHD;
 const double IdealMHD2DConst::xmax_MHD = nx_MHD * dx_MHD - 0.0 * dx_MHD;
 
-const int IdealMHD2DConst::ny_MHD = 5000;
+const int IdealMHD2DConst::ny_MHD = 1000;
 const double IdealMHD2DConst::dy_MHD = 1.0;
 const double IdealMHD2DConst::ymin_MHD = 0.0 * dy_MHD;
 const double IdealMHD2DConst::ymax_MHD = ny_MHD * dy_MHD - 0.0 * dy_MHD;
@@ -123,9 +126,9 @@ const double PIC2DConst::ionInertialLength_PIC = c_PIC / omegaPi_PIC;
 
 double PIC2DConst::dt_PIC = 0.0;
 
-const unsigned long long harrisNumIon_PIC = round(nx_PIC * numberDensityIon_PIC * 2.0f * sheatThickness);
+const unsigned long long harrisNumIon_PIC = round(nx_PIC * numberDensityIon_PIC * 2.0 * sheatThickness);
 const unsigned long long backgroundNumIon_PIC = round(0.2 * nx_PIC * ny_PIC * numberDensityIon_PIC);
-const unsigned long long harrisNumElectron_PIC = round(nx_PIC * numberDensityElectron_PIC * 2.0f * sheatThickness);
+const unsigned long long harrisNumElectron_PIC = round(nx_PIC * numberDensityElectron_PIC * 2.0 * sheatThickness);
 const unsigned long long backgroundNumElectron_PIC = round(0.2 * nx_PIC * ny_PIC * numberDensityElectron_PIC);
 unsigned long long PIC2DConst::existNumIon_PIC = harrisNumIon_PIC + backgroundNumIon_PIC;
 unsigned long long PIC2DConst::existNumElectron_PIC = harrisNumElectron_PIC + backgroundNumElectron_PIC;
@@ -142,8 +145,8 @@ const double PIC2DConst::bulkVxElectron_PIC = 0.0;
 const double PIC2DConst::bulkVyElectron_PIC = 0.0;
 const double PIC2DConst::bulkVzElectron_PIC = 0.0;
 
-const double vThIonB_PIC = sqrt(2.0 * tIon_PIC * 0.2 / mIon_PIC);
-const double vThElectronB_PIC = sqrt(2.0 * tElectron_PIC * 0.2 / mElectron_PIC);
+const double vThIonB_PIC = sqrt(2.0 * tIon_PIC / mIon_PIC);
+const double vThElectronB_PIC = sqrt(2.0 * tElectron_PIC / mElectron_PIC);
 const double bulkVxElectronB_PIC = 0.0;
 const double bulkVyElectronB_PIC = 0.0;
 const double bulkVzElectronB_PIC = 0.0;

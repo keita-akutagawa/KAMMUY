@@ -1,55 +1,57 @@
 #include "boundary.hpp"
 
 
+using namespace IdealMHD2DConst;
+
 __global__
 void symmetricBoundaryX2nd_kernel(ConservationParameter* U)
 {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
-    if (j < device_ny) {
-        U[j + 0 * device_ny].rho  = U[j + 5 * device_ny].rho;
-        U[j + 0 * device_ny].rhoU = U[j + 5 * device_ny].rhoU;
-        U[j + 0 * device_ny].rhoV = U[j + 5 * device_ny].rhoV;
-        U[j + 0 * device_ny].rhoW = U[j + 5 * device_ny].rhoW;
-        U[j + 0 * device_ny].bY   = U[j + 5 * device_ny].bY;
-        U[j + 0 * device_ny].bZ   = U[j + 5 * device_ny].bZ;
-        U[j + 0 * device_ny].e    = U[j + 5 * device_ny].e;
-        U[j + 1 * device_ny].rho  = U[j + 4 * device_ny].rho;
-        U[j + 1 * device_ny].rhoU = U[j + 4 * device_ny].rhoU;
-        U[j + 1 * device_ny].rhoV = U[j + 4 * device_ny].rhoV;
-        U[j + 1 * device_ny].rhoW = U[j + 4 * device_ny].rhoW;
-        U[j + 1 * device_ny].bY   = U[j + 4 * device_ny].bY;
-        U[j + 1 * device_ny].bZ   = U[j + 4 * device_ny].bZ;
-        U[j + 1 * device_ny].e    = U[j + 4 * device_ny].e;
-        U[j + 2 * device_ny].rho  = U[j + 3 * device_ny].rho;
-        U[j + 2 * device_ny].rhoU = U[j + 3 * device_ny].rhoU;
-        U[j + 2 * device_ny].rhoV = U[j + 3 * device_ny].rhoV;
-        U[j + 2 * device_ny].rhoW = U[j + 3 * device_ny].rhoW;
-        U[j + 2 * device_ny].bY   = U[j + 3 * device_ny].bY;
-        U[j + 2 * device_ny].bZ   = U[j + 3 * device_ny].bZ;
-        U[j + 2 * device_ny].e    = U[j + 3 * device_ny].e;
+    if (j < device_ny_MHD) {
+        U[j + 0 * device_ny_MHD].rho  = U[j + 5 * device_ny_MHD].rho;
+        U[j + 0 * device_ny_MHD].rhoU = U[j + 5 * device_ny_MHD].rhoU;
+        U[j + 0 * device_ny_MHD].rhoV = U[j + 5 * device_ny_MHD].rhoV;
+        U[j + 0 * device_ny_MHD].rhoW = U[j + 5 * device_ny_MHD].rhoW;
+        U[j + 0 * device_ny_MHD].bY   = U[j + 5 * device_ny_MHD].bY;
+        U[j + 0 * device_ny_MHD].bZ   = U[j + 5 * device_ny_MHD].bZ;
+        U[j + 0 * device_ny_MHD].e    = U[j + 5 * device_ny_MHD].e;
+        U[j + 1 * device_ny_MHD].rho  = U[j + 4 * device_ny_MHD].rho;
+        U[j + 1 * device_ny_MHD].rhoU = U[j + 4 * device_ny_MHD].rhoU;
+        U[j + 1 * device_ny_MHD].rhoV = U[j + 4 * device_ny_MHD].rhoV;
+        U[j + 1 * device_ny_MHD].rhoW = U[j + 4 * device_ny_MHD].rhoW;
+        U[j + 1 * device_ny_MHD].bY   = U[j + 4 * device_ny_MHD].bY;
+        U[j + 1 * device_ny_MHD].bZ   = U[j + 4 * device_ny_MHD].bZ;
+        U[j + 1 * device_ny_MHD].e    = U[j + 4 * device_ny_MHD].e;
+        U[j + 2 * device_ny_MHD].rho  = U[j + 3 * device_ny_MHD].rho;
+        U[j + 2 * device_ny_MHD].rhoU = U[j + 3 * device_ny_MHD].rhoU;
+        U[j + 2 * device_ny_MHD].rhoV = U[j + 3 * device_ny_MHD].rhoV;
+        U[j + 2 * device_ny_MHD].rhoW = U[j + 3 * device_ny_MHD].rhoW;
+        U[j + 2 * device_ny_MHD].bY   = U[j + 3 * device_ny_MHD].bY;
+        U[j + 2 * device_ny_MHD].bZ   = U[j + 3 * device_ny_MHD].bZ;
+        U[j + 2 * device_ny_MHD].e    = U[j + 3 * device_ny_MHD].e;
 
 
-        U[j + (device_nx - 1) * device_ny].rho  = U[j + (device_nx - 6) * device_ny].rho;
-        U[j + (device_nx - 1) * device_ny].rhoU = U[j + (device_nx - 6) * device_ny].rhoU;
-        U[j + (device_nx - 1) * device_ny].rhoV = U[j + (device_nx - 6) * device_ny].rhoV;
-        U[j + (device_nx - 1) * device_ny].rhoW = U[j + (device_nx - 6) * device_ny].rhoW;
-        U[j + (device_nx - 1) * device_ny].bY   = U[j + (device_nx - 6) * device_ny].bY;
-        U[j + (device_nx - 1) * device_ny].bZ   = U[j + (device_nx - 6) * device_ny].bZ;
-        U[j + (device_nx - 1) * device_ny].e    = U[j + (device_nx - 6) * device_ny].e;
-        U[j + (device_nx - 2) * device_ny].rho  = U[j + (device_nx - 5) * device_ny].rho;
-        U[j + (device_nx - 2) * device_ny].rhoU = U[j + (device_nx - 5) * device_ny].rhoU;
-        U[j + (device_nx - 2) * device_ny].rhoV = U[j + (device_nx - 5) * device_ny].rhoV;
-        U[j + (device_nx - 2) * device_ny].rhoW = U[j + (device_nx - 5) * device_ny].rhoW;
-        U[j + (device_nx - 2) * device_ny].bY   = U[j + (device_nx - 5) * device_ny].bY;
-        U[j + (device_nx - 2) * device_ny].bZ   = U[j + (device_nx - 5) * device_ny].bZ;
-        U[j + (device_nx - 2) * device_ny].e    = U[j + (device_nx - 5) * device_ny].e;
-        U[j + (device_nx - 3) * device_ny].rho  = U[j + (device_nx - 4) * device_ny].rho;
-        U[j + (device_nx - 3) * device_ny].rhoU = U[j + (device_nx - 4) * device_ny].rhoU;
-        U[j + (device_nx - 3) * device_ny].rhoV = U[j + (device_nx - 4) * device_ny].rhoV;
-        U[j + (device_nx - 3) * device_ny].rhoW = U[j + (device_nx - 4) * device_ny].rhoW;
-        U[j + (device_nx - 3) * device_ny].bY   = U[j + (device_nx - 4) * device_ny].bY;
-        U[j + (device_nx - 3) * device_ny].bZ   = U[j + (device_nx - 4) * device_ny].bZ;
-        U[j + (device_nx - 3) * device_ny].e    = U[j + (device_nx - 4) * device_ny].e;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].rho  = U[j + (device_nx_MHD - 6) * device_ny_MHD].rho;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].rhoU = U[j + (device_nx_MHD - 6) * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].rhoV = U[j + (device_nx_MHD - 6) * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].rhoW = U[j + (device_nx_MHD - 6) * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].bY   = U[j + (device_nx_MHD - 6) * device_ny_MHD].bY;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].bZ   = U[j + (device_nx_MHD - 6) * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].e    = U[j + (device_nx_MHD - 6) * device_ny_MHD].e;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].rho  = U[j + (device_nx_MHD - 5) * device_ny_MHD].rho;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].rhoU = U[j + (device_nx_MHD - 5) * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].rhoV = U[j + (device_nx_MHD - 5) * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].rhoW = U[j + (device_nx_MHD - 5) * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].bY   = U[j + (device_nx_MHD - 5) * device_ny_MHD].bY;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].bZ   = U[j + (device_nx_MHD - 5) * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].e    = U[j + (device_nx_MHD - 5) * device_ny_MHD].e;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].rho  = U[j + (device_nx_MHD - 4) * device_ny_MHD].rho;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].rhoU = U[j + (device_nx_MHD - 4) * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].rhoV = U[j + (device_nx_MHD - 4) * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].rhoW = U[j + (device_nx_MHD - 4) * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].bY   = U[j + (device_nx_MHD - 4) * device_ny_MHD].bY;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].bZ   = U[j + (device_nx_MHD - 4) * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].e    = U[j + (device_nx_MHD - 4) * device_ny_MHD].e;
     }
 }
 
@@ -57,45 +59,46 @@ __global__
 void symmetricBoundaryX2ndBX_kernel(ConservationParameter* U)
 {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
-    if (0 < j && j < device_ny) {
-        U[j + 2 * device_ny].bX = U[j + 3 * device_ny].bX 
-                                + (U[j + 3 * device_ny].bY - U[j - 1 + 3 * device_ny].bY) / device_dy * device_dx;
-        U[j + 1 * device_ny].bX = U[j + 2 * device_ny].bX 
-                                + (U[j + 2 * device_ny].bY - U[j - 1 + 2 * device_ny].bY) / device_dy * device_dx;
-        U[j + 0 * device_ny].bX = U[j + 1 * device_ny].bX 
-                                + (U[j + 1 * device_ny].bY - U[j - 1 + 1 * device_ny].bY) / device_dy * device_dx;
+    if (0 < j && j < device_ny_MHD) {
+        U[j + 2 * device_ny_MHD].bX = U[j + 3 * device_ny_MHD].bX 
+                                + (U[j + 3 * device_ny_MHD].bY - U[j - 1 + 3 * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
+        U[j + 1 * device_ny_MHD].bX = U[j + 2 * device_ny_MHD].bX 
+                                + (U[j + 2 * device_ny_MHD].bY - U[j - 1 + 2 * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
+        U[j + 0 * device_ny_MHD].bX = U[j + 1 * device_ny_MHD].bX 
+                                + (U[j + 1 * device_ny_MHD].bY - U[j - 1 + 1 * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
         
-        U[j + (device_nx - 4) * device_ny].bX = U[j + (device_nx - 5) * device_ny].bX 
-                                              - (U[j + (device_nx - 4) * device_ny].bY - U[j - 1 + (device_nx - 4) * device_ny].bY) / device_dy * device_dx;
-        U[j + (device_nx - 3) * device_ny].bX = U[j + (device_nx - 4) * device_ny].bX 
-                                              - (U[j + (device_nx - 3) * device_ny].bY - U[j - 1 + (device_nx - 3) * device_ny].bY) / device_dy * device_dx;
-        U[j + (device_nx - 2) * device_ny].bX = U[j + (device_nx - 3) * device_ny].bX 
-                                              - (U[j + (device_nx - 2) * device_ny].bY - U[j - 1 + (device_nx - 2) * device_ny].bY) / device_dy * device_dx;
-        U[j + (device_nx - 1) * device_ny].bX = U[j + (device_nx - 2) * device_ny].bX 
-                                              - (U[j + (device_nx - 1) * device_ny].bY - U[j - 1 + (device_nx - 1) * device_ny].bY) / device_dy * device_dx;
+        U[j + (device_nx_MHD - 4) * device_ny_MHD].bX = U[j + (device_nx_MHD - 5) * device_ny_MHD].bX 
+                                              - (U[j + (device_nx_MHD - 4) * device_ny_MHD].bY - U[j - 1 + (device_nx_MHD - 4) * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].bX = U[j + (device_nx_MHD - 4) * device_ny_MHD].bX 
+                                              - (U[j + (device_nx_MHD - 3) * device_ny_MHD].bY - U[j - 1 + (device_nx_MHD - 3) * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].bX = U[j + (device_nx_MHD - 3) * device_ny_MHD].bX 
+                                              - (U[j + (device_nx_MHD - 2) * device_ny_MHD].bY - U[j - 1 + (device_nx_MHD - 2) * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].bX = U[j + (device_nx_MHD - 2) * device_ny_MHD].bX 
+                                              - (U[j + (device_nx_MHD - 1) * device_ny_MHD].bY - U[j - 1 + (device_nx_MHD - 1) * device_ny_MHD].bY) / device_dy_MHD * device_dx_MHD;
 
     }
 
     if (j == 0) {
-        U[j + 2 * device_ny].bX = U[j + 3 * device_ny].bX;
-        U[j + 1 * device_ny].bX = U[j + 2 * device_ny].bX;
-        U[j + 0 * device_ny].bX = U[j + 1 * device_ny].bX;
+        U[j + 2 * device_ny_MHD].bX = U[j + 3 * device_ny_MHD].bX;
+        U[j + 1 * device_ny_MHD].bX = U[j + 2 * device_ny_MHD].bX;
+        U[j + 0 * device_ny_MHD].bX = U[j + 1 * device_ny_MHD].bX;
         
-        U[j + (device_nx - 4) * device_ny].bX = U[j + (device_nx - 5) * device_ny].bX;
-        U[j + (device_nx - 3) * device_ny].bX = U[j + (device_nx - 4) * device_ny].bX;
-        U[j + (device_nx - 2) * device_ny].bX = U[j + (device_nx - 3) * device_ny].bX;
-        U[j + (device_nx - 1) * device_ny].bX = U[j + (device_nx - 2) * device_ny].bX;
+        U[j + (device_nx_MHD - 4) * device_ny_MHD].bX = U[j + (device_nx_MHD - 5) * device_ny_MHD].bX;
+        U[j + (device_nx_MHD - 3) * device_ny_MHD].bX = U[j + (device_nx_MHD - 4) * device_ny_MHD].bX;
+        U[j + (device_nx_MHD - 2) * device_ny_MHD].bX = U[j + (device_nx_MHD - 3) * device_ny_MHD].bX;
+        U[j + (device_nx_MHD - 1) * device_ny_MHD].bX = U[j + (device_nx_MHD - 2) * device_ny_MHD].bX;
 
     }
 
 }
 
-void Boundary::symmetricBoundaryX2nd(
+
+void BoundaryMHD::symmetricBoundaryX2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
     int threadsPerBlock = 256;
-    int blocksPerGrid = (ny + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (ny_MHD + threadsPerBlock - 1) / threadsPerBlock;
 
     symmetricBoundaryX2nd_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(U.data()));
 
@@ -111,51 +114,51 @@ __global__
 void symmetricBoundaryY2nd_kernel(ConservationParameter* U)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < device_nx) {
-        U[0 + i * device_ny].rho  = U[5 + i * device_ny].rho;
-        U[0 + i * device_ny].rhoU = U[5 + i * device_ny].rhoU;
-        U[0 + i * device_ny].rhoV = U[5 + i * device_ny].rhoV;
-        U[0 + i * device_ny].rhoW = U[5 + i * device_ny].rhoW;
-        U[0 + i * device_ny].bX   = U[5 + i * device_ny].bX;
-        U[0 + i * device_ny].bZ   = U[5 + i * device_ny].bZ;
-        U[0 + i * device_ny].e    = U[5 + i * device_ny].e;
-        U[1 + i * device_ny].rho  = U[4 + i * device_ny].rho;
-        U[1 + i * device_ny].rhoU = U[4 + i * device_ny].rhoU;
-        U[1 + i * device_ny].rhoV = U[4 + i * device_ny].rhoV;
-        U[1 + i * device_ny].rhoW = U[4 + i * device_ny].rhoW;
-        U[1 + i * device_ny].bX   = U[4 + i * device_ny].bX;
-        U[1 + i * device_ny].bZ   = U[4 + i * device_ny].bZ;
-        U[1 + i * device_ny].e    = U[4 + i * device_ny].e;
-        U[2 + i * device_ny].rho  = U[3 + i * device_ny].rho;
-        U[2 + i * device_ny].rhoU = U[3 + i * device_ny].rhoU;
-        U[2 + i * device_ny].rhoV = U[3 + i * device_ny].rhoV;
-        U[2 + i * device_ny].rhoW = U[3 + i * device_ny].rhoW;
-        U[2 + i * device_ny].bX   = U[3 + i * device_ny].bX;
-        U[2 + i * device_ny].bZ   = U[3 + i * device_ny].bZ;
-        U[2 + i * device_ny].e    = U[3 + i * device_ny].e;
+    if (i < device_nx_MHD) {
+        U[0 + i * device_ny_MHD].rho  = U[5 + i * device_ny_MHD].rho;
+        U[0 + i * device_ny_MHD].rhoU = U[5 + i * device_ny_MHD].rhoU;
+        U[0 + i * device_ny_MHD].rhoV = U[5 + i * device_ny_MHD].rhoV;
+        U[0 + i * device_ny_MHD].rhoW = U[5 + i * device_ny_MHD].rhoW;
+        U[0 + i * device_ny_MHD].bX   = U[5 + i * device_ny_MHD].bX;
+        U[0 + i * device_ny_MHD].bZ   = U[5 + i * device_ny_MHD].bZ;
+        U[0 + i * device_ny_MHD].e    = U[5 + i * device_ny_MHD].e;
+        U[1 + i * device_ny_MHD].rho  = U[4 + i * device_ny_MHD].rho;
+        U[1 + i * device_ny_MHD].rhoU = U[4 + i * device_ny_MHD].rhoU;
+        U[1 + i * device_ny_MHD].rhoV = U[4 + i * device_ny_MHD].rhoV;
+        U[1 + i * device_ny_MHD].rhoW = U[4 + i * device_ny_MHD].rhoW;
+        U[1 + i * device_ny_MHD].bX   = U[4 + i * device_ny_MHD].bX;
+        U[1 + i * device_ny_MHD].bZ   = U[4 + i * device_ny_MHD].bZ;
+        U[1 + i * device_ny_MHD].e    = U[4 + i * device_ny_MHD].e;
+        U[2 + i * device_ny_MHD].rho  = U[3 + i * device_ny_MHD].rho;
+        U[2 + i * device_ny_MHD].rhoU = U[3 + i * device_ny_MHD].rhoU;
+        U[2 + i * device_ny_MHD].rhoV = U[3 + i * device_ny_MHD].rhoV;
+        U[2 + i * device_ny_MHD].rhoW = U[3 + i * device_ny_MHD].rhoW;
+        U[2 + i * device_ny_MHD].bX   = U[3 + i * device_ny_MHD].bX;
+        U[2 + i * device_ny_MHD].bZ   = U[3 + i * device_ny_MHD].bZ;
+        U[2 + i * device_ny_MHD].e    = U[3 + i * device_ny_MHD].e;
         
 
-        U[device_ny - 1 + i * device_ny].rho  = U[device_ny - 6 + i * device_ny].rho;
-        U[device_ny - 1 + i * device_ny].rhoU = U[device_ny - 6 + i * device_ny].rhoU;
-        U[device_ny - 1 + i * device_ny].rhoV = U[device_ny - 6 + i * device_ny].rhoV;
-        U[device_ny - 1 + i * device_ny].rhoW = U[device_ny - 6 + i * device_ny].rhoW;
-        U[device_ny - 1 + i * device_ny].bX   = U[device_ny - 6 + i * device_ny].bX;
-        U[device_ny - 1 + i * device_ny].bZ   = U[device_ny - 6 + i * device_ny].bZ;
-        U[device_ny - 1 + i * device_ny].e    = U[device_ny - 6 + i * device_ny].e;
-        U[device_ny - 2 + i * device_ny].rho  = U[device_ny - 5 + i * device_ny].rho;
-        U[device_ny - 2 + i * device_ny].rhoU = U[device_ny - 5 + i * device_ny].rhoU;
-        U[device_ny - 2 + i * device_ny].rhoV = U[device_ny - 5 + i * device_ny].rhoV;
-        U[device_ny - 2 + i * device_ny].rhoW = U[device_ny - 5 + i * device_ny].rhoW;
-        U[device_ny - 2 + i * device_ny].bX   = U[device_ny - 5 + i * device_ny].bX;
-        U[device_ny - 2 + i * device_ny].bZ   = U[device_ny - 5 + i * device_ny].bZ;
-        U[device_ny - 2 + i * device_ny].e    = U[device_ny - 5 + i * device_ny].e;
-        U[device_ny - 3 + i * device_ny].rho  = U[device_ny - 4 + i * device_ny].rho;
-        U[device_ny - 3 + i * device_ny].rhoU = U[device_ny - 4 + i * device_ny].rhoU;
-        U[device_ny - 3 + i * device_ny].rhoV = U[device_ny - 4 + i * device_ny].rhoV;
-        U[device_ny - 3 + i * device_ny].rhoW = U[device_ny - 4 + i * device_ny].rhoW;
-        U[device_ny - 3 + i * device_ny].bX   = U[device_ny - 4 + i * device_ny].bX;
-        U[device_ny - 3 + i * device_ny].bZ   = U[device_ny - 4 + i * device_ny].bZ;
-        U[device_ny - 3 + i * device_ny].e    = U[device_ny - 4 + i * device_ny].e;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].rho  = U[device_ny_MHD - 6 + i * device_ny_MHD].rho;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].rhoU = U[device_ny_MHD - 6 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].rhoV = U[device_ny_MHD - 6 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].rhoW = U[device_ny_MHD - 6 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].bX   = U[device_ny_MHD - 6 + i * device_ny_MHD].bX;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].bZ   = U[device_ny_MHD - 6 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].e    = U[device_ny_MHD - 6 + i * device_ny_MHD].e;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].rho  = U[device_ny_MHD - 5 + i * device_ny_MHD].rho;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].rhoU = U[device_ny_MHD - 5 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].rhoV = U[device_ny_MHD - 5 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].rhoW = U[device_ny_MHD - 5 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].bX   = U[device_ny_MHD - 5 + i * device_ny_MHD].bX;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].bZ   = U[device_ny_MHD - 5 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].e    = U[device_ny_MHD - 5 + i * device_ny_MHD].e;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].rho  = U[device_ny_MHD - 4 + i * device_ny_MHD].rho;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].rhoU = U[device_ny_MHD - 4 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].rhoV = U[device_ny_MHD - 4 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].rhoW = U[device_ny_MHD - 4 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].bX   = U[device_ny_MHD - 4 + i * device_ny_MHD].bX;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].bZ   = U[device_ny_MHD - 4 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].e    = U[device_ny_MHD - 4 + i * device_ny_MHD].e;
     }
 }
 
@@ -163,43 +166,43 @@ __global__
 void symmetricBoundaryY2ndBY_kernel(ConservationParameter* U)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (0 < i && i < device_nx) {
-        U[2 + i * device_ny].bY = U[3 + i * device_ny].bY
-                                + (U[3 + i * device_ny].bX - U[3 + (i - 1) * device_ny].bX) / device_dx * device_dy;
-        U[1 + i * device_ny].bY = U[2 + i * device_ny].bY
-                                + (U[2 + i * device_ny].bX - U[2 + (i - 1) * device_ny].bX) / device_dx * device_dy;
-        U[0 + i * device_ny].bY = U[1 + i * device_ny].bY
-                                + (U[1 + i * device_ny].bX - U[1 + (i - 1) * device_ny].bX) / device_dx * device_dy;
+    if (0 < i && i < device_nx_MHD) {
+        U[2 + i * device_ny_MHD].bY = U[3 + i * device_ny_MHD].bY
+                                + (U[3 + i * device_ny_MHD].bX - U[3 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
+        U[1 + i * device_ny_MHD].bY = U[2 + i * device_ny_MHD].bY
+                                + (U[2 + i * device_ny_MHD].bX - U[2 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
+        U[0 + i * device_ny_MHD].bY = U[1 + i * device_ny_MHD].bY
+                                + (U[1 + i * device_ny_MHD].bX - U[1 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
         
-        U[device_ny - 4 + i * device_ny].bY = U[device_ny - 5 + i * device_ny].bY
-                                            - (U[device_ny - 4 + i * device_ny].bX - U[device_ny - 4 + (i - 1) * device_ny].bX) / device_dx * device_dy;
-        U[device_ny - 3 + i * device_ny].bY = U[device_ny - 4 + i * device_ny].bY
-                                            - (U[device_ny - 3 + i * device_ny].bX - U[device_ny - 3 + (i - 1) * device_ny].bX) / device_dx * device_dy;
-        U[device_ny - 2 + i * device_ny].bY = U[device_ny - 3 + i * device_ny].bY
-                                            - (U[device_ny - 2 + i * device_ny].bX - U[device_ny - 2 + (i - 1) * device_ny].bX) / device_dx * device_dy;
-        U[device_ny - 1 + i * device_ny].bY = U[device_ny - 2 + i * device_ny].bY
-                                            - (U[device_ny - 1 + i * device_ny].bX - U[device_ny - 1 + (i - 1) * device_ny].bX) / device_dx * device_dy;
+        U[device_ny_MHD - 4 + i * device_ny_MHD].bY = U[device_ny_MHD - 5 + i * device_ny_MHD].bY
+                                            - (U[device_ny_MHD - 4 + i * device_ny_MHD].bX - U[device_ny_MHD - 4 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].bY = U[device_ny_MHD - 4 + i * device_ny_MHD].bY
+                                            - (U[device_ny_MHD - 3 + i * device_ny_MHD].bX - U[device_ny_MHD - 3 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].bY = U[device_ny_MHD - 3 + i * device_ny_MHD].bY
+                                            - (U[device_ny_MHD - 2 + i * device_ny_MHD].bX - U[device_ny_MHD - 2 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].bY = U[device_ny_MHD - 2 + i * device_ny_MHD].bY
+                                            - (U[device_ny_MHD - 1 + i * device_ny_MHD].bX - U[device_ny_MHD - 1 + (i - 1) * device_ny_MHD].bX) / device_dx_MHD * device_dy_MHD;
     }
 
     if (i == 0) {
-        U[2 + i * device_ny].bY = U[3 + i * device_ny].bY;
-        U[1 + i * device_ny].bY = U[2 + i * device_ny].bY;
-        U[0 + i * device_ny].bY = U[1 + i * device_ny].bY;
+        U[2 + i * device_ny_MHD].bY = U[3 + i * device_ny_MHD].bY;
+        U[1 + i * device_ny_MHD].bY = U[2 + i * device_ny_MHD].bY;
+        U[0 + i * device_ny_MHD].bY = U[1 + i * device_ny_MHD].bY;
         
-        U[device_ny - 4 + i * device_ny].bY = U[device_ny - 5 + i * device_ny].bY;
-        U[device_ny - 3 + i * device_ny].bY = U[device_ny - 4 + i * device_ny].bY;
-        U[device_ny - 2 + i * device_ny].bY = U[device_ny - 3 + i * device_ny].bY;
-        U[device_ny - 1 + i * device_ny].bY = U[device_ny - 2 + i * device_ny].bY;
+        U[device_ny_MHD - 4 + i * device_ny_MHD].bY = U[device_ny_MHD - 5 + i * device_ny_MHD].bY;
+        U[device_ny_MHD - 3 + i * device_ny_MHD].bY = U[device_ny_MHD - 4 + i * device_ny_MHD].bY;
+        U[device_ny_MHD - 2 + i * device_ny_MHD].bY = U[device_ny_MHD - 3 + i * device_ny_MHD].bY;
+        U[device_ny_MHD - 1 + i * device_ny_MHD].bY = U[device_ny_MHD - 2 + i * device_ny_MHD].bY;
     }
 }
 
 
-void Boundary::symmetricBoundaryY2nd(
+void BoundaryMHD::symmetricBoundaryY2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
     int threadsPerBlock = 256;
-    int blocksPerGrid = (nx + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (nx_MHD + threadsPerBlock - 1) / threadsPerBlock;
 
     symmetricBoundaryY2nd_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(U.data()));
 
@@ -216,65 +219,65 @@ __global__
 void periodicBoundaryX2nd_kernel(ConservationParameter* U)
 {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
-    if (j < device_ny) {
-        U[j + 0 * device_ny].rho  = U[j + (device_nx-6) * device_ny].rho;
-        U[j + 0 * device_ny].rhoU = U[j + (device_nx-6) * device_ny].rhoU;
-        U[j + 0 * device_ny].rhoV = U[j + (device_nx-6) * device_ny].rhoV;
-        U[j + 0 * device_ny].rhoW = U[j + (device_nx-6) * device_ny].rhoW;
-        U[j + 0 * device_ny].bX   = U[j + (device_nx-6) * device_ny].bX;
-        U[j + 0 * device_ny].bY   = U[j + (device_nx-6) * device_ny].bY;
-        U[j + 0 * device_ny].bZ   = U[j + (device_nx-6) * device_ny].bZ;
-        U[j + 0 * device_ny].e    = U[j + (device_nx-6) * device_ny].e;
-        U[j + 1 * device_ny].rho  = U[j + (device_nx-5) * device_ny].rho;
-        U[j + 1 * device_ny].rhoU = U[j + (device_nx-5) * device_ny].rhoU;
-        U[j + 1 * device_ny].rhoV = U[j + (device_nx-5) * device_ny].rhoV;
-        U[j + 1 * device_ny].rhoW = U[j + (device_nx-5) * device_ny].rhoW;
-        U[j + 1 * device_ny].bX   = U[j + (device_nx-5) * device_ny].bX;
-        U[j + 1 * device_ny].bY   = U[j + (device_nx-5) * device_ny].bY;
-        U[j + 1 * device_ny].bZ   = U[j + (device_nx-5) * device_ny].bZ;
-        U[j + 1 * device_ny].e    = U[j + (device_nx-5) * device_ny].e;
-        U[j + 2 * device_ny].rho  = U[j + (device_nx-4) * device_ny].rho;
-        U[j + 2 * device_ny].rhoU = U[j + (device_nx-4) * device_ny].rhoU;
-        U[j + 2 * device_ny].rhoV = U[j + (device_nx-4) * device_ny].rhoV;
-        U[j + 2 * device_ny].rhoW = U[j + (device_nx-4) * device_ny].rhoW;
-        U[j + 2 * device_ny].bX   = U[j + (device_nx-4) * device_ny].bX;
-        U[j + 2 * device_ny].bY   = U[j + (device_nx-4) * device_ny].bY;
-        U[j + 2 * device_ny].bZ   = U[j + (device_nx-4) * device_ny].bZ;
-        U[j + 2 * device_ny].e    = U[j + (device_nx-4) * device_ny].e;
+    if (j < device_ny_MHD) {
+        U[j + 0 * device_ny_MHD].rho  = U[j + (device_nx_MHD-6) * device_ny_MHD].rho;
+        U[j + 0 * device_ny_MHD].rhoU = U[j + (device_nx_MHD-6) * device_ny_MHD].rhoU;
+        U[j + 0 * device_ny_MHD].rhoV = U[j + (device_nx_MHD-6) * device_ny_MHD].rhoV;
+        U[j + 0 * device_ny_MHD].rhoW = U[j + (device_nx_MHD-6) * device_ny_MHD].rhoW;
+        U[j + 0 * device_ny_MHD].bX   = U[j + (device_nx_MHD-6) * device_ny_MHD].bX;
+        U[j + 0 * device_ny_MHD].bY   = U[j + (device_nx_MHD-6) * device_ny_MHD].bY;
+        U[j + 0 * device_ny_MHD].bZ   = U[j + (device_nx_MHD-6) * device_ny_MHD].bZ;
+        U[j + 0 * device_ny_MHD].e    = U[j + (device_nx_MHD-6) * device_ny_MHD].e;
+        U[j + 1 * device_ny_MHD].rho  = U[j + (device_nx_MHD-5) * device_ny_MHD].rho;
+        U[j + 1 * device_ny_MHD].rhoU = U[j + (device_nx_MHD-5) * device_ny_MHD].rhoU;
+        U[j + 1 * device_ny_MHD].rhoV = U[j + (device_nx_MHD-5) * device_ny_MHD].rhoV;
+        U[j + 1 * device_ny_MHD].rhoW = U[j + (device_nx_MHD-5) * device_ny_MHD].rhoW;
+        U[j + 1 * device_ny_MHD].bX   = U[j + (device_nx_MHD-5) * device_ny_MHD].bX;
+        U[j + 1 * device_ny_MHD].bY   = U[j + (device_nx_MHD-5) * device_ny_MHD].bY;
+        U[j + 1 * device_ny_MHD].bZ   = U[j + (device_nx_MHD-5) * device_ny_MHD].bZ;
+        U[j + 1 * device_ny_MHD].e    = U[j + (device_nx_MHD-5) * device_ny_MHD].e;
+        U[j + 2 * device_ny_MHD].rho  = U[j + (device_nx_MHD-4) * device_ny_MHD].rho;
+        U[j + 2 * device_ny_MHD].rhoU = U[j + (device_nx_MHD-4) * device_ny_MHD].rhoU;
+        U[j + 2 * device_ny_MHD].rhoV = U[j + (device_nx_MHD-4) * device_ny_MHD].rhoV;
+        U[j + 2 * device_ny_MHD].rhoW = U[j + (device_nx_MHD-4) * device_ny_MHD].rhoW;
+        U[j + 2 * device_ny_MHD].bX   = U[j + (device_nx_MHD-4) * device_ny_MHD].bX;
+        U[j + 2 * device_ny_MHD].bY   = U[j + (device_nx_MHD-4) * device_ny_MHD].bY;
+        U[j + 2 * device_ny_MHD].bZ   = U[j + (device_nx_MHD-4) * device_ny_MHD].bZ;
+        U[j + 2 * device_ny_MHD].e    = U[j + (device_nx_MHD-4) * device_ny_MHD].e;
 
-        U[j + (device_nx-3) * device_ny].rho  = U[j + 3 * device_ny].rho;
-        U[j + (device_nx-3) * device_ny].rhoU = U[j + 3 * device_ny].rhoU;
-        U[j + (device_nx-3) * device_ny].rhoV = U[j + 3 * device_ny].rhoV;
-        U[j + (device_nx-3) * device_ny].rhoW = U[j + 3 * device_ny].rhoW;
-        U[j + (device_nx-3) * device_ny].bX   = U[j + 3 * device_ny].bX;
-        U[j + (device_nx-3) * device_ny].bY   = U[j + 3 * device_ny].bY;
-        U[j + (device_nx-3) * device_ny].bZ   = U[j + 3 * device_ny].bZ;
-        U[j + (device_nx-3) * device_ny].e    = U[j + 3 * device_ny].e;
-        U[j + (device_nx-2) * device_ny].rho  = U[j + 4 * device_ny].rho;
-        U[j + (device_nx-2) * device_ny].rhoU = U[j + 4 * device_ny].rhoU;
-        U[j + (device_nx-2) * device_ny].rhoV = U[j + 4 * device_ny].rhoV;
-        U[j + (device_nx-2) * device_ny].rhoW = U[j + 4 * device_ny].rhoW;
-        U[j + (device_nx-2) * device_ny].bX   = U[j + 4 * device_ny].bX;
-        U[j + (device_nx-2) * device_ny].bY   = U[j + 4 * device_ny].bY;
-        U[j + (device_nx-2) * device_ny].bZ   = U[j + 4 * device_ny].bZ;
-        U[j + (device_nx-2) * device_ny].e    = U[j + 4 * device_ny].e;
-        U[j + (device_nx-1) * device_ny].rho  = U[j + 5 * device_ny].rho;
-        U[j + (device_nx-1) * device_ny].rhoU = U[j + 5 * device_ny].rhoU;
-        U[j + (device_nx-1) * device_ny].rhoV = U[j + 5 * device_ny].rhoV;
-        U[j + (device_nx-1) * device_ny].rhoW = U[j + 5 * device_ny].rhoW;
-        U[j + (device_nx-1) * device_ny].bX   = U[j + 5 * device_ny].bX;
-        U[j + (device_nx-1) * device_ny].bY   = U[j + 5 * device_ny].bY;
-        U[j + (device_nx-1) * device_ny].bZ   = U[j + 5 * device_ny].bZ;
-        U[j + (device_nx-1) * device_ny].e    = U[j + 5 * device_ny].e;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].rho  = U[j + 3 * device_ny_MHD].rho;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].rhoU = U[j + 3 * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].rhoV = U[j + 3 * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].rhoW = U[j + 3 * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].bX   = U[j + 3 * device_ny_MHD].bX;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].bY   = U[j + 3 * device_ny_MHD].bY;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].bZ   = U[j + 3 * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD-3) * device_ny_MHD].e    = U[j + 3 * device_ny_MHD].e;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].rho  = U[j + 4 * device_ny_MHD].rho;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].rhoU = U[j + 4 * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].rhoV = U[j + 4 * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].rhoW = U[j + 4 * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].bX   = U[j + 4 * device_ny_MHD].bX;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].bY   = U[j + 4 * device_ny_MHD].bY;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].bZ   = U[j + 4 * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD-2) * device_ny_MHD].e    = U[j + 4 * device_ny_MHD].e;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].rho  = U[j + 5 * device_ny_MHD].rho;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].rhoU = U[j + 5 * device_ny_MHD].rhoU;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].rhoV = U[j + 5 * device_ny_MHD].rhoV;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].rhoW = U[j + 5 * device_ny_MHD].rhoW;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].bX   = U[j + 5 * device_ny_MHD].bX;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].bY   = U[j + 5 * device_ny_MHD].bY;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].bZ   = U[j + 5 * device_ny_MHD].bZ;
+        U[j + (device_nx_MHD-1) * device_ny_MHD].e    = U[j + 5 * device_ny_MHD].e;
     }
 }
 
-void Boundary::periodicBoundaryX2nd(
+void BoundaryMHD::periodicBoundaryX2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
     int threadsPerBlock = 256;
-    int blocksPerGrid = (ny + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (ny_MHD + threadsPerBlock - 1) / threadsPerBlock;
 
     periodicBoundaryX2nd_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(U.data()));
 
@@ -286,65 +289,65 @@ __global__
 void periodicBoundaryY2nd_kernel(ConservationParameter* U)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < device_nx) {
-        U[0 + i * device_ny].rho  = U[device_ny-6 + i * device_ny].rho;
-        U[0 + i * device_ny].rhoU = U[device_ny-6 + i * device_ny].rhoU;
-        U[0 + i * device_ny].rhoV = U[device_ny-6 + i * device_ny].rhoV;
-        U[0 + i * device_ny].rhoW = U[device_ny-6 + i * device_ny].rhoW;
-        U[0 + i * device_ny].bX   = U[device_ny-6 + i * device_ny].bX;
-        U[0 + i * device_ny].bY   = U[device_ny-6 + i * device_ny].bY;
-        U[0 + i * device_ny].bZ   = U[device_ny-6 + i * device_ny].bZ;
-        U[0 + i * device_ny].e    = U[device_ny-6 + i * device_ny].e;
-        U[1 + i * device_ny].rho  = U[device_ny-5 + i * device_ny].rho;
-        U[1 + i * device_ny].rhoU = U[device_ny-5 + i * device_ny].rhoU;
-        U[1 + i * device_ny].rhoV = U[device_ny-5 + i * device_ny].rhoV;
-        U[1 + i * device_ny].rhoW = U[device_ny-5 + i * device_ny].rhoW;
-        U[1 + i * device_ny].bX   = U[device_ny-5 + i * device_ny].bX;
-        U[1 + i * device_ny].bY   = U[device_ny-5 + i * device_ny].bY;
-        U[1 + i * device_ny].bZ   = U[device_ny-5 + i * device_ny].bZ;
-        U[1 + i * device_ny].e    = U[device_ny-5 + i * device_ny].e;
-        U[2 + i * device_ny].rho  = U[device_ny-4 + i * device_ny].rho;
-        U[2 + i * device_ny].rhoU = U[device_ny-4 + i * device_ny].rhoU;
-        U[2 + i * device_ny].rhoV = U[device_ny-4 + i * device_ny].rhoV;
-        U[2 + i * device_ny].rhoW = U[device_ny-4 + i * device_ny].rhoW;
-        U[2 + i * device_ny].bX   = U[device_ny-4 + i * device_ny].bX;
-        U[2 + i * device_ny].bY   = U[device_ny-4 + i * device_ny].bY;
-        U[2 + i * device_ny].bZ   = U[device_ny-4 + i * device_ny].bZ;
-        U[2 + i * device_ny].e    = U[device_ny-4 + i * device_ny].e;
+    if (i < device_nx_MHD) {
+        U[0 + i * device_ny_MHD].rho  = U[device_ny_MHD-6 + i * device_ny_MHD].rho;
+        U[0 + i * device_ny_MHD].rhoU = U[device_ny_MHD-6 + i * device_ny_MHD].rhoU;
+        U[0 + i * device_ny_MHD].rhoV = U[device_ny_MHD-6 + i * device_ny_MHD].rhoV;
+        U[0 + i * device_ny_MHD].rhoW = U[device_ny_MHD-6 + i * device_ny_MHD].rhoW;
+        U[0 + i * device_ny_MHD].bX   = U[device_ny_MHD-6 + i * device_ny_MHD].bX;
+        U[0 + i * device_ny_MHD].bY   = U[device_ny_MHD-6 + i * device_ny_MHD].bY;
+        U[0 + i * device_ny_MHD].bZ   = U[device_ny_MHD-6 + i * device_ny_MHD].bZ;
+        U[0 + i * device_ny_MHD].e    = U[device_ny_MHD-6 + i * device_ny_MHD].e;
+        U[1 + i * device_ny_MHD].rho  = U[device_ny_MHD-5 + i * device_ny_MHD].rho;
+        U[1 + i * device_ny_MHD].rhoU = U[device_ny_MHD-5 + i * device_ny_MHD].rhoU;
+        U[1 + i * device_ny_MHD].rhoV = U[device_ny_MHD-5 + i * device_ny_MHD].rhoV;
+        U[1 + i * device_ny_MHD].rhoW = U[device_ny_MHD-5 + i * device_ny_MHD].rhoW;
+        U[1 + i * device_ny_MHD].bX   = U[device_ny_MHD-5 + i * device_ny_MHD].bX;
+        U[1 + i * device_ny_MHD].bY   = U[device_ny_MHD-5 + i * device_ny_MHD].bY;
+        U[1 + i * device_ny_MHD].bZ   = U[device_ny_MHD-5 + i * device_ny_MHD].bZ;
+        U[1 + i * device_ny_MHD].e    = U[device_ny_MHD-5 + i * device_ny_MHD].e;
+        U[2 + i * device_ny_MHD].rho  = U[device_ny_MHD-4 + i * device_ny_MHD].rho;
+        U[2 + i * device_ny_MHD].rhoU = U[device_ny_MHD-4 + i * device_ny_MHD].rhoU;
+        U[2 + i * device_ny_MHD].rhoV = U[device_ny_MHD-4 + i * device_ny_MHD].rhoV;
+        U[2 + i * device_ny_MHD].rhoW = U[device_ny_MHD-4 + i * device_ny_MHD].rhoW;
+        U[2 + i * device_ny_MHD].bX   = U[device_ny_MHD-4 + i * device_ny_MHD].bX;
+        U[2 + i * device_ny_MHD].bY   = U[device_ny_MHD-4 + i * device_ny_MHD].bY;
+        U[2 + i * device_ny_MHD].bZ   = U[device_ny_MHD-4 + i * device_ny_MHD].bZ;
+        U[2 + i * device_ny_MHD].e    = U[device_ny_MHD-4 + i * device_ny_MHD].e;
 
-        U[device_ny-3 + i * device_ny].rho  = U[3 + i * device_ny].rho;
-        U[device_ny-3 + i * device_ny].rhoU = U[3 + i * device_ny].rhoU;
-        U[device_ny-3 + i * device_ny].rhoV = U[3 + i * device_ny].rhoV;
-        U[device_ny-3 + i * device_ny].rhoW = U[3 + i * device_ny].rhoW;
-        U[device_ny-3 + i * device_ny].bX   = U[3 + i * device_ny].bX;
-        U[device_ny-3 + i * device_ny].bY   = U[3 + i * device_ny].bY;
-        U[device_ny-3 + i * device_ny].bZ   = U[3 + i * device_ny].bZ;
-        U[device_ny-3 + i * device_ny].e    = U[3 + i * device_ny].e;
-        U[device_ny-2 + i * device_ny].rho  = U[4 + i * device_ny].rho;
-        U[device_ny-2 + i * device_ny].rhoU = U[4 + i * device_ny].rhoU;
-        U[device_ny-2 + i * device_ny].rhoV = U[4 + i * device_ny].rhoV;
-        U[device_ny-2 + i * device_ny].rhoW = U[4 + i * device_ny].rhoW;
-        U[device_ny-2 + i * device_ny].bX   = U[4 + i * device_ny].bX;
-        U[device_ny-2 + i * device_ny].bY   = U[4 + i * device_ny].bY;
-        U[device_ny-2 + i * device_ny].bZ   = U[4 + i * device_ny].bZ;
-        U[device_ny-2 + i * device_ny].e    = U[4 + i * device_ny].e;
-        U[device_ny-1 + i * device_ny].rho  = U[5 + i * device_ny].rho;
-        U[device_ny-1 + i * device_ny].rhoU = U[5 + i * device_ny].rhoU;
-        U[device_ny-1 + i * device_ny].rhoV = U[5 + i * device_ny].rhoV;
-        U[device_ny-1 + i * device_ny].rhoW = U[5 + i * device_ny].rhoW;
-        U[device_ny-1 + i * device_ny].bX   = U[5 + i * device_ny].bX;
-        U[device_ny-1 + i * device_ny].bY   = U[5 + i * device_ny].bY;
-        U[device_ny-1 + i * device_ny].bZ   = U[5 + i * device_ny].bZ;
-        U[device_ny-1 + i * device_ny].e    = U[5 + i * device_ny].e;
+        U[device_ny_MHD-3 + i * device_ny_MHD].rho  = U[3 + i * device_ny_MHD].rho;
+        U[device_ny_MHD-3 + i * device_ny_MHD].rhoU = U[3 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD-3 + i * device_ny_MHD].rhoV = U[3 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD-3 + i * device_ny_MHD].rhoW = U[3 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD-3 + i * device_ny_MHD].bX   = U[3 + i * device_ny_MHD].bX;
+        U[device_ny_MHD-3 + i * device_ny_MHD].bY   = U[3 + i * device_ny_MHD].bY;
+        U[device_ny_MHD-3 + i * device_ny_MHD].bZ   = U[3 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD-3 + i * device_ny_MHD].e    = U[3 + i * device_ny_MHD].e;
+        U[device_ny_MHD-2 + i * device_ny_MHD].rho  = U[4 + i * device_ny_MHD].rho;
+        U[device_ny_MHD-2 + i * device_ny_MHD].rhoU = U[4 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD-2 + i * device_ny_MHD].rhoV = U[4 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD-2 + i * device_ny_MHD].rhoW = U[4 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD-2 + i * device_ny_MHD].bX   = U[4 + i * device_ny_MHD].bX;
+        U[device_ny_MHD-2 + i * device_ny_MHD].bY   = U[4 + i * device_ny_MHD].bY;
+        U[device_ny_MHD-2 + i * device_ny_MHD].bZ   = U[4 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD-2 + i * device_ny_MHD].e    = U[4 + i * device_ny_MHD].e;
+        U[device_ny_MHD-1 + i * device_ny_MHD].rho  = U[5 + i * device_ny_MHD].rho;
+        U[device_ny_MHD-1 + i * device_ny_MHD].rhoU = U[5 + i * device_ny_MHD].rhoU;
+        U[device_ny_MHD-1 + i * device_ny_MHD].rhoV = U[5 + i * device_ny_MHD].rhoV;
+        U[device_ny_MHD-1 + i * device_ny_MHD].rhoW = U[5 + i * device_ny_MHD].rhoW;
+        U[device_ny_MHD-1 + i * device_ny_MHD].bX   = U[5 + i * device_ny_MHD].bX;
+        U[device_ny_MHD-1 + i * device_ny_MHD].bY   = U[5 + i * device_ny_MHD].bY;
+        U[device_ny_MHD-1 + i * device_ny_MHD].bZ   = U[5 + i * device_ny_MHD].bZ;
+        U[device_ny_MHD-1 + i * device_ny_MHD].e    = U[5 + i * device_ny_MHD].e;
     }
 }
 
-void Boundary::periodicBoundaryY2nd(
+void BoundaryMHD::periodicBoundaryY2nd(
     thrust::device_vector<ConservationParameter>& U
 )
 {
     int threadsPerBlock = 256; 
-    int blocksPerGrid = (nx + threadsPerBlock - 1) / threadsPerBlock; 
+    int blocksPerGrid = (nx_MHD + threadsPerBlock - 1) / threadsPerBlock; 
 
     periodicBoundaryY2nd_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(U.data()));
 
@@ -352,73 +355,3 @@ void Boundary::periodicBoundaryY2nd(
 }
 
 
-//////////////////////////////////////////////////
-
-__global__
-void wallBoundaryY2nd_kernel(ConservationParameter* U)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < device_nx) {
-        double rho, u, v, w, bX, bY, bZ, p, e;
-        ConservationParameter wallU;
-
-        rho = U[3 + i * device_ny].rho;
-        u   = U[3 + i * device_ny].rhoU / rho; 
-        v   = U[3 + i * device_ny].rhoV / rho; 
-        w   = U[3 + i * device_ny].rhoW / rho;
-        bX  = U[3 + i * device_ny].bX; 
-        bY  = U[3 + i * device_ny].bY;
-        bZ  = U[3 + i * device_ny].bZ;
-        e   = U[3 + i * device_ny].e;
-        p   = (device_gamma_mhd - 1.0)
-            * (e - 0.5 * rho * (u * u + v * v + w * w)
-            - 0.5 * (bX * bX + bY * bY + bZ * bZ));
-        
-        wallU.rho = rho;
-        wallU.rhoU = 0.0; wallU.rhoV = 0.0; wallU.rhoW = 0.0;
-        wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-        e = p / (device_gamma_mhd - 1.0)
-          + 0.5 * (bX * bX + bZ * bZ); 
-        wallU.e = e;
-        
-        U[0 + i * device_ny] = wallU;
-        U[1 + i * device_ny] = wallU;
-        U[2 + i * device_ny] = wallU;
-        
-
-        rho = U[device_ny - 4 + i * device_ny].rho;
-        u   = U[device_ny - 4 + i * device_ny].rhoU / rho; 
-        v   = U[device_ny - 4 + i * device_ny].rhoV / rho; 
-        w   = U[device_ny - 4 + i * device_ny].rhoW / rho;
-        bX  = U[device_ny - 4 + i * device_ny].bX; 
-        bY  = U[device_ny - 4 + i * device_ny].bY;
-        bZ  = U[device_ny - 4 + i * device_ny].bZ;
-        e   = U[device_ny - 4 + i * device_ny].e;
-        p   = (device_gamma_mhd - 1.0)
-            * (e - 0.5 * rho * (u * u + v * v + w * w)
-            - 0.5 * (bX * bX + bY * bY + bZ * bZ));
-        
-        wallU.rho = rho;
-        wallU.rhoU = 0.0; wallU.rhoV = 0.0; wallU.rhoW = 0.0;
-        wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-        e = p / (device_gamma_mhd - 1.0)
-          + 0.5 * (bX * bX + bZ * bZ); 
-        wallU.e = e;
-
-        U[device_ny - 1 + i * device_ny] = wallU;
-        U[device_ny - 2 + i * device_ny] = wallU;
-        U[device_ny - 3 + i * device_ny] = wallU;
-    }
-}
-
-void Boundary::wallBoundaryY2nd(
-    thrust::device_vector<ConservationParameter>& U
-)
-{
-    int threadsPerBlock = 256; 
-    int blocksPerGrid = (nx + threadsPerBlock - 1) / threadsPerBlock; 
-
-    wallBoundaryY2nd_kernel<<<blocksPerGrid, threadsPerBlock>>>(thrust::raw_pointer_cast(U.data()));
-
-    cudaDeviceSynchronize();
-}

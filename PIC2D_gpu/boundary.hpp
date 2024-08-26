@@ -22,6 +22,10 @@ public:
         thrust::device_vector<Particle>& particlesIon,
         thrust::device_vector<Particle>& particlesElectron
     );
+    void openBoundaryParticleX(
+        thrust::device_vector<Particle>& particlesIon,
+        thrust::device_vector<Particle>& particlesElectron
+    );
 
     void conductingWallBoundaryParticleY(
         thrust::device_vector<Particle>& particlesIon,
@@ -37,6 +41,9 @@ public:
         thrust::device_vector<MagneticField>& B
     );
     void symmetricBoundaryBX(
+        thrust::device_vector<MagneticField>& B
+    );
+    void freeBoundaryBX(
         thrust::device_vector<MagneticField>& B
     );
 
@@ -57,6 +64,9 @@ public:
     void symmetricBoundaryEX(
         thrust::device_vector<ElectricField>& E
     );
+    void freeBoundaryEX(
+        thrust::device_vector<ElectricField>& E
+    );
 
     void conductingWallBoundaryEY(
         thrust::device_vector<ElectricField>& E
@@ -73,6 +83,9 @@ public:
         thrust::device_vector<CurrentField>& current
     );
     void symmetricBoundaryCurrentX(
+        thrust::device_vector<CurrentField>& current
+    );
+    void freeBoundaryCurrentX(
         thrust::device_vector<CurrentField>& current
     );
 

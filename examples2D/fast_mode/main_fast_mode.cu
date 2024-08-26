@@ -146,11 +146,12 @@ void PIC2D::initialize()
 
             xmin = i * PIC2DConst::dx_PIC + PIC2DConst::xmin_PIC;
             ymin = j * PIC2DConst::dy_PIC + PIC2DConst::ymin_PIC;
-            rho = device_rho0_PIC * (1.0 + device_waveAmp * sin(device_waveNumber * y));
+            double rho0_PIC = PIC2DConst::mIon_PIC * PIC2DConst::numberDensityIon_PIC + PIC2DConst::mElectron_PIC * PIC2DConst::numberDensityElectron_PIC;
+            rho = rho0_PIC * (1.0 + waveAmp * sin(waveNumber * y));
             ni  = rho / (PIC2DConst::mIon_PIC + PIC2DConst::mElectron_PIC);
             ne  = ni; 
             u   = 0.0;
-            v   = device_waveAmp * device_Cf * sin(device_waveNumber * y);
+            v   = waveAmp * Cf * sin(waveNumber * y);
             w   = 0.0;
 
             initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
