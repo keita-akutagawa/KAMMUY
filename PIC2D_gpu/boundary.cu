@@ -92,6 +92,85 @@ void BoundaryPIC::conductingWallBoundaryParticleX(
 }
 
 
+__global__ void openBoundaryParticleX_kernel(
+    Particle* particlesSpecies, 
+    const unsigned long long existNumSpecies
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < existNumSpecies) {
+        if (particlesSpecies[i].x <= device_xmin_PIC) {
+            particlesSpecies[i].isExist = false;
+        }
+
+        if (particlesSpecies[i].x >= device_xmax_PIC) {
+            particlesSpecies[i].isExist = false;
+        }
+    }
+}
+
+
+void BoundaryPIC::openBoundaryParticleX(
+    thrust::device_vector<Particle>& particlesIon,
+    thrust::device_vector<Particle>& particlesElectron
+)
+{
+
+    dim3 threadsPerBlockForIon(256);
+    dim3 blocksPerGridForIon((existNumIon_PIC + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+
+    openBoundaryParticleX_kernel<<<blocksPerGridForIon, threadsPerBlockForIon>>>(
+        thrust::raw_pointer_cast(particlesIon.data()), existNumIon_PIC
+    );
+
+    cudaDeviceSynchronize();
+
+    dim3 threadsPerBlockForElectron(256);
+    dim3 blocksPerGridForElectron((existNumElectron_PIC + threadsPerBlockForElectron.x - 1) / threadsPerBlockForElectron.x);
+
+    openBoundaryParticleX_kernel<<<blocksPerGridForElectron, threadsPerBlockForElectron>>>(
+        thrust::raw_pointer_cast(particlesElectron.data()), existNumElectron_PIC
+    );
+
+    cudaDeviceSynchronize();
+
+    
+    existNumIon_PIC = thrust::transform_reduce(
+        particlesIon.begin(),
+        particlesIon.end(),
+        IsExistTransform(), 
+        0,               
+        thrust::plus<unsigned long long>()
+    );
+
+    cudaDeviceSynchronize();
+
+    existNumElectron_PIC = thrust::transform_reduce(
+        particlesElectron.begin(),
+        particlesElectron.end(),
+        IsExistTransform(), 
+        0,               
+        thrust::plus<unsigned long long>()
+    );
+
+    cudaDeviceSynchronize();
+
+
+    thrust::partition(
+        particlesIon.begin(), particlesIon.end(), 
+        [] __device__ (const Particle& p) { return p.isExist; }
+    );
+    cudaDeviceSynchronize();
+    
+    thrust::partition(
+        particlesElectron.begin(), particlesElectron.end(), 
+        [] __device__ (const Particle& p) { return p.isExist; }
+    );
+    cudaDeviceSynchronize();
+}
+
+
 __global__ void conductingWallBoundaryParticleY_kernel(
     Particle* particlesSpecies, unsigned long long existNumSpecies
 )
@@ -259,6 +338,35 @@ void BoundaryPIC::symmetricBoundaryBX(
 }
 
 
+__global__ void freeBoundaryBX_kernel(
+    MagneticField* B
+)
+{
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (j < device_ny_PIC) {
+        B[j + 0 * device_ny_PIC] = B[j + 1 * device_ny_PIC];
+
+        B[j + (device_nx_PIC - 1) * device_ny_PIC] = B[j + (device_nx_PIC - 2) * device_ny_PIC];
+    }
+}
+
+void BoundaryPIC::freeBoundaryBX(
+    thrust::device_vector<MagneticField>& B
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    freeBoundaryBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(B.data())
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
 
 __global__ void conductingWallBoundaryBY_kernel(
     MagneticField* B
@@ -380,6 +488,35 @@ void BoundaryPIC::symmetricBoundaryEX(
 }
 
 
+__global__ void freeBoundaryEX_kernel(
+    ElectricField* E
+)
+{
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (j < device_ny_PIC) {
+        E[j + 0 * device_ny_PIC] = E[j + 1 * device_ny_PIC];
+
+        E[j + (device_nx_PIC - 1) * device_ny_PIC] = E[j + (device_nx_PIC - 2) * device_ny_PIC];
+    }
+}
+
+void BoundaryPIC::freeBoundaryEX(
+    thrust::device_vector<ElectricField>& E
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    freeBoundaryEX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(E.data())
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
 __global__ void conductingWallBoundaryEY_kernel(
     ElectricField* E
 )
@@ -491,6 +628,35 @@ void BoundaryPIC::symmetricBoundaryCurrentX(
                        (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     symmetricBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(current.data())
+    );
+
+    cudaDeviceSynchronize();
+}
+
+
+__global__ void freeBoundaryCurrentX_kernel(
+    CurrentField* current
+)
+{
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (j < device_ny_PIC) {
+        current[j + 0 * device_ny_PIC] = current[j + 1 * device_ny_PIC];
+
+        current[j + (device_nx_PIC - 1) * device_ny_PIC] = current[j + (device_nx_PIC - 2) * device_ny_PIC];
+    }
+}
+
+void BoundaryPIC::freeBoundaryCurrentX(
+    thrust::device_vector<CurrentField>& current
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nx_PIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (ny_PIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    freeBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data())
     );
 

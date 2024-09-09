@@ -239,7 +239,7 @@ void PIC2D::oneStepFreeXFreeY(
 
 
     fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0);
-    boundaryPIC.freeBoundaryBX(B);
+    boundaryPIC.symmetricBoundaryBX(B);
     boundaryPIC.freeBoundaryBY(B);
 
     dim3 threadsPerBlock(16, 16);
@@ -252,9 +252,9 @@ void PIC2D::oneStepFreeXFreeY(
         thrust::raw_pointer_cast(E.data())
     );
     cudaDeviceSynchronize();
-    boundaryPIC.freeBoundaryBX(tmpB);
+    boundaryPIC.symmetricBoundaryBX(tmpB);
     boundaryPIC.freeBoundaryBY(tmpB);
-    boundaryPIC.freeBoundaryEX(tmpE);
+    boundaryPIC.symmetricBoundaryEX(tmpE);
     boundaryPIC.freeBoundaryEY(tmpE);
     
     particlePush.pushVelocity(
@@ -275,29 +275,30 @@ void PIC2D::oneStepFreeXFreeY(
     currentCalculator.calculateCurrent(
         tmpCurrent, particlesIon, particlesElectron
     );
+    boundaryPIC.symmetricBoundaryCurrentX(tmpCurrent);
     boundaryPIC.freeBoundaryCurrentY(tmpCurrent);
     getHalfCurrent_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
         thrust::raw_pointer_cast(tmpCurrent.data())
     );
-    boundaryPIC.freeBoundaryCurrentX(current);
+    boundaryPIC.symmetricBoundaryCurrentX(current);
     boundaryPIC.freeBoundaryCurrentY(current);
     interface2D_Lower.sendMHDtoPIC_currentField_yDirection(USub_Lower, current);
     interface2D_Upper.sendMHDtoPIC_currentField_yDirection(USub_Upper, current);
-    boundaryPIC.freeBoundaryCurrentX(current);
+    boundaryPIC.symmetricBoundaryCurrentX(current);
     boundaryPIC.freeBoundaryCurrentY(current);
     //interfaceNoiseRemover2D_Lower.convolve_lower_currentField(current);
     //interfaceNoiseRemover2D_Upper.convolve_upper_currentField(current);
 
     fieldSolver.timeEvolutionB(B, E, dt_PIC/2.0);
-    boundaryPIC.freeBoundaryBX(B);
+    boundaryPIC.symmetricBoundaryBX(B);
     boundaryPIC.freeBoundaryBY(B);
 
     fieldSolver.timeEvolutionE(E, B, current, dt_PIC);
-    boundaryPIC.freeBoundaryEX(E);
+    boundaryPIC.symmetricBoundaryEX(E);
     boundaryPIC.freeBoundaryEY(E);
     filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, dt_PIC);
-    boundaryPIC.freeBoundaryEX(E);
+    boundaryPIC.symmetricBoundaryEX(E);
     boundaryPIC.freeBoundaryEY(E);
 
     particlePush.pushPosition(
@@ -318,9 +319,9 @@ void PIC2D::oneStepFreeXFreeY(
     interface2D_Upper.sendMHDtoPIC_electricField_yDirection(USub_Upper, E);
     interface2D_Upper.sendMHDtoPIC_particle(USub_Upper, particlesIon, particlesElectron, step * totalSubstep + substep);
 
-    boundaryPIC.freeBoundaryBX(B);
+    boundaryPIC.symmetricBoundaryBX(B);
     boundaryPIC.freeBoundaryBY(B);
-    boundaryPIC.freeBoundaryEX(E);
+    boundaryPIC.symmetricBoundaryEX(E);
     boundaryPIC.freeBoundaryEY(E);
     boundaryPIC.openBoundaryParticleX(particlesIon, particlesElectron);
     boundaryPIC.openBoundaryParticleY(particlesIon, particlesElectron);
