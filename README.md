@@ -1,6 +1,6 @@
-# KAMMUY - Kinetic And Magnetohydrodynamic MUlti-hierarchY simulation code
+<img src="./figures/KAMMUY_logo.jpg" alt="KAMMUY logo" width="300"/>
 
-<img src="./figures/KAMMUY_logo.jpg" alt="KAMMUY logo" width="200"/>
+# KAMMUY - Kinetic And Magnetohydrodynamic MUlti-hierarchY simulation code
 
 KAMMUY solves MHD & PIC simultaneously to understand multi-scale phenomena of plasmas. 
 PIC simulation is accelerated by GPUs using CUDA and Thrust library.
