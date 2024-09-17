@@ -92,7 +92,10 @@ void symmetricBoundaryX2ndBX_kernel(ConservationParameter* U)
 
 }
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> eac0c155459d54f9a2b54a35825e563d97fca8c6
 void BoundaryMHD::symmetricBoundaryX2nd(
     thrust::device_vector<ConservationParameter>& U
 )
