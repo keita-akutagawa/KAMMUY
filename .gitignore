@@ -15,4 +15,5 @@ googletest/
 *.bin
 .vscode
 *.zip
+.vscode
 
