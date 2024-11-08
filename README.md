@@ -9,10 +9,10 @@ This is the modern computing style in a CPU & GPU environment.
 
 KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditional belief system of the Ainu people in Hokkaido, Japan.
 
-# Not Completed !
+# DO NOT USE multiGPUs CODE
 
 
-## Schemes (multi GPU)
+## Schemes (multiGPUs)
 
 ### MHD
 - HLLD
@@ -30,7 +30,7 @@ KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditi
 - convolution
   
 
-## Schemes (single GPU)
+## Schemes (singleGPU)
 
 ### MHD
 - HLLD
