@@ -12,12 +12,35 @@ struct ZerothMoment
         {}
     
     __host__ __device__
+    ZerothMoment(float n) :
+        n(n)
+    {}
+    
+    __host__ __device__
     ZerothMoment& operator=(const ZerothMoment& other)
     {
         if (this != &other) {
             n = other.n;
         }
         return *this;
+    }
+
+     __host__ __device__
+    ZerothMoment operator+(const ZerothMoment& other) const
+    {
+        return ZerothMoment(n + other.n);
+    }
+
+    __host__ __device__
+    ZerothMoment operator*(float scalar) const
+    {
+        return ZerothMoment(scalar * n);
+    }
+
+    __host__ __device__
+    friend ZerothMoment operator*(float scalar, const ZerothMoment& other) 
+    {
+        return ZerothMoment(scalar * other.n);
     }
 };
 
@@ -36,6 +59,13 @@ struct FirstMoment
         {}
     
     __host__ __device__
+    FirstMoment(float x, float y, float z) :
+        x(x),
+        y(y),
+        z(z)
+    {}
+    
+    __host__ __device__
     FirstMoment& operator=(const FirstMoment& other)
     {
         if (this != &other) {
@@ -44,6 +74,24 @@ struct FirstMoment
             z = other.z;
         }
         return *this;
+    }
+
+    __host__ __device__
+    FirstMoment operator+(const FirstMoment& other) const
+    {
+        return FirstMoment(x + other.x, y + other.y, z + other.z);
+    }
+
+    __host__ __device__
+    FirstMoment operator*(float scalar) const
+    {
+        return FirstMoment(scalar * x, scalar * y, scalar * z);
+    }
+
+    __host__ __device__
+    friend FirstMoment operator*(float scalar, const FirstMoment& other) 
+    {
+        return FirstMoment(scalar * other.x, scalar * other.y, scalar * other.z);
     }
 };
 
@@ -68,6 +116,16 @@ struct SecondMoment
         {}
     
     __host__ __device__
+    SecondMoment(float xx, float yy, float zz, float xy, float xz, float yz) :
+        xx(xx), 
+        yy(yy), 
+        zz(zz), 
+        xy(xy), 
+        xz(xz), 
+        yz(yz)
+    {}
+    
+    __host__ __device__
     SecondMoment& operator=(const SecondMoment& other)
     {
         if (this != &other) {
@@ -79,6 +137,29 @@ struct SecondMoment
             yz = other.yz;
         }
         return *this;
+    }
+
+    __host__ __device__
+    SecondMoment operator+(const SecondMoment& other) const
+    {
+        return SecondMoment(
+            xx + other.xx, yy + other.yy, zz + other.zz, 
+            xy + other.xy, xz + other.xz, yz + other.yz
+        );
+    }
+
+    __host__ __device__
+    SecondMoment operator*(float scalar) const
+    {
+        return SecondMoment(scalar * xx, scalar * yy, scalar * zz, 
+                            scalar * xy, scalar * xz, scalar * yz);
+    }
+
+    __host__ __device__
+    friend SecondMoment operator*(float scalar, const SecondMoment& other) 
+    {
+        return SecondMoment(scalar * other.xx, scalar * other.yy, scalar * other.zz, 
+                            scalar * other.xy, scalar * other.xz, scalar * other.yz);
     }
 };
 

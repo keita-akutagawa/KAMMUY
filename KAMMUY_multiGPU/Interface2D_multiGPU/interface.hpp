@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <thrust/fill.h>
 #include <thrust/partition.h>
+#include <thrust/transform.h>
 
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
@@ -20,6 +21,7 @@
 #include "../PIC2D_multiGPU/moment_struct.hpp"
 #include "../PIC2D_multiGPU/particle_struct.hpp"
 #include "../PIC2D_multiGPU/moment_calculater.hpp"
+#include "../PIC2D_multiGPU/is_exist_transform.hpp"
 #include "../IdealMHD2D_multiGPU/mpi.hpp"
 #include "../PIC2D_multiGPU/mpi.hpp"
 
@@ -27,10 +29,10 @@
 class Interface2D
 {
 private:
-    PIC2DMPI::MPIInfo& mPIInfoPIC;
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
-    PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
+    PIC2DMPI::MPIInfo& mPIInfoPIC;
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
+    PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
@@ -67,21 +69,19 @@ private:
     thrust::device_vector<ConservationParameter> UHalf;
 
     MomentCalculater momentCalculater;
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D_Lower;
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D_Upper;
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D;
 
 
 public:
     Interface2D(
-        PIC2DMPI::MPIInfo& mPIInfoPIC, 
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
+        PIC2DMPI::MPIInfo& mPIInfoPIC, 
         int indexStartMHD, 
         int indexStartPIC, 
         int interfaceLength, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
         thrust::host_vector<double>& host_interlockingFunctionYHalf, 
-        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
-        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D
     );
 
     void sendMHDtoPIC_magneticField_yDirection(

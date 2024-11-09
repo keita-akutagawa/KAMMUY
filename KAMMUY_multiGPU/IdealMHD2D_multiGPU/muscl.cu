@@ -3,7 +3,7 @@
 #include <thrust/tuple.h>
 
 
-MUSCL::MUSCL(MPIInfo& mPIInfo)
+MUSCL::MUSCL(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }

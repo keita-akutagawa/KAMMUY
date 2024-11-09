@@ -1,5 +1,5 @@
-#ifndef CONST_STRUCT_H
-#define CONST_STRUCT_H
+#ifndef CONST_MHD_H
+#define CONST_MHD_H
 
 namespace IdealMHD2DConst
 {
@@ -17,7 +17,11 @@ namespace IdealMHD2DConst
     extern const int ny;
 
     extern const double CFL;
-    extern const double gamma_mhd;
+    extern const double gamma;
+
+    extern const double rho0; 
+    extern const double B0; 
+    extern const double p0; 
 
     extern double dt;
 
@@ -39,7 +43,11 @@ namespace IdealMHD2DConst
     extern __constant__ int device_ny;
 
     extern __constant__ double device_CFL;
-    extern __constant__ double device_gamma_mhd;
+    extern __constant__ double device_gamma;
+
+    extern __constant__ double device_rho0; 
+    extern __constant__ double device_B0; 
+    extern __constant__ double device_p0; 
 
     extern __device__ double device_dt;
 

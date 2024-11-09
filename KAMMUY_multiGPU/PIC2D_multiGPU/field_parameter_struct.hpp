@@ -15,6 +15,13 @@ struct MagneticField
         {}
     
     __host__ __device__
+    MagneticField(float bX, float bY, float bZ) :
+        bX(bX),
+        bY(bY),
+        bZ(bZ)
+    {}
+
+    __host__ __device__
     MagneticField& operator=(const MagneticField& other)
     {
         if (this != &other) {
@@ -23,6 +30,24 @@ struct MagneticField
             bZ = other.bZ;
         }
         return *this;
+    }
+
+    __host__ __device__
+    MagneticField operator+(const MagneticField& other) const
+    {
+        return MagneticField(bX + other.bX, bY + other.bY, bZ + other.bZ);
+    }
+
+    __host__ __device__
+    MagneticField operator*(float scalar) const
+    {
+        return MagneticField(scalar * bX, scalar * bY, scalar * bZ);
+    }
+
+    __host__ __device__
+    friend MagneticField operator*(float scalar, const MagneticField& other) 
+    {
+        return MagneticField(scalar * other.bX, scalar * other.bY, scalar * other.bZ);
     }
 };
 
@@ -41,6 +66,13 @@ struct ElectricField
         {}
     
     __host__ __device__
+    ElectricField(float eX, float eY, float eZ) :
+        eX(eX),
+        eY(eY),
+        eZ(eZ)
+    {}
+    
+    __host__ __device__
     ElectricField& operator=(const ElectricField& other)
     {
         if (this != &other) {
@@ -49,6 +81,24 @@ struct ElectricField
             eZ = other.eZ;
         }
         return *this;
+    }
+
+    __host__ __device__
+    ElectricField operator+(const ElectricField& other) const
+    {
+        return ElectricField(eX + other.eX, eY + other.eY, eZ + other.eZ);
+    }
+
+    __host__ __device__
+    ElectricField operator*(float scalar) const
+    {
+        return ElectricField(scalar * eX, scalar * eY, scalar * eZ);
+    }
+
+    __host__ __device__
+    friend ElectricField operator*(float scalar, const ElectricField& other) 
+    {
+        return ElectricField(scalar * other.eX, scalar * other.eY, scalar * other.eZ);
     }
 };
 
@@ -67,6 +117,13 @@ struct CurrentField
         {}
     
     __host__ __device__
+    CurrentField(float jx, float jy, float jz) :
+        jX(jx),
+        jY(jy),
+        jZ(jz)
+    {}
+    
+    __host__ __device__
     CurrentField& operator=(const CurrentField& other)
     {
         if (this != &other) {
@@ -75,6 +132,24 @@ struct CurrentField
             jZ = other.jZ;
         }
         return *this;
+    }
+
+    __host__ __device__
+    CurrentField operator+(const CurrentField& other) const
+    {
+        return CurrentField(jX + other.jX, jY + other.jY, jZ + other.jZ);
+    }
+
+    __host__ __device__
+    CurrentField operator*(float scalar) const
+    {
+        return CurrentField(scalar * jX, scalar * jY, scalar * jZ);
+    }
+
+    __host__ __device__
+    friend CurrentField operator*(float scalar, const CurrentField& other) 
+    {
+        return CurrentField(scalar * other.jX, scalar * other.jY, scalar * other.jZ);
     }
 };
 
@@ -89,12 +164,35 @@ struct RhoField
         {}
     
     __host__ __device__
+    RhoField(float rho) :
+        rho(rho)
+    {}
+    
+    __host__ __device__
     RhoField& operator=(const RhoField& other)
     {
         if (this != &other) {
             rho = other.rho;
         }
         return *this;
+    }
+
+    __host__ __device__
+    RhoField operator+(const RhoField& other) const
+    {
+        return RhoField(rho + other.rho);
+    }
+
+    __host__ __device__
+    RhoField operator*(float scalar) const
+    {
+        return RhoField(scalar * rho);
+    }
+
+    __host__ __device__
+    friend RhoField operator*(float scalar, const RhoField& other) 
+    {
+        return RhoField(scalar * other.rho);
     }
 };
 
@@ -109,12 +207,35 @@ struct FilterField
         {}
     
     __host__ __device__
+    FilterField(float F) :
+        F(F)
+    {}
+    
+    __host__ __device__
     FilterField& operator=(const FilterField& other)
     {
         if (this != &other) {
             F = other.F;
         }
         return *this;
+    }
+
+    __host__ __device__
+    FilterField operator+(const FilterField& other) const
+    {
+        return FilterField(F + other.F);
+    }
+
+    __host__ __device__
+    FilterField operator*(float scalar) const
+    {
+        return FilterField(scalar * F);
+    }
+
+    __host__ __device__
+    friend FilterField operator*(float scalar, const FilterField& other) 
+    {
+        return FilterField(scalar * other.F);
     }
 };
 

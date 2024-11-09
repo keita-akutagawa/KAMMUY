@@ -1,7 +1,7 @@
 #include "field_solver.hpp"
 
 
-FieldSolver::FieldSolver(MPIInfo& mPIInfo)
+FieldSolver::FieldSolver(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }

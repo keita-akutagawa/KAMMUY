@@ -9,17 +9,26 @@
 #include "../PIC2D_multiGPU/const.hpp"
 #include "../PIC2D_multiGPU/field_parameter_struct.hpp"
 #include "../PIC2D_multiGPU/moment_struct.hpp"
+#include "../IdealMHD2D_multiGPU/mpi.hpp"
+#include "../PIC2D_multiGPU/mpi.hpp"
 
 
 class InterfaceNoiseRemover2D
 {
 private:
-    int indexOfInterfaceStartInMHD;
-    int indexOfInterfaceStartInPIC;
+    IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
+    PIC2DMPI::MPIInfo& mPIInfoPIC;
+    IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
+    PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
+
+    int indexOfInterfaceStartInMHD_lower;
+    int indexOfInterfaceStartInPIC_lower;
+    int indexOfInterfaceStartInMHD_upper;
+    int indexOfInterfaceStartInPIC_upper;
     int interfaceLength; 
     int windowSize;
-    int nx_Interface; 
-    int ny_Interface;
+    int nxInterface; 
+    int nyInterface;
 
     thrust::device_vector<MagneticField> tmpB;
     thrust::device_vector<ElectricField> tmpE;
@@ -30,60 +39,45 @@ private:
 
 public:
     InterfaceNoiseRemover2D(
-        int indexStartMHD, 
-        int indexStartPIC, 
+        IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
+        PIC2DMPI::MPIInfo& mPIInfoPIC, 
+        int indexOfInterfaceStartInMHD_lower, 
+        int indexOfInterfaceStartInPIC_lower, 
+        int indexOfInterfaceStartInMHD_upper, 
+        int indexOfInterfaceStartInPIC_upper, 
         int interfaceLength, 
         int windowSizeForConvolution, 
-        int nx_Interface, 
-        int ny_Interface
+        int nxInterface, 
+        int nyInterface
     );
 
 
-    void convolve_lower_magneticField(
-        thrust::device_vector<MagneticField>& B
+    void convolve_magneticField(
+        thrust::device_vector<MagneticField>& B, 
+        bool isLower, bool isUpper
     );
 
-    void convolve_lower_electricField(
-        thrust::device_vector<ElectricField>& E
+    void convolve_electricField(
+        thrust::device_vector<ElectricField>& E, 
+        bool isLower, bool isUpper
     );
 
-    void convolve_lower_currentField(
-        thrust::device_vector<CurrentField>& current
+    void convolve_currentField(
+        thrust::device_vector<CurrentField>& current, 
+        bool isLower, bool isUpper
     );
 
-    void convolveMoments_lower(
+    void convolveMoments(
         thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         thrust::device_vector<FirstMoment>& firstMomentIon, 
-        thrust::device_vector<FirstMoment>& firstMomentElectron
+        thrust::device_vector<FirstMoment>& firstMomentElectron, 
+        bool isLower, bool isUpper
     );
 
-    void convolveU_lower(
-        thrust::device_vector<ConservationParameter>& U
-    );
-
-
-    void convolve_upper_magneticField(
-        thrust::device_vector<MagneticField>& B
-    );
-
-    void convolve_upper_electricField(
-        thrust::device_vector<ElectricField>& E
-    );
-
-    void convolve_upper_currentField(
-        thrust::device_vector<CurrentField>& current
-    );
-
-    void convolveMoments_upper(
-        thrust::device_vector<ZerothMoment>& zerothMomentIon, 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
-        thrust::device_vector<FirstMoment>& firstMomentIon, 
-        thrust::device_vector<FirstMoment>& firstMomentElectron
-    );
-
-    void convolveU_upper(
-        thrust::device_vector<ConservationParameter>& U
+    void convolveU(
+        thrust::device_vector<ConservationParameter>& U, 
+        bool isLower, bool isUpper
     );
 
 private:

@@ -8,10 +8,10 @@
 class MUSCL
 {
 private:
-    MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo;
 
 public:
-    MUSCL(MPIInfo& mPIInfo);
+    MUSCL(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void getLeftQX(
         const thrust::device_vector<BasicParameter>& dQ, 

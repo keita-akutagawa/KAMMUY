@@ -1,17 +1,17 @@
 #include "boundary.hpp"
 
 
-Boundary::Boundary(MPIInfo& mPIInfo)
+BoundaryMHD::BoundaryMHD(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 
-    cudaMalloc(&device_mPIInfo, sizeof(MPIInfo));
-    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(MPIInfo), cudaMemcpyHostToDevice);
+    cudaMalloc(&device_mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     
 }
 
 
-void Boundary::periodicBoundaryX2nd_U(
+void BoundaryMHD::periodicBoundaryX2nd_U(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -19,14 +19,14 @@ void Boundary::periodicBoundaryX2nd_U(
 }
 
 
-void Boundary::periodicBoundaryY2nd_U(
+void BoundaryMHD::periodicBoundaryY2nd_U(
     thrust::device_vector<ConservationParameter>& U
 )
 {
     
 }
 
-void Boundary::periodicBoundaryX2nd_flux(
+void BoundaryMHD::periodicBoundaryX2nd_flux(
     thrust::device_vector<Flux>& fluxF, 
     thrust::device_vector<Flux>& fluxG
 )
@@ -35,7 +35,7 @@ void Boundary::periodicBoundaryX2nd_flux(
 }
 
 
-void Boundary::periodicBoundaryY2nd_flux(
+void BoundaryMHD::periodicBoundaryY2nd_flux(
     thrust::device_vector<Flux>& fluxF, 
     thrust::device_vector<Flux>& fluxG
 )
@@ -49,11 +49,11 @@ __global__
 void wallBoundaryY2nd_U_kernel(
     ConservationParameter* U, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -70,14 +70,14 @@ void wallBoundaryY2nd_U_kernel(
             bY  = U[index + mPIInfo.buffer].bY;
             bZ  = U[index + mPIInfo.buffer].bZ;
             e   = U[index + mPIInfo.buffer].e;
-            p   = (IdealMHD2DConst::device_gamma_mhd - 1.0)
+            p   = (IdealMHD2DConst::device_gamma - 1.0)
                 * (e - 0.5 * rho * (u * u + v * v + w * w)
                 - 0.5 * (bX * bX + bY * bY + bZ * bZ));
             
             wallU.rho = rho;
             wallU.rhoU = rho * 0.0; wallU.rhoV = rho * 0.0; wallU.rhoW = rho * 0.0;
             wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-            e = p / (IdealMHD2DConst::device_gamma_mhd - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
+            e = p / (IdealMHD2DConst::device_gamma - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
             + 0.5 * (bX * bX + 0.0 * 0.0 + bZ * bZ); 
             wallU.e = e;
 
@@ -100,14 +100,14 @@ void wallBoundaryY2nd_U_kernel(
             bY  = U[index - mPIInfo.buffer].bY;
             bZ  = U[index - mPIInfo.buffer].bZ;
             e   = U[index - mPIInfo.buffer].e;
-            p   = (IdealMHD2DConst::device_gamma_mhd - 1.0)
+            p   = (IdealMHD2DConst::device_gamma - 1.0)
                 * (e - 0.5 * rho * (u * u + v * v + w * w)
                 - 0.5 * (bX * bX + bY * bY + bZ * bZ));
             
             wallU.rho = rho;
             wallU.rhoU = rho * 0.0; wallU.rhoV = rho * 0.0; wallU.rhoW = rho * 0.0;
             wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-            e = p / (IdealMHD2DConst::device_gamma_mhd - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
+            e = p / (IdealMHD2DConst::device_gamma - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
             + 0.5 * (bX * bX + 0.0 * 0.0 + bZ * bZ); 
             wallU.e = e;
 
@@ -118,7 +118,7 @@ void wallBoundaryY2nd_U_kernel(
     }
 }
 
-void Boundary::wallBoundaryY2nd_U(
+void BoundaryMHD::wallBoundaryY2nd_U(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -140,11 +140,11 @@ __global__
 void wallBoundaryY2nd_flux_kernel(
     Flux* fluxF, Flux* fluxG, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -173,7 +173,7 @@ void wallBoundaryY2nd_flux_kernel(
     }
 }
 
-void Boundary::wallBoundaryY2nd_flux(
+void BoundaryMHD::wallBoundaryY2nd_flux(
     thrust::device_vector<Flux>& fluxF, 
     thrust::device_vector<Flux>& fluxG
 )
@@ -196,11 +196,11 @@ __global__
 void symmetricBoundaryY2nd_U_kernel(
     ConservationParameter* U, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -221,7 +221,7 @@ void symmetricBoundaryY2nd_U_kernel(
     }
 }
 
-void Boundary::symmetricBoundaryY2nd_U(
+void BoundaryMHD::symmetricBoundaryY2nd_U(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -241,11 +241,11 @@ __global__
 void symmetricBoundaryY2nd_flux_kernel(
     Flux* fluxF, Flux* fluxG, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -268,7 +268,7 @@ void symmetricBoundaryY2nd_flux_kernel(
     }
 }
 
-void Boundary::symmetricBoundaryY2nd_flux(
+void BoundaryMHD::symmetricBoundaryY2nd_flux(
     thrust::device_vector<Flux>& fluxF, 
     thrust::device_vector<Flux>& fluxG
 )

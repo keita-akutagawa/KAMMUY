@@ -2,7 +2,7 @@
 #include <thrust/fill.h>
 
 
-Filter::Filter(MPIInfo& mPIInfo)
+Filter::Filter(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
       rho(mPIInfo.localSizeX * mPIInfo.localSizeY), 
       F(mPIInfo.localSizeX * mPIInfo.localSizeY)

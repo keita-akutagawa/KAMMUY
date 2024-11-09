@@ -1,3 +1,6 @@
+#ifndef BOUNDARY_MHD_H
+#define BOUNDARY_MHD_H
+
 #include <thrust/device_vector.h>
 #include "const.hpp"
 #include "conservation_parameter_struct.hpp"
@@ -5,14 +8,14 @@
 #include "mpi.hpp"
 
 
-class Boundary
+class BoundaryMHD
 {
 private:
-    MPIInfo mPIInfo; 
-    MPIInfo* device_mPIInfo; 
+    IdealMHD2DMPI::MPIInfo mPIInfo; 
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo; 
 
 public:
-    Boundary(MPIInfo& mPIInfo);
+    BoundaryMHD(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void periodicBoundaryX2nd_U(
         thrust::device_vector<ConservationParameter>& U
@@ -65,5 +68,7 @@ public:
 private:
 
 };
+
+#endif
 
 

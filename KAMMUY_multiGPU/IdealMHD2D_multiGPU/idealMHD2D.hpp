@@ -10,8 +10,8 @@
 class IdealMHD2D
 {
 private:
-    MPIInfo mPIInfo; 
-    MPIInfo* device_mPIInfo; 
+    IdealMHD2DMPI::MPIInfo mPIInfo; 
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo; 
 
     FluxSolver fluxSolver;
     
@@ -19,19 +19,22 @@ private:
     thrust::device_vector<Flux> fluxG;
     thrust::device_vector<ConservationParameter> U;
     thrust::device_vector<ConservationParameter> UBar;
+    thrust::device_vector<ConservationParameter> UPast;
     thrust::device_vector<double> dtVector;
     thrust::device_vector<double> bXOld;
     thrust::device_vector<double> bYOld;
     thrust::device_vector<double> tmpVector;
     thrust::host_vector<ConservationParameter> hU;
 
-    Boundary boundary;
+    BoundaryMHD boundaryMHD;
     CT ct;
 
 public:
-    IdealMHD2D(MPIInfo& mPIInfo);
+    IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     virtual void initializeU(); 
+
+    void setPastU();
 
     void oneStepRK2();
 
@@ -45,11 +48,13 @@ public:
         int step
     );
 
-    thrust::device_vector<ConservationParameter>& getU();
-
     void calculateDt();
 
     bool checkCalculationIsCrashed();
+
+    thrust::device_vector<ConservationParameter>& getURef();
+
+    thrust::device_vector<ConservationParameter>& getUPastRef();
 
 private:
     void shiftUToCenterForCT(

@@ -7,6 +7,7 @@ namespace Interface2DConst
     extern const double EPS;
     extern const double PI;
 
+    extern const int interfaceLength; 
     extern const int windowSizeForConvolution;
 
     extern const unsigned long long reloadParticlesTotalNum;
@@ -15,12 +16,13 @@ namespace Interface2DConst
     extern __constant__ double device_EPS;
     extern __constant__ double device_PI;
 
+    extern __constant__ int device_interfaceLength; 
     extern __constant__ int device_windowSizeForConvolution;
 
     extern __constant__ unsigned long long device_reloadParticlesTotalNum;
 
 
-    void initializeDeviceConstants_Interface();
+    void initializeDeviceConstants();
 
 }
 

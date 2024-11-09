@@ -6,7 +6,7 @@
 #include <random>
 
 
-InitializeParticle::InitializeParticle(MPIInfo& mPIInfo)
+InitializeParticle::InitializeParticle(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }

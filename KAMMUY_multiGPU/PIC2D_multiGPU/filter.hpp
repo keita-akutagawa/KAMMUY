@@ -8,13 +8,13 @@
 class Filter
 {
 private:
-    MPIInfo& mPIInfo;
+    PIC2DMPI::MPIInfo& mPIInfo;
 
     thrust::device_vector<RhoField> rho;
     thrust::device_vector<FilterField> F;
 
 public:
-    Filter(MPIInfo& mPIInfo);
+    Filter(PIC2DMPI::MPIInfo& mPIInfo);
 
     void langdonMarderTypeCorrection(
         thrust::device_vector<ElectricField>& E, 

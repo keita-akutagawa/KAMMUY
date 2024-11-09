@@ -1,13 +1,17 @@
 #include "boundary.hpp"
 
 
-Boundary::Boundary(MPIInfo& mPIInfo)
+BoundaryPIC::BoundaryPIC(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
+
+    cudaMalloc(&device_mPIInfo, sizeof(PIC2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(PIC2DMPI::MPIInfo), cudaMemcpyHostToDevice);
+
 }
 
 
-void Boundary::periodicBoundaryParticle_xy(
+void BoundaryPIC::periodicBoundaryParticle_xy(
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron
 )
@@ -112,7 +116,7 @@ __global__ void periodicBoundaryParticle_x_kernel(
     }
 }
 
-void Boundary::periodicBoundaryParticleOfOneSpecies_x(
+void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpecies, 
     unsigned int& numForSendParticlesSpeciesLeft, 
@@ -175,7 +179,7 @@ void Boundary::periodicBoundaryParticleOfOneSpecies_x(
 }
 
 
-void Boundary::modifySendNumParticlesSpecies(
+void BoundaryPIC::modifySendNumParticlesSpecies(
     const unsigned int& numForSendParticlesSpeciesCornerLeftDown, 
     const unsigned int& numForSendParticlesSpeciesCornerRightDown, 
     const unsigned int& numForSendParticlesSpeciesCornerLeftUp, 
@@ -245,7 +249,7 @@ __global__ void periodicBoundaryParticle_y_kernel(
     }
 }
 
-void Boundary::periodicBoundaryParticleOfOneSpecies_y(
+void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_y(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpecies, 
     unsigned int& numForSendParticlesSpeciesDown, 

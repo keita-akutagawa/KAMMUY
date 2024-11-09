@@ -7,10 +7,10 @@
 class FieldSolver
 {
 private:
-    MPIInfo& mPIInfo; 
+    PIC2DMPI::MPIInfo& mPIInfo; 
 
 public:
-    FieldSolver(MPIInfo& mPIInfo);
+    FieldSolver(PIC2DMPI::MPIInfo& mPIInfo);
 
     void timeEvolutionB(
         thrust::device_vector<MagneticField>& B, 

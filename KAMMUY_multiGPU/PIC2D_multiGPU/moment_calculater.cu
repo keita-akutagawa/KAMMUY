@@ -1,7 +1,7 @@
 #include "moment_calculater.hpp"
 
 
-MomentCalculater::MomentCalculater(MPIInfo& mPIInfo)
+MomentCalculater::MomentCalculater(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }

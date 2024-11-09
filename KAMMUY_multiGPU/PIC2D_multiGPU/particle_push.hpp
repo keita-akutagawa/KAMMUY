@@ -4,17 +4,18 @@
 #include <cmath>
 #include "particle_struct.hpp"
 #include "field_parameter_struct.hpp"
-#include "const.hpp"
+#include "const.hpp" 
+#include "is_exist_transform.hpp"
 #include "mpi.hpp"
 
 
 class ParticlePush
 {
 private: 
-    MPIInfo& mPIInfo; 
+    PIC2DMPI::MPIInfo& mPIInfo; 
 
 public:
-    ParticlePush(MPIInfo& mPIInfo); 
+    ParticlePush(PIC2DMPI::MPIInfo& mPIInfo); 
 
     void pushVelocity(
         thrust::device_vector<Particle>& particlesIon, 

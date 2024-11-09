@@ -22,8 +22,8 @@
 class PIC2D
 {
 private:
-    MPIInfo& mPIInfo;
-    MPIInfo* device_mPIInfo;
+    PIC2DMPI::MPIInfo& mPIInfo;
+    PIC2DMPI::MPIInfo* device_mPIInfo;
 
     thrust::device_vector<Particle> particlesIon;
     thrust::device_vector<Particle> particlesElectron;
@@ -56,12 +56,12 @@ private:
     ParticlePush particlePush;
     FieldSolver fieldSolver;
     CurrentCalculator currentCalculator;
-    Boundary boundary;
+    BoundaryPIC boundaryPIC;
     MomentCalculater momentCalculater;
     Filter filter;
 
 public:
-    PIC2D(MPIInfo& mPIInfo);
+    PIC2D(PIC2DMPI::MPIInfo& mPIInfo);
     
     virtual void initialize();
     

@@ -1,7 +1,7 @@
 #include "particle_push.hpp"
 
 
-ParticlePush::ParticlePush(MPIInfo& mPIInfo)
+ParticlePush::ParticlePush(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }
@@ -241,14 +241,6 @@ void ParticlePush::pushVelocityOfOneSpecies(
 
 
 //////////
-
-struct IsExistTransform
-{
-    __host__ __device__
-    unsigned int operator()(const Particle& p) const {
-        return p.isExist ? 1 : 0;
-    }
-};
 
 __global__
 void pushPositionOfOneSpecies_kernel(

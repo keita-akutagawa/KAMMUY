@@ -8,7 +8,7 @@
 #include "idealMHD2D.hpp"
 
 
-IdealMHD2D::IdealMHD2D(MPIInfo& mPIInfo)
+IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
 
       fluxSolver(mPIInfo), 
@@ -24,15 +24,20 @@ IdealMHD2D::IdealMHD2D(MPIInfo& mPIInfo)
 
       dtVector(mPIInfo.localNx * mPIInfo.localNy), 
 
-      boundary(mPIInfo), 
+      boundaryMHD(mPIInfo), 
       ct(mPIInfo)
 {
 
-    cudaMalloc(&device_mPIInfo, sizeof(MPIInfo));
-    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(MPIInfo), cudaMemcpyHostToDevice);
+    cudaMalloc(&device_mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     
 }
 
+
+void IdealMHD2D::setPastU()
+{
+    thrust::copy(U.begin(), U.end(), UPast.begin());
+}
 
 
 __global__ void copyBX_kernel(
@@ -194,8 +199,8 @@ void IdealMHD2D::oneStepRK2()
     cudaDeviceSynchronize();
 
     sendrecv_U(UBar, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(UBar);
-    boundary.periodicBoundaryY2nd_U(UBar);
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.periodicBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
     shiftUToCenterForCT(UBar);
@@ -213,8 +218,8 @@ void IdealMHD2D::oneStepRK2()
     cudaDeviceSynchronize();
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.periodicBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.periodicBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     ct.setNowFlux2D(fluxF, fluxG, U);
@@ -222,8 +227,8 @@ void IdealMHD2D::oneStepRK2()
     ct.divBClean(bXOld, bYOld, U);
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.periodicBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.periodicBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -271,8 +276,8 @@ void IdealMHD2D::oneStepRK2_periodicXWallY()
     cudaDeviceSynchronize();
 
     sendrecv_U(UBar, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(UBar);
-    boundary.wallBoundaryY2nd_U(UBar);
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.wallBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
     shiftUToCenterForCT(UBar);
@@ -290,8 +295,8 @@ void IdealMHD2D::oneStepRK2_periodicXWallY()
     cudaDeviceSynchronize();
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.wallBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.wallBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     ct.setNowFlux2D(fluxF, fluxG, U);
@@ -299,8 +304,8 @@ void IdealMHD2D::oneStepRK2_periodicXWallY()
     ct.divBClean(bXOld, bYOld, U);
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.wallBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.wallBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -350,8 +355,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY()
     ct.setOldFlux2D(fluxF, fluxG, U);
 
     sendrecv_U(UBar, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(UBar);
-    boundary.symmetricBoundaryY2nd_U(UBar);
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
     shiftUToCenterForCT(UBar);
@@ -369,8 +374,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY()
     cudaDeviceSynchronize();
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.symmetricBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     ct.setNowFlux2D(fluxF, fluxG, U);
@@ -378,8 +383,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY()
     ct.divBClean(bXOld, bYOld, U);
 
     sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.symmetricBoundaryY2nd_U(U);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -441,11 +446,11 @@ __global__ void calculateDtVector_kernel(
         bY  = U[indexForU].bY;
         bZ  = U[indexForU].bZ;
         e   = U[indexForU].e;
-        p   = (IdealMHD2DConst::device_gamma_mhd - 1.0)
+        p   = (IdealMHD2DConst::device_gamma - 1.0)
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
         
-        cs = sqrt(IdealMHD2DConst::device_gamma_mhd * p / rho);
+        cs = sqrt(IdealMHD2DConst::device_gamma * p / rho);
         ca = sqrt((bX * bX + bY * bY + bZ * bZ) / rho);
 
         maxSpeedX = std::abs(u) + sqrt(cs * cs + ca * ca);
@@ -647,8 +652,14 @@ void IdealMHD2D::backUToCenterHalfForCT(
 
 
 
-thrust::device_vector<ConservationParameter>& IdealMHD2D::getU()
+thrust::device_vector<ConservationParameter>& IdealMHD2D::getURef()
 {
     return U;
+}
+
+
+thrust::device_vector<ConservationParameter>& IdealMHD2D::getUPastRef()
+{
+    return UPast;
 }
 

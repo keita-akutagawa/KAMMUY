@@ -9,7 +9,7 @@
 class CT
 {
 private:
-    MPIInfo mPIInfo; 
+    IdealMHD2DMPI::MPIInfo mPIInfo; 
 
     thrust::device_vector<double> oldNumericalFluxF_f5;
     thrust::device_vector<double> oldNumericalFluxG_f4;
@@ -28,7 +28,7 @@ private:
     thrust::device_vector<double> eZVector;
 
 public:
-    CT(MPIInfo& mPIInfo);
+    CT(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void setOldFlux2D( 
         const thrust::device_vector<Flux>& fluxF, 

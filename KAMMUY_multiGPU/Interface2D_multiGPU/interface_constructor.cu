@@ -33,18 +33,17 @@ __global__ void initializeReloadParticlesSource_kernel(
 }
 
 Interface2D::Interface2D(
-    PIC2DMPI::MPIInfo& mPIInfoPIC, 
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
+    PIC2DMPI::MPIInfo& mPIInfoPIC, 
     int indexStartMHD, 
     int indexStartPIC, 
     int length, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     thrust::host_vector<double>& host_interlockingFunctionYHalf, 
-    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Lower, 
-    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_Upper
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D
 )
-    : mPIInfoPIC(mPIInfoPIC), 
-      mPIInfoMHD(mPIInfoMHD), 
+    : mPIInfoMHD(mPIInfoMHD), 
+      mPIInfoPIC(mPIInfoPIC), 
 
       indexOfInterfaceStartInMHD(indexStartMHD), 
       indexOfInterfaceStartInPIC(indexStartPIC), 
@@ -63,8 +62,8 @@ Interface2D::Interface2D(
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
 
-      reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNumIon), 
-      reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNumElectron), 
+      reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
+      reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
       reloadParticlesDataIon            (mPIInfoPIC.localSizeX * interfaceLength + 1), 
       reloadParticlesDataElectron       (mPIInfoPIC.localSizeX * interfaceLength + 1), 
@@ -80,31 +79,31 @@ Interface2D::Interface2D(
       USub (mPIInfoMHD.localSizeX * mPIInfoMHD.localSizeY), 
       UHalf(mPIInfoMHD.localSizeX * mPIInfoMHD.localSizeY), 
 
-      interfaceNoiseRemover2D_Lower(interfaceNoiseRemover2D_Lower), 
-      interfaceNoiseRemover2D_Upper(interfaceNoiseRemover2D_Upper)
+      momentCalculater(mPIInfoPIC), 
+      interfaceNoiseRemover2D(interfaceNoiseRemover2D)
 {
 
-    cudaMalloc(&device_mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo));
-    cudaMemcpy(device_mPIInfoPIC, &mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
     cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
+    cudaMalloc(&device_mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfoPIC, &mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo), cudaMemcpyHostToDevice);
 
     interlockingFunctionY = host_interlockingFunctionY;
     interlockingFunctionYHalf = host_interlockingFunctionYHalf;
 
     dim3 threadsPerBlock(256);
-    dim3 blocksPerGrid((Interface2DConst::reloadParticlesTotalNum + threadsPerBlockForIon.x - 1) / threadsPerBlockForIon.x);
+    dim3 blocksPerGrid((Interface2DConst::reloadParticlesTotalNum + threadsPerBlock.x - 1) / threadsPerBlock.x);
 
     initializeReloadParticlesSource_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(reloadParticlesSourceIon.data()),
-        Interface2DConst::reloadParticlesTotalNumIon, 
+        Interface2DConst::reloadParticlesTotalNum, 
         100000
     );
     cudaDeviceSynchronize();
 
     initializeReloadParticlesSource_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(reloadParticlesSourceElectron.data()),
-        Interface2DConst::reloadParticlesTotalNumElectron, 
+        Interface2DConst::reloadParticlesTotalNum, 
         200000
     );
     cudaDeviceSynchronize();

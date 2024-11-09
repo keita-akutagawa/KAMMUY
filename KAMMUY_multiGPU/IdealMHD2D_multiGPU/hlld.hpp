@@ -12,7 +12,7 @@
 class HLLD
 {
 private:
-    MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo;
 
     CalculateHalfQ calculateHalfQ;
 
@@ -28,7 +28,7 @@ private:
     thrust::device_vector<ConservationParameter> tmpUForFluxG;
 
 public:
-    HLLD(MPIInfo& mPIInfo);
+    HLLD(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void calculateFluxF(
         const thrust::device_vector<ConservationParameter>& U

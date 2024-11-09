@@ -8,10 +8,10 @@
 class CurrentCalculator
 {
 private: 
-    MPIInfo& mPIInfo; 
+    PIC2DMPI::MPIInfo& mPIInfo; 
 
 public: 
-    CurrentCalculator(MPIInfo& mPIInfo);
+    CurrentCalculator(PIC2DMPI::MPIInfo& mPIInfo);
 
     void resetCurrent(
         thrust::device_vector<CurrentField>& current

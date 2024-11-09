@@ -44,6 +44,7 @@ void PIC2DConst::initializeDeviceConstants()
     cudaMemcpyToSymbol(device_omegaCi, &omegaCi, sizeof(float));
 
     cudaMemcpyToSymbol(device_debyeLength, &debyeLength, sizeof(float));
+    cudaMemcpyToSymbol(device_ionInertialLength, &ionInertialLength, sizeof(float));
 
     cudaMemcpyToSymbol(device_vThIon, &vThIon, sizeof(float));
     cudaMemcpyToSymbol(device_vThElectron, &vThElectron, sizeof(float));

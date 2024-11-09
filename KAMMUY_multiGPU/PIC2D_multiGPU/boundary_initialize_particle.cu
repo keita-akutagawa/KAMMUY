@@ -1,7 +1,7 @@
 #include "boundary.hpp"
 
 
-void Boundary::boundaryForInitializeParticle_xy(
+void BoundaryPIC::boundaryForInitializeParticle_xy(
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron
 )
@@ -101,7 +101,7 @@ __global__ void boundaryForInitialize_x_kernel(
     }
 }
 
-void Boundary::boundaryForInitializeParticleOfOneSpecies_x(
+void BoundaryPIC::boundaryForInitializeParticleOfOneSpecies_x(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpecies, 
     unsigned int& numForSendParticlesSpeciesLeft, 
@@ -238,7 +238,7 @@ __global__ void boundaryForInitialize_y_kernel(
     }
 }
 
-void Boundary::boundaryForInitializeParticleOfOneSpecies_y(
+void BoundaryPIC::boundaryForInitializeParticleOfOneSpecies_y(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpecies, 
     unsigned int& numForSendParticlesSpeciesDown, 

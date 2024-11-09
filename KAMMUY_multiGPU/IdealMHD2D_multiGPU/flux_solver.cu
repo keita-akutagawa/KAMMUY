@@ -1,7 +1,7 @@
 #include "flux_solver.hpp"
 
 
-FluxSolver::FluxSolver(MPIInfo& mPIInfo)
+FluxSolver::FluxSolver(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
       hLLD(mPIInfo)
 {

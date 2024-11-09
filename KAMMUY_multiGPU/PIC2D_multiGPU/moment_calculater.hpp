@@ -1,3 +1,6 @@
+#ifndef MOMENT_CALCULATOR_H
+#define MOMENT_CALCULATOR_H
+
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
 #include "moment_struct.hpp"
@@ -9,10 +12,10 @@
 class MomentCalculater
 {
 private:
-    MPIInfo& mPIInfo;
+    PIC2DMPI::MPIInfo& mPIInfo;
 
 public:
-    MomentCalculater(MPIInfo& mPIInfo);
+    MomentCalculater(PIC2DMPI::MPIInfo& mPIInfo);
 
     void calculateZerothMomentOfOneSpecies(
         thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
@@ -46,5 +49,6 @@ private:
     );
 };
 
+#endif
 
 

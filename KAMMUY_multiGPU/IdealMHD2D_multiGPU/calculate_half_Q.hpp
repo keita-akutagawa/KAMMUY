@@ -9,11 +9,11 @@
 class CalculateHalfQ
 {
 private:
-    MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo;
     MUSCL muscl;
 
 public:
-    CalculateHalfQ(MPIInfo& mPIInfo);
+    CalculateHalfQ(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void setPhysicalParameterX(
         const thrust::device_vector<ConservationParameter>& U, 

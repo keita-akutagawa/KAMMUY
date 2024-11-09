@@ -1,3 +1,6 @@
+#ifndef BOUNDARY_PIC_H
+#define BOUNDARY_PIC_H
+
 #include <thrust/device_vector.h>
 #include <thrust/partition.h>
 #include <thrust/transform_reduce.h>
@@ -7,13 +10,14 @@
 #include "mpi.hpp"
 
 
-class Boundary
+class BoundaryPIC
 {
 private:
-    MPIInfo& mPIInfo; 
+    PIC2DMPI::MPIInfo& mPIInfo; 
+    PIC2DMPI::MPIInfo* device_mPIInfo; 
 
 public:
-    Boundary(MPIInfo& mPIInfo);
+    BoundaryPIC(PIC2DMPI::MPIInfo& mPIInfo);
 
     void boundaryForInitializeParticle_xy(
         thrust::device_vector<Particle>& particlesIon, 
@@ -95,5 +99,7 @@ public:
 private:
 
 };
+
+#endif
 
 

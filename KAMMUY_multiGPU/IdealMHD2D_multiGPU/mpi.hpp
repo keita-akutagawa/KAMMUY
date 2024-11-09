@@ -1,5 +1,5 @@
-#ifndef MPI_H
-#define MPI_H
+#ifndef MPI_MHD_H
+#define MPI_MHD_H
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>

@@ -8,10 +8,10 @@
 class InitializeParticle
 {
 private:
-    MPIInfo& mPIInfo;
+    PIC2DMPI::MPIInfo& mPIInfo;
 
 public:
-    InitializeParticle(MPIInfo& mPIInfo);
+    InitializeParticle(PIC2DMPI::MPIInfo& mPIInfo);
 
     void uniformForPosition_x(
         unsigned long long nStart, 

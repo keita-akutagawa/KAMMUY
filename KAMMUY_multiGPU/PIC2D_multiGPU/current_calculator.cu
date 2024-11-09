@@ -3,7 +3,7 @@
 #include <thrust/fill.h>
 
 
-CurrentCalculator::CurrentCalculator(MPIInfo& mPIInfo)
+CurrentCalculator::CurrentCalculator(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }

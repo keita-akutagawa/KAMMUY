@@ -1,7 +1,7 @@
 #include "ct.hpp"
 
 
-CT::CT(MPIInfo& mPIInfo)
+CT::CT(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
 
       oldNumericalFluxF_f5(mPIInfo.localSizeX * mPIInfo.localSizeY), 

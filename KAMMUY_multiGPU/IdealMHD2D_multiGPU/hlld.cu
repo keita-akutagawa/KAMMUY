@@ -1,7 +1,7 @@
 #include "hlld.hpp"
 
 
-HLLD::HLLD(MPIInfo& mPIInfo)
+HLLD::HLLD(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
       
       calculateHalfQ(mPIInfo), 
@@ -295,7 +295,7 @@ __global__ void calculateHLLDParameter_kernel(
         bYL  = dQLeft[index].bY;
         bZL  = dQLeft[index].bZ;
         pL   = dQLeft[index].p;
-        eL   = pL / (IdealMHD2DConst::device_gamma_mhd - 1.0)
+        eL   = pL / (IdealMHD2DConst::device_gamma - 1.0)
              + 0.5 * rhoL * (uL * uL + vL * vL + wL * wL)
              + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL); 
         pTL  = pL + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL);
@@ -308,20 +308,20 @@ __global__ void calculateHLLDParameter_kernel(
         bYR  = dQRight[index].bY;
         bZR  = dQRight[index].bZ;
         pR   = dQRight[index].p;
-        eR   = pR / (IdealMHD2DConst::device_gamma_mhd - 1.0)
+        eR   = pR / (IdealMHD2DConst::device_gamma - 1.0)
              + 0.5 * rhoR * (uR * uR + vR * vR + wR * wR)
              + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR); 
         pTR  = pR + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR);
 
 
-        csL = sqrt(IdealMHD2DConst::device_gamma_mhd * pL / rhoL);
+        csL = sqrt(IdealMHD2DConst::device_gamma * pL / rhoL);
         caL = sqrt((bXL * bXL + bYL * bYL + bZL * bZL) / rhoL);
         vaL = sqrt(bXL * bXL / rhoL);
         cfL = sqrt(0.5 * (csL * csL + caL * caL
             + sqrt((csL * csL + caL * caL) * (csL * csL + caL * caL)
             - 4.0 * csL * csL * vaL * vaL)));
         
-        csR = sqrt(IdealMHD2DConst::device_gamma_mhd * pR / rhoR);
+        csR = sqrt(IdealMHD2DConst::device_gamma * pR / rhoR);
         caR = sqrt((bXR * bXR + bYR * bYR + bZR * bZR) / rhoR);
         vaR = sqrt(bXR * bXR / rhoR);
         cfR = sqrt(0.5 * (csR * csR + caR * caR
