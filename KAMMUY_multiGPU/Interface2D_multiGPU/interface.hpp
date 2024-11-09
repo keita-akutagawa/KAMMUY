@@ -3,6 +3,13 @@
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
+#include <cmath>
+#include <curand_kernel.h>
+#include <random>
+#include <algorithm>
+#include <thrust/fill.h>
+#include <thrust/partition.h>
+
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
 #include "remove_noise.hpp"
