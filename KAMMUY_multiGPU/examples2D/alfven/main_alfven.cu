@@ -177,29 +177,40 @@ void PIC2D::initialize()
 {
     double VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
 
-    /*
     for (int i = 0; i < PIC2DConst::nx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            double xmin, ymin, u, v, w;
+            double xminLocal, xmaxLocal, yminLocal, ymaxLocal;
+            double bulkVx, bulkVy, bulkVz;
             double y = j * PIC2DConst::dy + 9500 * IdealMHD2DConst::dy;
 
-            xmin = i * PIC2DConst::dx + PIC2DConst::xmin;
-            ymin = j * PIC2DConst::dy + PIC2DConst::ymin;
-            u = waveAmp * VA * cos(waveNumber * y);
-            v = 0.0;
-            w = -waveAmp * VA * sin(waveNumber * y);
+            xminLocal = i * PIC2DConst::dx + PIC2DConst::xmin;
+            xmaxLocal = (i + 1) * PIC2DConst::dx + PIC2DConst::xmin;
+            yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin;
+            ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin;
+            bulkVx = waveAmp * VA * cos(waveNumber * y);
+            bulkVy = 0.0;
+            bulkVz = -waveAmp * VA * sin(waveNumber * y);
 
-            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
-                xmin, ymin, u, v, w, vThIon, vThIon, vThIon, 
-                (j + i * ny) * numberDensityIon, (j + i * ny + 1) * numberDensityIon, j + i * ny, particlesIon
-            );
-            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
-                xmin, ymin, u, v, w, vThElectron, vThElectron, vThElectron, 
-                (j + i * ny) * numberDensityElectron, (j + i * ny + 1) * numberDensityElectron, j + i * ny + nx * ny, particlesElectron
-            );
+            if (mPIInfo.isInside(i, j)) {
+                initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+                    xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
+                    bulkVx, bulkVy, bulkVz,  
+                    PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
+                    (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityIon, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityIon, 
+                    j + i * PIC2DConst::ny, 
+                    particlesIon
+                );
+                initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+                    xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
+                    bulkVx, bulkVy, bulkVz,  
+                    PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
+                    (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityElectron, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityElectron, 
+                    j + i * PIC2DConst::ny + PIC2DConst::nx * PIC2DConst::ny, 
+                    particlesElectron
+                );
+            }
         }
     }
-    */
 
 
     dim3 threadsPerBlock(16, 16);
@@ -256,6 +267,18 @@ int main(int argc, char** argv)
     PIC2DConst::initializeDeviceConstants();
     IdealMHD2DConst::initializeDeviceConstants();
     Interface2DConst::initializeDeviceConstants();
+
+    mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
+    mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
+    mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
+                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+    mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs
+                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+
+    mPIInfoPIC.xminForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * mPIInfoPIC.localGridX;
+    mPIInfoPIC.xmaxForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * (mPIInfoPIC.localGridX + 1);
+    mPIInfoPIC.yminForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * mPIInfoPIC.localGridY;
+    mPIInfoPIC.ymaxForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * (mPIInfoPIC.localGridY + 1);
 
     for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionY_lower[i] = max(

@@ -44,6 +44,15 @@ public:
         thrust::device_vector<Particle>& particlesSpecies
     );
 
+    void uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+        float xmin, float xmax, float ymin, float ymax, 
+        float bulkVxSpecies, float bulkVySpecies, float bulkVzSpecies, 
+        float vxThSpecies, float vyThSpecies, float vzThSpecies, 
+        unsigned long long nStart, unsigned long long nEnd, 
+        int seed, 
+        thrust::device_vector<Particle>& particlesSpecies
+    );
+
     /*
     void harrisForPositionY(
         unsigned long long nStart, 
