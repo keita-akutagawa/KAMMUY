@@ -36,11 +36,11 @@ public:
 
     void setPastU();
 
-    void oneStepRK2();
+    void oneStepRK2_periodicXSymmetricY_predictor();
 
-    void oneStepRK2_periodicXWallY();
-
-    void oneStepRK2_periodicXSymmetricY();
+    void oneStepRK2_periodicXSymmetricY_corrector(
+        thrust::device_vector<ConservationParameter>& UHalf
+    );
 
     void save(
         std::string directoryname, 

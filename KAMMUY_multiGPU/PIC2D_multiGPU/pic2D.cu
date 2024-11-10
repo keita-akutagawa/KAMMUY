@@ -86,18 +86,32 @@ __global__ void getHalfCurrent_kernel(
 }
 
 
-void PIC2D::oneStep_periodicXY()
+void PIC2D::oneStep_periodicXFreeY(
+    thrust::device_vector<ConservationParameter>& UPast_lower, 
+    thrust::device_vector<ConservationParameter>& UPast_upper, 
+    thrust::device_vector<ConservationParameter>& UNext_lower, 
+    thrust::device_vector<ConservationParameter>& UNext_upper, 
+    Interface2D& interface2D_lower, 
+    Interface2D& interface2D_upper, 
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D, 
+    int step, int substep, int totalSubstep
+)
 {
     MPI_Barrier(MPI_COMM_WORLD);
     
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (mPIInfo.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    
+
+    float mixingRatio = (totalSubstep - substep) / totalSubstep;
+    thrust::device_vector<ConservationParameter>& USub_lower = interface2D_lower.calculateAndGetSubU(UPast_lower, UNext_lower, mixingRatio);
+    thrust::device_vector<ConservationParameter>& USub_upper = interface2D_upper.calculateAndGetSubU(UPast_upper, UNext_upper, mixingRatio);
                        
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
-    sendrecv_field(B, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo);
     boundaryPIC.periodicBoundaryB_x(B);
-    boundaryPIC.periodicBoundaryB_y(B);
+    boundaryPIC.freeBoundaryB_y(B);
     
     getCenterBE_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(tmpB.data()), 
@@ -107,12 +121,12 @@ void PIC2D::oneStep_periodicXY()
         mPIInfo.localSizeX, mPIInfo.localSizeY
     );
     cudaDeviceSynchronize();
-    sendrecv_field(tmpB, mPIInfo);
-    sendrecv_field(tmpE, mPIInfo);
+    PIC2DMPI::sendrecv_field(tmpB, mPIInfo);
+    PIC2DMPI::sendrecv_field(tmpE, mPIInfo);
     boundaryPIC.periodicBoundaryB_x(tmpB);
-    boundaryPIC.periodicBoundaryB_y(tmpB);
+    boundaryPIC.freeBoundaryB_y(tmpB);
     boundaryPIC.periodicBoundaryE_x(tmpE);
-    boundaryPIC.periodicBoundaryE_y(tmpE);
+    boundaryPIC.freeBoundaryE_y(tmpE);
 
     particlePush.pushVelocity(
         particlesIon, particlesElectron, tmpB, tmpE, PIC2DConst::dt
@@ -121,7 +135,11 @@ void PIC2D::oneStep_periodicXY()
     particlePush.pushPosition(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
     );
-    boundaryPIC.periodicBoundaryParticle_xy(
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.modifySendNumParticles();
+    boundaryPIC.freeBoundaryParticle_y(
         particlesIon, particlesElectron
     );
 
@@ -129,32 +147,55 @@ void PIC2D::oneStep_periodicXY()
     currentCalculator.calculateCurrent(
         tmpCurrent, particlesIon, particlesElectron
     );
-    sendrecv_field(tmpCurrent, mPIInfo);
+    PIC2DMPI::sendrecv_field(tmpCurrent, mPIInfo);
     boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
-    boundaryPIC.periodicBoundaryCurrent_y(tmpCurrent);
+    boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
     getHalfCurrent_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         mPIInfo.localSizeX, mPIInfo.localSizeY
     );
-    sendrecv_field(current, mPIInfo);
+    PIC2DMPI::sendrecv_field(current, mPIInfo);
     boundaryPIC.periodicBoundaryCurrent_x(current);
-    boundaryPIC.periodicBoundaryCurrent_y(current);
+    boundaryPIC.freeBoundaryCurrent_y(current);
 
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
-    sendrecv_field(B, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo);
     boundaryPIC.periodicBoundaryB_x(B);
-    boundaryPIC.periodicBoundaryB_y(B);
+    boundaryPIC.freeBoundaryB_y(B);
 
     fieldSolver.timeEvolutionE(E, B, current, PIC2DConst::dt);
-    sendrecv_field(E, mPIInfo);
+    PIC2DMPI::sendrecv_field(E, mPIInfo);
     boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.periodicBoundaryE_y(E);
+    boundaryPIC.freeBoundaryE_y(E);
 
     particlePush.pushPosition(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
     );
-    boundaryPIC.periodicBoundaryParticle_xy(
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.modifySendNumParticles();
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
+
+
+    interface2D_lower.sendMHDtoPIC_magneticField_yDirection(USub_lower, B);
+    interface2D_lower.sendMHDtoPIC_electricField_yDirection(USub_lower, E);
+    interface2D_lower.sendMHDtoPIC_particle(USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep);
+    interface2D_upper.sendMHDtoPIC_magneticField_yDirection(USub_upper, B);
+    interface2D_upper.sendMHDtoPIC_electricField_yDirection(USub_upper, E);
+    interface2D_upper.sendMHDtoPIC_particle(USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep);
+
+    boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.freeBoundaryParticle_y(
         particlesIon, particlesElectron
     );
 }
@@ -581,5 +622,26 @@ void PIC2D::saveParticle(
     std::ofstream ofsKineticEnergy(filenameKineticEnergy, std::ios::binary);
     ofsKineticEnergy << std::fixed << std::setprecision(6);
     ofsKineticEnergy.write(reinterpret_cast<const char*>(&KineticEnergy), sizeof(float));
+}
+
+
+//////////////////////////////////////////////////
+
+
+thrust::device_vector<MagneticField>& PIC2D::getBRef()
+{
+    return B;
+}
+
+
+thrust::device_vector<Particle>& PIC2D::getParticlesIonRef()
+{
+    return particlesIon;
+}
+
+
+thrust::device_vector<Particle>& PIC2D::getParticlesElectronRef()
+{
+    return particlesElectron;
 }
 
