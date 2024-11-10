@@ -16,7 +16,7 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
         double bXPIC, bYPIC, bZPIC;
         double bXMHD, bYMHD, bZMHD;
         double bXInterface, bYInterface, bZInterface;
@@ -81,7 +81,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
         double eXPIC, eYPIC, eZPIC;
         double eXMHD, eYMHD, eZMHD;
         double eXPlusX1MHD;
@@ -177,7 +177,7 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
         double jXPIC, jYPIC, jZPIC;
         double jXMHD, jYMHD, jZMHD;
         double jXPlusX1MHD; 
@@ -256,7 +256,7 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -372,13 +372,13 @@ __global__ void reloadParticles_kernel(
                 x = particleSource.x; x += i * PIC2DConst::device_dx + xminForProcs;
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
                 z = 0.0;
-                vx = particleSource.vx; vx = u + vx * vth;
-                vy = particleSource.vy; vy = v + vy * vth;
-                vz = particleSource.vz; vz = w + vz * vth;
-                gamma = sqrt(1.0 + (vx * vx + vy * vy + vz * vz) / (PIC2DConst::device_c * PIC2DConst::device_c));
+                vx = particleSource.vx / particleSource.gamma; vx = u + vx * vth;
+                vy = particleSource.vy / particleSource.gamma; vy = v + vy * vth;
+                vz = particleSource.vz / particleSource.gamma; vz = w + vz * vth;
+                gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
                 
                 particleReload.x = x; particleReload.y = y; particleReload.z = z;
-                particleReload.vx = vx; particleReload.vy = vy, particleReload.vz = vz; 
+                particleReload.vx = vx * gamma; particleReload.vy = vy * gamma, particleReload.vz = vz * gamma; 
                 particleReload.gamma = gamma;
                 particleReload.isExist = true;
 
@@ -524,35 +524,20 @@ void Interface2D::sendMHDtoPIC_particle(
     cudaDeviceSynchronize();
 
 
-    mPIInfoPIC.existNumIonPerProcs = thrust::transform_reduce(
-        particlesIon.begin(),
-        particlesIon.end(),
-        IsExistTransform(), 
-        0,               
-        thrust::plus<unsigned long long>()
-    );
-    cudaDeviceSynchronize();
-
-    mPIInfoPIC.existNumElectronPerProcs = thrust::transform_reduce(
-        particlesElectron.begin(),
-        particlesElectron.end(),
-        IsExistTransform(), 
-        0,               
-        thrust::plus<unsigned long long>()
-    );
-    cudaDeviceSynchronize();
-
-    thrust::partition(
+    auto partitionEndIon = thrust::partition(
         particlesIon.begin(), particlesIon.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     cudaDeviceSynchronize();
 
-    thrust::partition(
+    auto partitionEndElectron = thrust::partition(
         particlesElectron.begin(), particlesElectron.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     cudaDeviceSynchronize();
+
+    mPIInfoPIC.existNumIonPerProcs = thrust::distance(particlesIon.begin(), partitionEndIon);
+    mPIInfoPIC.existNumElectronPerProcs = thrust::distance(particlesElectron.begin(), partitionEndElectron);
 }
 
 
@@ -652,36 +637,19 @@ void Interface2D::deleteParticles(
     );
     cudaDeviceSynchronize();
 
-    
-    mPIInfoPIC.existNumIonPerProcs = thrust::transform_reduce(
-        particlesIon.begin(),
-        particlesIon.end(),
-        IsExistTransform(), 
-        0,               
-        thrust::plus<unsigned long long>()
-    );
-    cudaDeviceSynchronize();
-
-    mPIInfoPIC.existNumElectronPerProcs = thrust::transform_reduce(
-        particlesElectron.begin(),
-        particlesElectron.end(),
-        IsExistTransform(), 
-        0,               
-        thrust::plus<unsigned long long>()
-    );
-    cudaDeviceSynchronize();
-
-
-    thrust::partition(
+    auto partitionEndIon = thrust::partition(
         particlesIon.begin(), particlesIon.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     cudaDeviceSynchronize();
 
-    thrust::partition(
+    auto partitionEndElectron = thrust::partition(
         particlesElectron.begin(), particlesElectron.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     cudaDeviceSynchronize();
+
+    mPIInfoPIC.existNumIonPerProcs = thrust::distance(particlesIon.begin(), partitionEndIon);
+    mPIInfoPIC.existNumElectronPerProcs = thrust::distance(particlesElectron.begin(), partitionEndElectron);
 }
 

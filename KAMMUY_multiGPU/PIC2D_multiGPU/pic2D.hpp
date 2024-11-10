@@ -68,8 +68,6 @@ public:
     PIC2D(PIC2DMPI::MPIInfo& mPIInfo);
     
     virtual void initialize();
-    
-    void oneStep_periodicXY();
 
     void oneStep_periodicXFreeY(
         thrust::device_vector<ConservationParameter>& UPast_lower, 

@@ -188,16 +188,12 @@ void PIC2D::oneStep_periodicXFreeY(
     interface2D_upper.sendMHDtoPIC_electricField_yDirection(USub_upper, E);
     interface2D_upper.sendMHDtoPIC_particle(USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep);
 
+    PIC2DMPI::sendrecv_field(B, mPIInfo);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
+    PIC2DMPI::sendrecv_field(E, mPIInfo);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
-    boundaryPIC.periodicBoundaryParticle_x(
-        particlesIon, particlesElectron
-    );
-    boundaryPIC.freeBoundaryParticle_y(
-        particlesIon, particlesElectron
-    );
 }
 
 

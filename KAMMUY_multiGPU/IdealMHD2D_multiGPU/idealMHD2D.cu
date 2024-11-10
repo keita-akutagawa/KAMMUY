@@ -17,6 +17,7 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
       fluxG    (mPIInfo.localSizeX * mPIInfo.localSizeY),
       U        (mPIInfo.localSizeX * mPIInfo.localSizeY),
       UBar     (mPIInfo.localSizeX * mPIInfo.localSizeY), 
+      UPast    (mPIInfo.localSizeX * mPIInfo.localSizeY), 
       tmpVector(mPIInfo.localSizeX * mPIInfo.localSizeY),
       bXOld    (mPIInfo.localSizeX * mPIInfo.localSizeY), 
       bYOld    (mPIInfo.localSizeX * mPIInfo.localSizeY), 

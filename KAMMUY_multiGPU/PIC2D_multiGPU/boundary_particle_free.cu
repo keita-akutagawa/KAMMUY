@@ -148,12 +148,12 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
 
     //Remove dead particles
 
-    auto partition_end = thrust::partition(
+    auto partitionEnd = thrust::partition(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
 
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partition_end);
+    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 
 }
 

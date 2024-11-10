@@ -127,10 +127,10 @@ void initializeU(
 
     IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
     boundaryMHD.periodicBoundaryX2nd_U(U_lower);
-    boundaryMHD.periodicBoundaryY2nd_U(U_lower);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
     IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
     boundaryMHD.periodicBoundaryX2nd_U(U_upper);
-    boundaryMHD.periodicBoundaryY2nd_U(U_upper);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
 
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -283,7 +283,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionY_lower[i] = max(
             0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
-            1e-20
+            Interface2DConst::EPS
         );
         host_interlockingFunctionY_upper[i] = max(
             0.5 * (1.0 - cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
@@ -293,7 +293,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionYHalf_lower[i] = max(
             0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
-            1e-20
+            Interface2DConst::EPS
         );
         host_interlockingFunctionYHalf_upper[i] = max(
             0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
@@ -351,8 +351,6 @@ int main(int argc, char** argv)
         std::cout << "exist number of partices + buffer particles is " 
                   << mPIInfoPIC.procs * (mPIInfoPIC.totalNumIonPerProcs + mPIInfoPIC.totalNumElectronPerProcs) 
                   << std::endl;
-        std::cout << std::setprecision(4) 
-                << "omega_pe * t = " << PIC2DConst::totalStep * PIC2DConst::dt * PIC2DConst::omegaPe << std::endl;
     }
 
 
@@ -365,7 +363,9 @@ int main(int argc, char** argv)
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
     bool isLower, isUpper; 
     for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
-        if (step % 10 == 0) {
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (step % 1 == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
                       << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt * PIC2DConst::omegaPe
                       << " [omega_pe * t]"
@@ -384,10 +384,10 @@ int main(int argc, char** argv)
                 directoryname, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_lower", step
+                directoryname, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_upper", step
+                directoryname, filenameWithoutStep + "_U_upper", step
             );
         }
         
@@ -399,7 +399,7 @@ int main(int argc, char** argv)
 
 
         // STEP1 : MHD - predictor
-        
+
         idealMHD2D_lower.calculateDt();
         double dt_lower = IdealMHD2DConst::dt;
         idealMHD2D_upper.calculateDt();
@@ -424,6 +424,7 @@ int main(int argc, char** argv)
 
         interface2D_lower.resetTimeAveParameters();
         interface2D_upper.resetTimeAveParameters();
+
         for (int substep = 1; substep <= totalSubstep; substep++) {
             pIC2D.oneStep_periodicXFreeY(
                 UPast_lower, UPast_upper, 
@@ -446,15 +447,16 @@ int main(int argc, char** argv)
 
 
         // STEP3 : MHD - corrector
-
+        
         interface2D_lower.sendPICtoMHD(UPast_lower, UNext_lower);
         interface2D_upper.sendPICtoMHD(UPast_upper, UNext_upper);
         thrust::device_vector<ConservationParameter>& UHalf_lower = interface2D_lower.getUHalfRef();
         thrust::device_vector<ConservationParameter>& UHalf_upper = interface2D_upper.getUHalfRef();
 
-        //need MPI
+        IdealMHD2DMPI::sendrecv_U(UHalf_lower, mPIInfoMHD);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf_lower);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf_lower);
+        IdealMHD2DMPI::sendrecv_U(UHalf_upper, mPIInfoMHD);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf_upper);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf_upper);
 
@@ -467,8 +469,15 @@ int main(int argc, char** argv)
         interfaceNoiseRemover2D.convolveU(U_lower, isLower, isUpper);
         isLower = false, isUpper = true;
         interfaceNoiseRemover2D.convolveU(U_upper, isLower, isUpper);
+        
+        IdealMHD2DMPI::sendrecv_U(UHalf_lower, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_lower);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_lower);
+        IdealMHD2DMPI::sendrecv_U(UHalf_upper, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_upper);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_upper);
 
-
+        //when crashed 
         if (idealMHD2D_lower.checkCalculationIsCrashed() || idealMHD2D_upper.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;
             pIC2D.saveFields(
@@ -481,19 +490,13 @@ int main(int argc, char** argv)
                 directoryname, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_lower", step
+                directoryname, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_upper", step
+                directoryname, filenameWithoutStep + "_U_upper", step
             );
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
-            return 0;
-        }
-
-        cudaError_t error = cudaGetLastError();
-        if (error != cudaSuccess) {
-            printf("CUDA Error: %s\n", cudaGetErrorString(error));
-            exit(-1);
+            break;
         }
 
         if (mPIInfoMHD.rank == 0) {
