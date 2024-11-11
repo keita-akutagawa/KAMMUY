@@ -77,8 +77,8 @@ const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
 const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
-const int nxInterface = PIC2DConst::nx;
-const int nyInterface = Interface2DConst::interfaceLength;
+const int nxInterfaceForConvolution = PIC2DConst::nx + 2 * buffer;
+const int nyInterfaceForConvolution = Interface2DConst::interfaceLength + buffer;
 
 thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::interfaceLength, 0.0);

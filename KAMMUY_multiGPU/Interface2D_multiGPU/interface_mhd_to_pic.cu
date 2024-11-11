@@ -497,6 +497,9 @@ __global__ void reloadParticles_kernel(
                 vy = particleSource.vy; vy = v + vy * vth;
                 vz = particleSource.vz; vz = w + vz * vth;
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
+                if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
+                    continue; //delete if particle speed exceeds light speed c. 
+                };
                 
                 particleReload.x = x; particleReload.y = y; particleReload.z = z;
                 particleReload.vx = vx * gamma; particleReload.vy = vy * gamma, particleReload.vz = vz * gamma; 

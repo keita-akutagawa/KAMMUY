@@ -321,7 +321,7 @@ int main(int argc, char** argv)
         indexOfInterfaceStartInPIC_upper, 
         Interface2DConst::interfaceLength, 
         Interface2DConst::windowSizeForConvolution, 
-        nxInterface, nyInterface
+        nxInterfaceForConvolution, nyInterfaceForConvolution
     );
     bool isLower, isUpper;
     isLower = true, isUpper = false; 
@@ -346,7 +346,6 @@ int main(int argc, char** argv)
         host_interlockingFunctionYHalf_upper,
         interfaceNoiseRemover2D
     );
-    //BoundaryPIC boundaryPIC;
     BoundaryMHD boundaryMHD(mPIInfoMHD);
     
 
@@ -377,11 +376,13 @@ int main(int argc, char** argv)
     for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
-        if (step % 1 == 0) {
-            std::cout << std::to_string(step) << " step done : total time is "
-                      << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt * PIC2DConst::omegaPe
-                      << " [omega_pe * t]"
-                      << std::endl;
+        if (mPIInfoPIC.rank == 0) {
+            if (step % 1 == 0) {
+                std::cout << std::to_string(step) << " step done : total time is "
+                        << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt * PIC2DConst::omegaPe
+                        << " [omega_pe * t]"
+                        << std::endl;
+            }
         }
 
         if (step % recordStep == 0) {
@@ -408,8 +409,6 @@ int main(int argc, char** argv)
                 directoryname, filenameWithoutStep, step
             );
         }
-
-        return 0;
 
 
         // STEP1 : MHD - predictor
