@@ -365,8 +365,8 @@ void PIC2D::saveZerothMoments(
 
     std::ofstream ofsZerothMomentIon(filenameZerothMomentIon, std::ios::binary);
     ofsZerothMomentIon << std::fixed << std::setprecision(6);
-    for (int i = 0; i < mPIInfo.localNx + 2 * mPIInfo.buffer; i++) {
-        for (int j = 0; j < mPIInfo.localNy + 2 * mPIInfo.buffer; j++) {
+    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
+        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsZerothMomentIon.write(reinterpret_cast<const char*>(
@@ -377,8 +377,8 @@ void PIC2D::saveZerothMoments(
 
     std::ofstream ofsZerothMomentElectron(filenameZerothMomentElectron, std::ios::binary);
     ofsZerothMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = 0; i < mPIInfo.localNx + 2 * mPIInfo.buffer; i++) {
-        for (int j = 0; j < mPIInfo.localNy + 2 * mPIInfo.buffer; j++) {
+    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
+        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsZerothMomentElectron.write(reinterpret_cast<const char*>(
