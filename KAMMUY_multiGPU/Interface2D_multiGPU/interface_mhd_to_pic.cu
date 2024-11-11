@@ -257,16 +257,10 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-<<<<<<< HEAD
     if (i < localNxPIC && j < interfaceLength) {
         int indexForReload = j + i * interfaceLength; 
         int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
-=======
-    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
->>>>>>> d668ae6b017bb8df1019996a6a06cb6a5a6c1e99
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double jXMHD, jYMHD, jZMHD, niMHD, neMHD, tiMHD, teMHD;
         double rhoPIC, uPIC, vPIC, wPIC;
@@ -349,9 +343,7 @@ __global__ void reloadParticles_kernel(
     unsigned long long existNumSpecies, 
     int step, 
     int localNxPIC, int localNyPIC, int buffer, 
-    int localSizeXPIC, int localSizeYPIC, 
-    const float xminForProcs, const float xmaxForProcs, 
-    const float yminForProcs, const float ymaxForProcs
+    int localSizeXPIC, int localSizeYPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -377,8 +369,8 @@ __global__ void reloadParticles_kernel(
                     static_cast<unsigned long long>((restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies)
                 ];
 
-                x = particleSource.x; x += i * PIC2DConst::device_dx + xminForProcs;
-                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
+                x = particleSource.x; x += i * PIC2DConst::device_dx + PIC2DConst::device_xmin;
+                y = particleSource.y; y += (indexOfInterfaceStartInPIC - buffer + j) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
                 z = 0.0;
                 vx = particleSource.vx / particleSource.gamma; vx = u + vx * vth;
                 vy = particleSource.vy / particleSource.gamma; vy = v + vy * vth;
@@ -509,9 +501,7 @@ void Interface2D::sendMHDtoPIC_particle(
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
-        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
     );
     cudaDeviceSynchronize();
 
@@ -527,9 +517,7 @@ void Interface2D::sendMHDtoPIC_particle(
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
-        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
     );
     cudaDeviceSynchronize();
 
