@@ -5,7 +5,6 @@ __global__ void setUHalf_kernel(
     const ConservationParameter* UPast, 
     const ConservationParameter* UNext, 
     ConservationParameter* UHalf, 
-    int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD
 )
 {
@@ -46,7 +45,7 @@ __global__ void sendPICtoMHD_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXMHD - 1 && 0 < j && j < interfaceLength - 1) {
+    if (0 < i && i < localSizeXMHD - 1 && j < interfaceLength) {
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -82,10 +81,10 @@ __global__ void sendPICtoMHD_kernel(
         uPIC        = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS);
         vPIC        = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS);
         wPIC        = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS);
-        bXPIC       = 0.25 * (B[indexPIC].bX + B[indexPIC + localSizeYMHD].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + localSizeYMHD].bX);
-        bYPIC       = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - localSizeYMHD].bY + B[indexPIC + 1 - localSizeYMHD].bY);
-        bZPIC       = 0.25 * (B[indexPIC].bZ + B[indexPIC - localSizeYMHD].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - localSizeYMHD].bZ);
-        bXCenterPIC = 0.5 * (B[indexPIC].bX + B[indexPIC - localSizeYMHD].bX);
+        bXPIC       = 0.25 * (B[indexPIC].bX + B[indexPIC + localSizeYPIC].bX + B[indexPIC - 1].bX + B[indexPIC - 1 + localSizeYPIC].bX);
+        bYPIC       = 0.25 * (B[indexPIC].bY + B[indexPIC + 1].bY + B[indexPIC - localSizeYPIC].bY + B[indexPIC + 1 - localSizeYPIC].bY);
+        bZPIC       = 0.25 * (B[indexPIC].bZ + B[indexPIC - localSizeYPIC].bZ + B[indexPIC - 1].bZ + B[indexPIC - 1 - localSizeYPIC].bZ);
+        bXCenterPIC = 0.5 * (B[indexPIC].bX + B[indexPIC - localSizeYPIC].bX);
         bYCenterPIC = 0.5 * (B[indexPIC].bY + B[indexPIC - 1].bY);
 
         rhoMHD       = interlockingFunctionY[j]     * rhoMHD       + (1.0 - interlockingFunctionY[j])     * rhoPIC;
@@ -132,7 +131,6 @@ void Interface2D::sendPICtoMHD(
         thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(UNext.data()), 
         thrust::raw_pointer_cast(UHalf.data()), 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
     );
     cudaDeviceSynchronize();

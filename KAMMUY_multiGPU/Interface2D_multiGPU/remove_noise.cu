@@ -629,7 +629,7 @@ __global__ void convolveU_kernel(
         U[indexMHD] = convolvedU;
 
         if (isLower) {
-            if (j == windowSize) {
+            if (j == nyInterface - windowSize - 1) {
                 for (int tmp = 1; tmp <= windowSize; tmp++) {
                     U[indexMHD + tmp] = convolvedU;
                 }
@@ -647,7 +647,7 @@ __global__ void convolveU_kernel(
 
 
 void InterfaceNoiseRemover2D::convolveU(
-    thrust::device_vector<ConservationParameter>& U , 
+    thrust::device_vector<ConservationParameter>& U,  
     bool isLower, bool isUpper
 )
 {
