@@ -102,12 +102,12 @@ __global__ void freeBoundaryForInitialize_y_kernel(
             }
         }
 
-        if (PIC2DConst::device_ymax - buffer * PIC2DConst::device_dy < particlesSpecies[i].y && particlesSpecies[i].y < PIC2DConst::device_ymax) {
+        if (PIC2DConst::device_ymax - PIC2DConst::device_dy < particlesSpecies[i].y && particlesSpecies[i].y < PIC2DConst::device_ymax) {
             unsigned long long particleIndex = atomicAdd(&(countForAddParticlesSpeciesUp[0]), buffer);
             Particle addParticle = particlesSpecies[i];
             for (int j = 0; j < buffer; j++) {
                 addParticle.y = addParticle.y + PIC2DConst::device_dy;
-                addParticlesSpeciesDown[particleIndex + j] = addParticle;
+                addParticlesSpeciesUp[particleIndex + j] = addParticle;
             }
         }
     }
