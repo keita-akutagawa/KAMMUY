@@ -37,7 +37,7 @@ namespace IdealMHD2DMPI
     };
 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer);
+    void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
 
 
     void sendrecv_U_x(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo);

@@ -37,18 +37,16 @@ int IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 }
 
 
-void IdealMHD2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer)
+void IdealMHD2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY)
 {
     int rank = 0, procs = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
-    int d2[2] = {};
-    MPI_Dims_create(procs, 2, d2);
     mPIInfo.rank = rank;
     mPIInfo.procs = procs;
-    mPIInfo.gridX = d2[0];
-    mPIInfo.gridY = d2[1];
+    mPIInfo.gridX = gridX;
+    mPIInfo.gridY = gridY;
     mPIInfo.localGridX = rank / mPIInfo.gridY;
     mPIInfo.localGridY = rank % mPIInfo.gridY;
     mPIInfo.localNx = IdealMHD2DConst::nx / mPIInfo.gridX;

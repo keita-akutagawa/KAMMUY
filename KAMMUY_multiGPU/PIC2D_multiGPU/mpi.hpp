@@ -86,7 +86,7 @@ namespace PIC2DMPI
     };
 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer);
+    void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
 
 
     template <typename FieldType>

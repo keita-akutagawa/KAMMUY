@@ -181,7 +181,6 @@ void PIC2D::oneStep_periodicXFreeY(
     );
 
 
-
     interface2D_lower.sendMHDtoPIC_magneticField_yDirection(USub_lower, B);
     interface2D_lower.sendMHDtoPIC_electricField_yDirection(USub_lower, E);
     interface2D_lower.sendMHDtoPIC_particle(USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep);

@@ -146,8 +146,8 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
     }
     existNumSpecies += numForRecvParticlesSpeciesUp;
 
-    //Remove dead particles
 
+    //Remove dead particles
     auto partitionEnd = thrust::partition(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
