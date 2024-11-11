@@ -366,6 +366,8 @@ __global__ void deleteParticles_kernel(
     int interfaceLength, 
     const unsigned long long existNumSpecies, 
     int step, 
+    const float xminForProcs, const float xmaxForProcs, 
+    const float yminForProcs, const float ymaxForProcs, 
     const int buffer
 )
 {
@@ -374,8 +376,8 @@ __global__ void deleteParticles_kernel(
     if (i < existNumSpecies) {
         float x = particlesSpecies[i].x;
         float y = particlesSpecies[i].y;
-        float deleteXMin = PIC2DConst::device_xmin;
-        float deleteXMax = PIC2DConst::device_xmax;
+        float deleteXMin = xminForProcs;
+        float deleteXMax = xmaxForProcs;
         float deleteYMin = (indexOfInterfaceStartInPIC - buffer) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
         float deleteYMax = (indexOfInterfaceStartInPIC - buffer + interfaceLength) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
 
@@ -409,6 +411,8 @@ void Interface2D::deleteParticles(
         interfaceLength, 
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
+        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
+        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.buffer
     );
     cudaDeviceSynchronize();
@@ -423,6 +427,8 @@ void Interface2D::deleteParticles(
         interfaceLength, 
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
+        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
+        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.buffer
     );
     cudaDeviceSynchronize();
@@ -455,6 +461,8 @@ __global__ void reloadParticles_kernel(
     int interfaceLength, 
     unsigned long long existNumSpecies, 
     int step, 
+    const float xminForProcs, const float xmaxForProcs, 
+    const float yminForProcs, const float ymaxForProcs, 
     int localNxPIC, int localNyPIC, int buffer, 
     int localSizeXPIC, int localSizeYPIC
 )
@@ -482,7 +490,7 @@ __global__ void reloadParticles_kernel(
                     static_cast<unsigned long long>((restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies)
                 ];
 
-                x = particleSource.x; x += i * PIC2DConst::device_dx + PIC2DConst::device_xmin;
+                x = particleSource.x; x += i * PIC2DConst::device_dx + xminForProcs;
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC - buffer + j) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
                 z = particleSource.z;
                 vx = particleSource.vx; vx = u + vx * vth;
@@ -613,6 +621,8 @@ void Interface2D::sendMHDtoPIC_particle(
         interfaceLength, 
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
+        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
+        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
     );
@@ -629,6 +639,8 @@ void Interface2D::sendMHDtoPIC_particle(
         interfaceLength, 
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
+        mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
+        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
     );
