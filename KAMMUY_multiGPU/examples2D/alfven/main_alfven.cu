@@ -271,9 +271,11 @@ int main(int argc, char** argv)
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
     mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
-                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
+                                   + Interface2DConst::reloadParticlesTotalNum;
     mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs
-                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
+                                        + Interface2DConst::reloadParticlesTotalNum;
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * mPIInfoPIC.localGridX;
     mPIInfoPIC.xmaxForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * (mPIInfoPIC.localGridX + 1);
@@ -315,8 +317,11 @@ int main(int argc, char** argv)
         Interface2DConst::windowSizeForConvolution, 
         nxInterface, nyInterface
     );
+    bool isLower, isUpper;
+    isLower = true, isUpper = false; 
     Interface2D interface2D_lower(
         mPIInfoMHD, mPIInfoPIC, 
+        isLower, isUpper, 
         indexOfInterfaceStartInMHD_lower, 
         indexOfInterfaceStartInPIC_lower, 
         Interface2DConst::interfaceLength, 
@@ -324,8 +329,10 @@ int main(int argc, char** argv)
         host_interlockingFunctionYHalf_lower, 
         interfaceNoiseRemover2D
     );
+    isLower = false, isUpper = true; 
     Interface2D interface2D_upper(
         mPIInfoMHD, mPIInfoPIC, 
+        isLower, isUpper, 
         indexOfInterfaceStartInMHD_upper, 
         indexOfInterfaceStartInPIC_upper, 
         Interface2DConst::interfaceLength, 
@@ -361,7 +368,6 @@ int main(int argc, char** argv)
     pIC2D.initialize();
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
-    bool isLower, isUpper; 
     for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
