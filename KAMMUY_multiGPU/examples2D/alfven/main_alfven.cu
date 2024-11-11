@@ -127,10 +127,10 @@ void initializeU(
 
     IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
     boundaryMHD.periodicBoundaryX2nd_U(U_lower);
-    boundaryMHD.periodicBoundaryY2nd_U(U_lower);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
     IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
     boundaryMHD.periodicBoundaryX2nd_U(U_upper);
-    boundaryMHD.periodicBoundaryY2nd_U(U_upper);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
 
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -177,29 +177,40 @@ void PIC2D::initialize()
 {
     double VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
 
-    /*
     for (int i = 0; i < PIC2DConst::nx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            double xmin, ymin, u, v, w;
+            double xminLocal, xmaxLocal, yminLocal, ymaxLocal;
+            double bulkVx, bulkVy, bulkVz;
             double y = j * PIC2DConst::dy + 9500 * IdealMHD2DConst::dy;
 
-            xmin = i * PIC2DConst::dx + PIC2DConst::xmin;
-            ymin = j * PIC2DConst::dy + PIC2DConst::ymin;
-            u = waveAmp * VA * cos(waveNumber * y);
-            v = 0.0;
-            w = -waveAmp * VA * sin(waveNumber * y);
+            xminLocal = i * PIC2DConst::dx + PIC2DConst::xmin;
+            xmaxLocal = (i + 1) * PIC2DConst::dx + PIC2DConst::xmin;
+            yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin;
+            ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin;
+            bulkVx = waveAmp * VA * cos(waveNumber * y);
+            bulkVy = 0.0;
+            bulkVz = -waveAmp * VA * sin(waveNumber * y);
 
-            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
-                xmin, ymin, u, v, w, vThIon, vThIon, vThIon, 
-                (j + i * ny) * numberDensityIon, (j + i * ny + 1) * numberDensityIon, j + i * ny, particlesIon
-            );
-            initializeParticle.uniformForPositionXY_maxwellDistributionForVelocity_detail(
-                xmin, ymin, u, v, w, vThElectron, vThElectron, vThElectron, 
-                (j + i * ny) * numberDensityElectron, (j + i * ny + 1) * numberDensityElectron, j + i * ny + nx * ny, particlesElectron
-            );
+            if (mPIInfo.isInside(i, j)) {
+                initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+                    xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
+                    bulkVx, bulkVy, bulkVz,  
+                    PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
+                    (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityIon, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityIon, 
+                    j + i * PIC2DConst::ny, 
+                    particlesIon
+                );
+                initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+                    xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
+                    bulkVx, bulkVy, bulkVz,  
+                    PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
+                    (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityElectron, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityElectron, 
+                    j + i * PIC2DConst::ny + PIC2DConst::nx * PIC2DConst::ny, 
+                    particlesElectron
+                );
+            }
         }
     }
-    */
 
 
     dim3 threadsPerBlock(16, 16);
@@ -220,12 +231,13 @@ void PIC2D::initialize()
     PIC2DMPI::sendrecv_field(current, mPIInfo);
 
     boundaryPIC.periodicBoundaryB_x(B);
-    boundaryPIC.periodicBoundaryB_y(B);
+    boundaryPIC.freeBoundaryB_y(B);
     boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.periodicBoundaryE_y(E);
+    boundaryPIC.freeBoundaryE_y(E);
     boundaryPIC.periodicBoundaryCurrent_x(current);
-    boundaryPIC.periodicBoundaryCurrent_y(current);
-    boundaryPIC.boundaryForInitializeParticle_xy(particlesIon, particlesElectron);
+    boundaryPIC.freeBoundaryCurrent_y(current);
+    boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
+    boundaryPIC.freeBoundaryForInitializeParticle_y(particlesIon, particlesElectron);
     
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -242,12 +254,12 @@ int main(int argc, char** argv)
     IdealMHD2DMPI::setupInfo(mPIInfoMHD, buffer);
 
     if (mPIInfoPIC.rank == 0) {
-        std::cout     << mPIInfoPIC.gridX << "," << mPIInfoPIC.gridY << std::endl;
-        mpifile   << mPIInfoPIC.gridX << "," << mPIInfoPIC.gridY << std::endl;
+        std::cout   << mPIInfoPIC.gridX << "," << mPIInfoPIC.gridY << std::endl;
+        mpifile_PIC << mPIInfoPIC.gridX << "," << mPIInfoPIC.gridY << std::endl;
     }
     if (mPIInfoMHD.rank == 0) {
-        std::cout     << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
-        mpifile   << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
+        std::cout   << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
+        mpifile_MHD << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
     }
 
     cudaSetDevice(mPIInfoPIC.rank);
@@ -256,23 +268,35 @@ int main(int argc, char** argv)
     IdealMHD2DConst::initializeDeviceConstants();
     Interface2DConst::initializeDeviceConstants();
 
-    for (int i = 0; i < interfaceLength; i++) {
+    mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
+    mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
+    mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
+                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+    mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs
+                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10);
+
+    mPIInfoPIC.xminForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * mPIInfoPIC.localGridX;
+    mPIInfoPIC.xmaxForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * (mPIInfoPIC.localGridX + 1);
+    mPIInfoPIC.yminForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * mPIInfoPIC.localGridY;
+    mPIInfoPIC.ymaxForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * (mPIInfoPIC.localGridY + 1);
+
+    for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionY_lower[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
+            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
+            Interface2DConst::EPS
         );
         host_interlockingFunctionY_upper[i] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (i - 0.0) / (interfaceLength - 0.0))), 
+            0.5 * (1.0 - cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
             Interface2DConst::EPS
         );
     }
-    for (int i = 0; i < interfaceLength; i++) {
+    for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
         host_interlockingFunctionYHalf_lower[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
-            1e-20
+            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
+            Interface2DConst::EPS
         );
         host_interlockingFunctionYHalf_upper[i] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (interfaceLength - 0.0))), 
+            0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
             Interface2DConst::EPS
         );
     }
@@ -322,13 +346,11 @@ int main(int argc, char** argv)
         std::cout << "Total memory: " << total_mem / (1024 * 1024) << " MB" << std::endl;
 
         std::cout << "exist number of partices is " 
-                  << mPIInfoPIC.procs * (mPIInfo.existNumIonPerProcs + mPIInfoPIC.existNumElectronPerProcs) 
+                  << mPIInfoPIC.procs * (mPIInfoPIC.existNumIonPerProcs + mPIInfoPIC.existNumElectronPerProcs) 
                   << std::endl;
         std::cout << "exist number of partices + buffer particles is " 
-                  << mPIInfoPIC.procs * (mPIInfo.totalNumIonPerProcs + mPIInfoPIC.totalNumElectronPerProcs) 
+                  << mPIInfoPIC.procs * (mPIInfoPIC.totalNumIonPerProcs + mPIInfoPIC.totalNumElectronPerProcs) 
                   << std::endl;
-        std::cout << std::setprecision(4) 
-                << "omega_pe * t = " << PIC2DConst::totalStep * PIC2DConst::dt * PIC2DConst::omegaPe << std::endl;
     }
 
 
@@ -339,8 +361,11 @@ int main(int argc, char** argv)
     pIC2D.initialize();
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
+    bool isLower, isUpper; 
     for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
-        if (step % 10 == 0) {
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (step % 1 == 0) {
             std::cout << std::to_string(step) << " step done : total time is "
                       << std::setprecision(4) << step * totalSubstep * PIC2DConst::dt * PIC2DConst::omegaPe
                       << " [omega_pe * t]"
@@ -359,10 +384,10 @@ int main(int argc, char** argv)
                 directoryname, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_lower", step
+                directoryname, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_upper", step
+                directoryname, filenameWithoutStep + "_U_upper", step
             );
         }
         
@@ -374,7 +399,7 @@ int main(int argc, char** argv)
 
 
         // STEP1 : MHD - predictor
-        
+
         idealMHD2D_lower.calculateDt();
         double dt_lower = IdealMHD2DConst::dt;
         idealMHD2D_upper.calculateDt();
@@ -388,8 +413,8 @@ int main(int argc, char** argv)
         thrust::device_vector<ConservationParameter>& UPast_lower = idealMHD2D_lower.getUPastRef();
         thrust::device_vector<ConservationParameter>& UPast_upper = idealMHD2D_upper.getUPastRef();
 
-        idealMHD2D_lower.oneStepRK2_predictor();
-        idealMHD2D_upper.oneStepRK2_predictor();
+        idealMHD2D_lower.oneStepRK2_periodicXSymmetricY_predictor();
+        idealMHD2D_upper.oneStepRK2_periodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext_lower = idealMHD2D_lower.getURef();
         thrust::device_vector<ConservationParameter>& UNext_upper = idealMHD2D_upper.getURef();
@@ -399,12 +424,13 @@ int main(int argc, char** argv)
 
         interface2D_lower.resetTimeAveParameters();
         interface2D_upper.resetTimeAveParameters();
+
         for (int substep = 1; substep <= totalSubstep; substep++) {
-            pIC2D.oneStepPeriodicXFreeY(
+            pIC2D.oneStep_periodicXFreeY(
                 UPast_lower, UPast_upper, 
                 UNext_lower, UNext_upper, 
                 interface2D_lower, interface2D_upper, 
-                interfaceNoiseRemover2D_lower, interfaceNoiseRemover2D_upper, 
+                interfaceNoiseRemover2D, 
                 step, substep, totalSubstep
             );
 
@@ -421,25 +447,37 @@ int main(int argc, char** argv)
 
 
         // STEP3 : MHD - corrector
-
+        
         interface2D_lower.sendPICtoMHD(UPast_lower, UNext_lower);
         interface2D_upper.sendPICtoMHD(UPast_upper, UNext_upper);
         thrust::device_vector<ConservationParameter>& UHalf_lower = interface2D_lower.getUHalfRef();
         thrust::device_vector<ConservationParameter>& UHalf_upper = interface2D_upper.getUHalfRef();
-        boundaryMHD.periodicBoundaryX2nd(UHalf_lower);
-        boundaryMHD.symmetricBoundaryY2nd(UHalf_lower);
-        boundaryMHD.periodicBoundaryX2nd(UHalf_upper);
-        boundaryMHD.symmetricBoundaryY2nd(UHalf_upper);
 
-        idealMHD2D_lower.oneStepRK2_corrector(UHalf_lower);
-        idealMHD2D_upper.oneStepRK2_corrector(UHalf_upper);
+        IdealMHD2DMPI::sendrecv_U(UHalf_lower, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_lower);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_lower);
+        IdealMHD2DMPI::sendrecv_U(UHalf_upper, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_upper);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_upper);
+
+        idealMHD2D_lower.oneStepRK2_periodicXSymmetricY_corrector(UHalf_lower);
+        idealMHD2D_upper.oneStepRK2_periodicXSymmetricY_corrector(UHalf_upper);
 
         U_lower = idealMHD2D_lower.getURef();
         U_upper = idealMHD2D_upper.getURef();
-        interfaceNoiseRemover2D_lower.convolveU_lower(U_lower);
-        interfaceNoiseRemover2D_upper.convolveU_upper(U_upper);
+        isLower = true, isUpper = false;
+        interfaceNoiseRemover2D.convolveU(U_lower, isLower, isUpper);
+        isLower = false, isUpper = true;
+        interfaceNoiseRemover2D.convolveU(U_upper, isLower, isUpper);
+        
+        IdealMHD2DMPI::sendrecv_U(UHalf_lower, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_lower);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_lower);
+        IdealMHD2DMPI::sendrecv_U(UHalf_upper, mPIInfoMHD);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf_upper);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_upper);
 
-
+        //when crashed 
         if (idealMHD2D_lower.checkCalculationIsCrashed() || idealMHD2D_upper.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;
             pIC2D.saveFields(
@@ -452,22 +490,24 @@ int main(int argc, char** argv)
                 directoryname, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_lower", step
+                directoryname, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_upper", step
+                directoryname, filenameWithoutStep + "_U_upper", step
             );
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
-            return 0;
+            break;
         }
 
-        cudaError_t error = cudaGetLastError();
-        if (error != cudaSuccess) {
-            printf("CUDA Error: %s\n", cudaGetErrorString(error));
-            exit(-1);
-        }
+        if (mPIInfoMHD.rank == 0) {
+            IdealMHD2DConst::totalTime += IdealMHD2DConst::dt;
+        }   
+    }
 
-        IdealMHD2DConst::totalTime += IdealMHD2DConst::dt;
+    MPI_Finalize();
+
+    if (mPIInfoMHD.rank == 0) {
+        std::cout << "program was completed!" << std::endl;
     }
 
     return 0;

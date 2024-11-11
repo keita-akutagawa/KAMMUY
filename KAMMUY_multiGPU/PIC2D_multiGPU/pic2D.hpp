@@ -18,6 +18,10 @@
 #include "moment_struct.hpp"
 #include "mpi.hpp"
 
+#include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
+#include "../Interface2D_multiGPU/interface.hpp"
+#include "../Interface2D_multiGPU/remove_noise.hpp"
+
 
 class PIC2D
 {
@@ -64,8 +68,17 @@ public:
     PIC2D(PIC2DMPI::MPIInfo& mPIInfo);
     
     virtual void initialize();
-    
-    void oneStep_periodicXY();
+
+    void oneStep_periodicXFreeY(
+        thrust::device_vector<ConservationParameter>& UPast_lower, 
+        thrust::device_vector<ConservationParameter>& UPast_upper, 
+        thrust::device_vector<ConservationParameter>& UNext_lower, 
+        thrust::device_vector<ConservationParameter>& UNext_upper, 
+        Interface2D& interface2D_lower, 
+        Interface2D& interface2D_upper, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D, 
+        int step, int substep, int totalSubstep
+    );
 
     void saveFields(
         std::string directoryname, 
@@ -102,6 +115,12 @@ public:
         std::string filenameWithoutStep, 
         int step
     );
+
+    thrust::device_vector<MagneticField>& getBRef();
+
+    thrust::device_vector<Particle>& getParticlesIonRef();
+
+    thrust::device_vector<Particle>& getParticlesElectronRef();
 
 private:
 

@@ -257,10 +257,16 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
+<<<<<<< HEAD
     if (i < localNxPIC && j < interfaceLength) {
         int indexForReload = j + i * interfaceLength; 
         int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+=======
+    if (0 < i && i < localSizeXPIC - 1 && j < interfaceLength) {
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
+>>>>>>> d668ae6b017bb8df1019996a6a06cb6a5a6c1e99
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double jXMHD, jYMHD, jZMHD, niMHD, neMHD, tiMHD, teMHD;
         double rhoPIC, uPIC, vPIC, wPIC;

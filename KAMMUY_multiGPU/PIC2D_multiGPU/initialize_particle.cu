@@ -155,6 +155,44 @@ void InitializeParticle::maxwellDistributionForVelocity(
 }
 
 
+void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
+    float xmin, float xmax, float ymin, float ymax, 
+    float bulkVxSpecies, float bulkVySpecies, float bulkVzSpecies, 
+    float vxThSpecies, float vyThSpecies, float vzThSpecies, 
+    unsigned long long nStart, unsigned long long nEnd, 
+    int seed, 
+    thrust::device_vector<Particle>& particlesSpecies
+)
+{
+    dim3 threadsPerBlock(256);
+    dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
+
+    uniformForPosition_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        nStart, nEnd,
+        xmin, xmax, 
+        seed, mPIInfo.rank * (nEnd - nStart)
+    );
+    cudaDeviceSynchronize();
+
+    uniformForPosition_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        nStart, nEnd,
+        ymin, ymax, 
+        seed, mPIInfo.rank * (nEnd - nStart)
+    );
+    cudaDeviceSynchronize();
+
+    maxwellDistributionForVelocity_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        bulkVxSpecies, bulkVySpecies, bulkVzSpecies, 
+        vxThSpecies, vyThSpecies, vzThSpecies, 
+        nStart, nEnd, seed, mPIInfo.rank * (nEnd - nStart)
+    );
+    cudaDeviceSynchronize();
+}
+
+
 /*
 __global__ void harrisForPositionY_kernel(
     Particle* particle, float sheatThickness, 

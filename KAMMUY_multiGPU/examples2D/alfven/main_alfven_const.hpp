@@ -27,9 +27,9 @@ std::ofstream mpifile_PIC("results_alfven/mpilog_pic_alfven.txt");
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 100;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 100;
+const int recordStep = 1;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -73,17 +73,17 @@ const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
 const int Interface2DConst::windowSizeForConvolution = 5;
 
 const int Interface2DConst::interfaceLength = 50;
-const int indexOfInterfaceStartInPIC_lower = 0;
-const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInMHD_upper = 0;
-const int nxInterface = PIC2DConst::nx;
-const int nyInterface = Interface2DConst::interfaceLength + 5 * Interface2DConst::windowSizeForConvolution;
+const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
+const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
+const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
+const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
+const int nxInterface = PIC2DConst::nx + 2 * buffer;
+const int nyInterface = Interface2DConst::interfaceLength + buffer;
 
-thrust::host_vector<double> host_interlockingFunctionY_lower(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_lower(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionY_upper(interfaceLength, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_upper(interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY_upper(Interface2DConst::interfaceLength, 0.0);
+thrust::host_vector<double> host_interlockingFunctionYHalf_upper(Interface2DConst::interfaceLength, 0.0);
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNum = PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength + 0);
 
@@ -238,5 +238,6 @@ __constant__ double Interface2DConst::device_EPS;
 __constant__ double Interface2DConst::device_PI;
 
 __constant__ int Interface2DConst::device_windowSizeForConvolution;
+__constant__ int Interface2DConst::device_interfaceLength;
 
 __constant__ unsigned long long Interface2DConst::device_reloadParticlesTotalNum;
