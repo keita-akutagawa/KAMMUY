@@ -18,16 +18,16 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryname = "results_alfven";
+std::string directoryname = "";
 std::string filenameWithoutStep = "alfven";
-std::ofstream logfile("results_alfven/log_alfven.txt");
-std::ofstream mpifile_MHD("results_alfven/mpilog_mhd_alfven.txt");
-std::ofstream mpifile_PIC("results_alfven/mpilog_pic_alfven.txt");
+std::ofstream logfile(    directoryname + "/log_alfven.txt"       );
+std::ofstream mpifile_MHD(directoryname + "/mpilog_mhd_alfven.txt");
+std::ofstream mpifile_PIC(directoryname + "/mpilog_pic_alfven.txt");
 
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 100;
+const int IdealMHD2DConst::totalStep = 10;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -70,15 +70,15 @@ const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
 
 // Interface
 
-const int Interface2DConst::windowSizeForConvolution = 5;
+const int Interface2DConst::windowSizeForConvolution = 2;
 
 const int Interface2DConst::interfaceLength = 50;
 const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
 const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
-const int nxInterface = PIC2DConst::nx + 2 * buffer;
-const int nyInterface = Interface2DConst::interfaceLength + buffer;
+const int nxInterface = PIC2DConst::nx;
+const int nyInterface = Interface2DConst::interfaceLength;
 
 thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::interfaceLength, 0.0);
