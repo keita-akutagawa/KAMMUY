@@ -49,7 +49,7 @@ void Interface2D::sendMHDtoPIC_magneticField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_magneticField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -147,7 +147,7 @@ void Interface2D::sendMHDtoPIC_electricField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_electricField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -224,7 +224,7 @@ void Interface2D::sendMHDtoPIC_currentField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_currentField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -566,29 +566,6 @@ void Interface2D::sendMHDtoPIC_particle(
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
     host_reloadParticlesDataElectron = reloadParticlesDataElectron;
-
-    for (int i = 0; i < mPIInfoPIC.localNx; i++) {
-        int index;
-
-        index = 0 + i * interfaceLength;
-        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index + 1];
-        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index + 1];
-
-        index = interfaceLength - 1 + i * interfaceLength;
-        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index - 1];
-        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index - 1];
-    }
-    for (int j = 0; j < interfaceLength; j++) {
-        int index;
-
-        index = j + 0 * interfaceLength;
-        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index + interfaceLength];
-        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index + interfaceLength];
-
-        index = j + (mPIInfoPIC.localNx - 1) * interfaceLength;
-        host_reloadParticlesDataIon[index] = host_reloadParticlesDataIon[index - interfaceLength];
-        host_reloadParticlesDataElectron[index] = host_reloadParticlesDataElectron[index - interfaceLength];
-    }
 
     for (int i = 0; i < mPIInfoPIC.localNx; i++) {
         for (int j = 0; j < interfaceLength; j++) {

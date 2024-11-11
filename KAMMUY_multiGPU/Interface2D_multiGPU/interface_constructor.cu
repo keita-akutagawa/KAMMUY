@@ -22,19 +22,19 @@ __global__ void initializeReloadParticlesSource_kernel(
         curand_init(seed + 4, i, 0, &stateVz);
 
         float x, y, z, vx, vy, vz;
-        x = curand_uniform_double(&stateX);
-        y = curand_uniform_double(&stateY);
-        z = 0.0f;
-        vx = curand_uniform_double(&stateVx);
-        vy = curand_uniform_double(&stateVy);
-        vz = curand_uniform_double(&stateVz);
+        x  = curand_uniform_double(&stateX);
+        y  = curand_uniform_double(&stateY);
+        z  = 0.0f;
+        vx = curand_normal_double(&stateVx);
+        vy = curand_normal_double(&stateVy);
+        vz = curand_normal_double(&stateVz);
 
-        reloadParticlesSourceSpecies[i].x       = x;
-        reloadParticlesSourceSpecies[i].y       = y;
-        reloadParticlesSourceSpecies[i].z       = z;
-        reloadParticlesSourceSpecies[i].vx      = vx;
-        reloadParticlesSourceSpecies[i].vy      = vy;
-        reloadParticlesSourceSpecies[i].vz      = vz;
+        reloadParticlesSourceSpecies[i].x  = x;
+        reloadParticlesSourceSpecies[i].y  = y;
+        reloadParticlesSourceSpecies[i].z  = z;
+        reloadParticlesSourceSpecies[i].vx = vx;
+        reloadParticlesSourceSpecies[i].vy = vy;
+        reloadParticlesSourceSpecies[i].vz = vz;
     }
 }
 
