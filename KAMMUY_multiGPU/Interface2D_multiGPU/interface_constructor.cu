@@ -21,23 +21,20 @@ __global__ void initializeReloadParticlesSource_kernel(
         curand_init(seed + 3, i, 0, &stateVy);
         curand_init(seed + 4, i, 0, &stateVz);
 
-        float x, y, z, vx, vy, vz, gamma;
+        float x, y, z, vx, vy, vz;
         x = curand_uniform_double(&stateX);
         y = curand_uniform_double(&stateY);
         z = 0.0f;
         vx = curand_uniform_double(&stateVx);
         vy = curand_uniform_double(&stateVy);
         vz = curand_uniform_double(&stateVz);
-        gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
         reloadParticlesSourceSpecies[i].x       = x;
         reloadParticlesSourceSpecies[i].y       = y;
         reloadParticlesSourceSpecies[i].z       = z;
-        reloadParticlesSourceSpecies[i].vx      = vx * gamma;
-        reloadParticlesSourceSpecies[i].vy      = vy * gamma;
-        reloadParticlesSourceSpecies[i].vz      = vz * gamma;
-        reloadParticlesSourceSpecies[i].gamma   = gamma;
-        reloadParticlesSourceSpecies[i].isExist = false;
+        reloadParticlesSourceSpecies[i].vx      = vx;
+        reloadParticlesSourceSpecies[i].vy      = vy;
+        reloadParticlesSourceSpecies[i].vz      = vz;
     }
 }
 

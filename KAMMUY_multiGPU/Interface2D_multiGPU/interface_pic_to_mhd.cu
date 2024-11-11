@@ -38,6 +38,7 @@ __global__ void sendPICtoMHD_kernel(
     int indexOfInterfaceStartInMHD, 
     int indexOfInterfaceStartInPIC, 
     int interfaceLength, 
+    int localNxMHD, int localNyMHD, int buffer, 
     int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD
 )
@@ -45,9 +46,9 @@ __global__ void sendPICtoMHD_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXMHD - 1 && j < interfaceLength) {
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
+    if (i < localNxMHD && j < interfaceLength) {
+        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double bXCenterMHD, bYCenterMHD;
         double rhoPIC, uPIC, vPIC, wPIC, bXPIC, bYPIC, bZPIC;
@@ -152,6 +153,7 @@ void Interface2D::sendPICtoMHD(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         interfaceLength, 
+        mPIInfoMHD.localNx, mPIInfoMHD.localNy, mPIInfoMHD.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
     );

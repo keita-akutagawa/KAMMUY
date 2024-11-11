@@ -98,7 +98,7 @@ __global__ void freeBoundaryForInitialize_y_kernel(
             Particle addParticle = particlesSpecies[i];
             for (int j = 0; j < buffer; j++) {
                 addParticle.y = addParticle.y - PIC2DConst::device_dy;
-                addParticlesSpeciesDown[particleIndex] = addParticle;
+                addParticlesSpeciesDown[particleIndex + j] = addParticle;
             }
         }
 
@@ -107,7 +107,7 @@ __global__ void freeBoundaryForInitialize_y_kernel(
             Particle addParticle = particlesSpecies[i];
             for (int j = 0; j < buffer; j++) {
                 addParticle.y = addParticle.y + PIC2DConst::device_dy;
-                addParticlesSpeciesDown[particleIndex] = addParticle;
+                addParticlesSpeciesDown[particleIndex + j] = addParticle;
             }
         }
     }

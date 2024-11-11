@@ -3,7 +3,7 @@ CFLAGS = -ccbin g++ -lmpi -O3 -rdc=true --extended-lambda
 SRCDIRS = ../../PIC2D_multiGPU ../../IdealMHD2D_multiGPU ../../Interface2D_multiGPU
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
-MAIN = main_alfven.cu
+MAIN = main_alfven.o
 EXECUTABLE = program
 
 .PHONY: all clean
@@ -14,6 +14,9 @@ $(EXECUTABLE): $(OBJS) $(MAIN)
 	$(CC) $(CFLAGS) $(OBJS) $(MAIN) -o $(EXECUTABLE)
 
 %.o: %.cu
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(MAIN): main_alfven.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)

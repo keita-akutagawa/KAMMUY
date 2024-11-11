@@ -34,6 +34,9 @@ private:
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
+    bool isLower; 
+    bool isUpper; 
+
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
     int interfaceLength; 
@@ -76,6 +79,7 @@ public:
     Interface2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
+        bool isLower, bool isUpper, 
         int indexStartMHD, 
         int indexStartPIC, 
         int interfaceLength, 
