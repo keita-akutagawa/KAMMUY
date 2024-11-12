@@ -277,10 +277,10 @@ int main(int argc, char** argv)
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
     mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
-                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
+                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer)
                                    + Interface2DConst::reloadParticlesTotalNum;
     mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs
-                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
+                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer)
                                         + Interface2DConst::reloadParticlesTotalNum;
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * mPIInfoPIC.localGridX;
@@ -309,6 +309,9 @@ int main(int argc, char** argv)
         );
     }
 
+    
+    const int nxInterfaceForConvolution = mPIInfoPIC.localSizeX;
+    const int nyInterfaceForConvolution = Interface2DConst::interfaceLength + 5 * Interface2DConst::windowSizeForConvolution;
 
     IdealMHD2D idealMHD2D_lower(mPIInfoMHD);
     IdealMHD2D idealMHD2D_upper(mPIInfoMHD);

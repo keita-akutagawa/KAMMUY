@@ -22,9 +22,15 @@ __global__ void initializeReloadParticlesSource_kernel(
         curand_init(seed + 4, 100 * i, 0, &stateVz);
 
         float x, y, z, vx, vy, vz;
-        x  = curand_uniform(&stateX);
-        y  = curand_uniform(&stateY);
-        z  = 0.0f;
+        float EPS = 0.001f;
+        while (true) {
+            x  = curand_uniform(&stateX);
+            y  = curand_uniform(&stateY);
+            z  = 0.0f;
+
+            if (EPS < x && x < 1.0f - EPS && EPS < y && y < 1.0f - EPS) break;
+        }
+        
         while (true) {
             vx = curand_normal(&stateVx);
             vy = curand_normal(&stateVy);
@@ -111,14 +117,14 @@ Interface2D::Interface2D(
     initializeReloadParticlesSource_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(reloadParticlesSourceIon.data()),
         Interface2DConst::reloadParticlesTotalNum, 
-        100000
+        10000000 + 100 * mPIInfoPIC.rank
     );
     cudaDeviceSynchronize();
 
     initializeReloadParticlesSource_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(reloadParticlesSourceElectron.data()),
         Interface2DConst::reloadParticlesTotalNum, 
-        200000
+        20000000 + 100 * mPIInfoPIC.rank
     );
     cudaDeviceSynchronize();
 }

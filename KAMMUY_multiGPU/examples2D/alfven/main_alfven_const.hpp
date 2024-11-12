@@ -25,9 +25,9 @@ std::ofstream mpifile_MHD(directoryname + "/mpilog_mhd_alfven.txt");
 std::ofstream mpifile_PIC(directoryname + "/mpilog_pic_alfven.txt");
 
 
-const int buffer = 3; 
+const int buffer = 5; 
 
-const int IdealMHD2DConst::totalStep = 10;
+const int IdealMHD2DConst::totalStep = 20;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -36,10 +36,10 @@ const int particleRecordStep = PIC2DConst::totalStep;
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const double Interface2DConst::EPS = 1.0e-20;
+const double Interface2DConst::EPS = 1.0e-10;
 const double Interface2DConst::PI = 3.14159265358979;
-const float PIC2DConst::EPS = 1.0e-20f;
-const double IdealMHD2DConst::EPS = 1.0e-20;
+const float PIC2DConst::EPS = 1.0e-10f;
+const double IdealMHD2DConst::EPS = 1.0e-10;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
 const double waveAmp = 0.1;
@@ -48,24 +48,24 @@ const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
 const int PIC2DConst::nx = 20;
 const float PIC2DConst::dx = 1.0f;
-const float PIC2DConst::xmin = 0.0f * dx; 
-const float PIC2DConst::xmax = nx * dx - 0.0f * dx;
+const float PIC2DConst::xmin = 0.0f * dx + PIC2DConst::EPS; 
+const float PIC2DConst::xmax = nx * dx - 0.0f * dx - PIC2DConst::EPS;
 
 const int PIC2DConst::ny = 1000;
 const float PIC2DConst::dy = 1.0f;
-const float PIC2DConst::ymin = 0.0f * dy; 
-const float PIC2DConst::ymax = ny * dy - 0.0f * dy;
+const float PIC2DConst::ymin = 0.0f * dy + PIC2DConst::EPS; 
+const float PIC2DConst::ymax = ny * dy - 0.0f * dy - PIC2DConst::EPS;
 
 
 const int IdealMHD2DConst::nx = PIC2DConst::nx;
 const double IdealMHD2DConst::dx = 1.0;
-const double IdealMHD2DConst::xmin = 0.0 * dx;
-const double IdealMHD2DConst::xmax = nx * dx - 0.0 * dx;
+const double IdealMHD2DConst::xmin = 0.0 * dx + IdealMHD2DConst::EPS;
+const double IdealMHD2DConst::xmax = nx * dx - 0.0 * dx - IdealMHD2DConst::EPS;
 
 const int IdealMHD2DConst::ny = 9550;
 const double IdealMHD2DConst::dy = 1.0;
-const double IdealMHD2DConst::ymin = 0.0 * dy;
-const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
+const double IdealMHD2DConst::ymin = 0.0 * dy + IdealMHD2DConst::EPS;
+const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy - IdealMHD2DConst::EPS;
 
 
 // Interface
@@ -77,8 +77,6 @@ const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
 const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
-const int nxInterfaceForConvolution = PIC2DConst::nx + 2 * buffer;
-const int nyInterfaceForConvolution = Interface2DConst::interfaceLength + buffer;
 
 thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::interfaceLength, 0.0);
