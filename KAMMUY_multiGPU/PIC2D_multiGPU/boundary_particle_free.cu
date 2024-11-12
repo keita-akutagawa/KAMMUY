@@ -66,7 +66,7 @@ __global__ void freeBoundaryParticle_y_kernel(
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesUp[0]), 1);
             particlesSpecies[i].isMPISendUp = false;
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.y > PIC2DConst::device_ymax - buffer * PIC2DConst::device_dy + PIC2DConst::device_EPS) {
+            if (sendParticle.y > PIC2DConst::device_ymax - buffer * PIC2DConst::device_dy) {
                 sendParticle.isExist = false;
             }
             sendParticlesSpeciesUp[particleIndex] = sendParticle;
@@ -76,7 +76,7 @@ __global__ void freeBoundaryParticle_y_kernel(
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesDown[0]), 1);
             particlesSpecies[i].isMPISendDown = false;
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.y < PIC2DConst::device_ymin + buffer * PIC2DConst::device_dy - PIC2DConst::device_EPS) {
+            if (sendParticle.y < PIC2DConst::device_ymin + buffer * PIC2DConst::device_dy) {
                 sendParticle.isExist = false; 
             }
             sendParticlesSpeciesDown[particleIndex] = sendParticle;

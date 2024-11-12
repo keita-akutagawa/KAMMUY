@@ -38,7 +38,7 @@ double IdealMHD2DConst::totalTime = 0.0;
 
 const double Interface2DConst::EPS = 1.0e-10;
 const double Interface2DConst::PI = 3.14159265358979;
-const float PIC2DConst::EPS = 1.0e-10f;
+const float PIC2DConst::EPS = 0.0001f;
 const double IdealMHD2DConst::EPS = 1.0e-10;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
