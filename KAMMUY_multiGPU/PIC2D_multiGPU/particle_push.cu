@@ -263,7 +263,7 @@ void pushPositionOfOneSpecies_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
-
+        
         float vx, vy, vz, gamma;
         float xPast, yPast, zPast;
         float x, y, z;
@@ -291,19 +291,19 @@ void pushPositionOfOneSpecies_kernel(
         float boundaryDeleteDown  = yminForProcs - buffer * PIC2DConst::device_dy + PIC2DConst::device_EPS; 
         float boundaryDeleteUp    = ymaxForProcs + buffer * PIC2DConst::device_dy - PIC2DConst::device_EPS;
 
-        if (x < boundaryDeleteLeft) {
+        if (x <= boundaryDeleteLeft) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (x > boundaryDeleteRight) {
+        if (x >= boundaryDeleteRight) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (y < boundaryDeleteDown) {
+        if (y <= boundaryDeleteDown) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (y > boundaryDeleteUp) {
+        if (y >= boundaryDeleteUp) {
             particlesSpecies[i].isExist = false;
             return;
         }
@@ -391,21 +391,12 @@ void ParticlePush::pushPositionOfOneSpecies(
     );
     cudaDeviceSynchronize();
 
-
-    existNumSpecies = thrust::transform_reduce(
-        particlesSpecies.begin(),
-        particlesSpecies.end(),
-        IsExistTransform(), 
-        0,               
-        thrust::plus<unsigned long long>()
-    );
-    cudaDeviceSynchronize();
-
-    thrust::partition(
+    auto partitionEnd = thrust::partition(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
-    cudaDeviceSynchronize();
+
+    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 
     numForSendParticlesSpeciesLeft  = countForSendParticlesSpeciesLeft[0];
     numForSendParticlesSpeciesRight = countForSendParticlesSpeciesRight[0];
