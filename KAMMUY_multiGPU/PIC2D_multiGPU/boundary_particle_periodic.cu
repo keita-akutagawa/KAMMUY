@@ -79,8 +79,8 @@ __global__ void periodicBoundaryParticle_x_kernel(
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesRight[0]), 1);
             particlesSpecies[i].isMPISendRight = false;
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx + PIC2DConst::device_EPS) {
-                sendParticle.x = sendParticle.x - PIC2DConst::device_xmax + PIC2DConst::device_EPS;
+            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx) {
+                sendParticle.x = sendParticle.x - PIC2DConst::device_xmax + 0.0001f;
             }
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
         }
@@ -89,8 +89,8 @@ __global__ void periodicBoundaryParticle_x_kernel(
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesLeft[0]), 1);
             particlesSpecies[i].isMPISendLeft = false;
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx - PIC2DConst::device_EPS) {
-                sendParticle.x = sendParticle.x + PIC2DConst::device_xmax - PIC2DConst::device_EPS;
+            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx) {
+                sendParticle.x = sendParticle.x + PIC2DConst::device_xmax - 0.0001f;
             }
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
