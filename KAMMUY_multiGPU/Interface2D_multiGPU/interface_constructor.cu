@@ -51,8 +51,8 @@ __global__ void initializeReloadParticlesSource_kernel(
 Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
     PIC2DMPI::MPIInfo& mPIInfoPIC, 
+    Interface2DMPI::MPIInfo& mPIInfoInterface, 
     bool isLower, bool isUpper, 
-    int interfaceSizeX, int interfaceSizeY, 
     int indexOfInterfaceStartMHD, 
     int indexOfInterfaceStartPIC, 
     int interfaceLength, 
@@ -62,12 +62,10 @@ Interface2D::Interface2D(
 )
     : mPIInfoMHD(mPIInfoMHD), 
       mPIInfoPIC(mPIInfoPIC), 
+      mPIInfoInterface(mPIInfoInterface), 
 
       isLower(isLower), 
       isUpper(isUpper), 
-
-      interfaceSizeX(interfaceSizeX), 
-      interfaceSizeY(interfaceSizeY), 
 
       indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
       indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC), 
@@ -89,11 +87,11 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon            (interfaceSizeX * interfaceSizeY + 1), 
-      reloadParticlesDataElectron       (interfaceSizeX * interfaceSizeY + 1), 
-      host_reloadParticlesDataIon       (interfaceSizeX * interfaceSizeY + 1), 
-      host_reloadParticlesDataElectron  (interfaceSizeX * interfaceSizeY + 1), 
-
+      reloadParticlesDataIon          (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
+      reloadParticlesDataElectron     (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
+      host_reloadParticlesDataIon     (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
+      host_reloadParticlesDataElectron(mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
+      
       B_timeAve                   (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
       zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
       zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
@@ -111,6 +109,8 @@ Interface2D::Interface2D(
     cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     cudaMalloc(&device_mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo));
     cudaMemcpy(device_mPIInfoPIC, &mPIInfoPIC, sizeof(PIC2DMPI::MPIInfo), cudaMemcpyHostToDevice);
+    cudaMalloc(&device_mPIInfoInterface, sizeof(Interface2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfoInterface, &mPIInfoInterface, sizeof(Interface2DMPI::MPIInfo), cudaMemcpyHostToDevice);
 
     interlockingFunctionY = host_interlockingFunctionY;
     interlockingFunctionYHalf = host_interlockingFunctionYHalf;

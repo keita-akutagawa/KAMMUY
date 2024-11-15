@@ -14,6 +14,7 @@
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
 #include "remove_noise.hpp"
+#include "mpi.hpp" 
 #include "../IdealMHD2D_multiGPU/const.hpp"
 #include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
 #include "../PIC2D_multiGPU/const.hpp"
@@ -33,12 +34,11 @@ private:
     PIC2DMPI::MPIInfo& mPIInfoPIC;
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
+    Interface2DMPI::MPIInfo& mPIInfoInterface; 
+    Interface2DMPI::MPIInfo* device_mPIInfoInterface; 
 
     bool isLower; 
     bool isUpper; 
-
-    int interfaceSizeX; 
-    int interfaceSizeY; 
 
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
@@ -82,8 +82,8 @@ public:
     Interface2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
+        Interface2DMPI::MPIInfo& mPIInfoInterface, 
         bool isLower, bool isUpper, 
-        int interfaceSizeX, int interfaceSizeY, 
         int indexOfInterfaceStartMHD, 
         int indexOfInterfaceStartPIC, 
         int interfaceLength, 

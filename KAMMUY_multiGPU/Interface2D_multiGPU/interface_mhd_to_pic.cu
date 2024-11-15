@@ -18,7 +18,7 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
+    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
         double bXPIC, bYPIC, bZPIC;
         double bXMHD, bYMHD, bZMHD;
         double bXInterface, bYInterface, bZInterface;
@@ -50,8 +50,8 @@ void Interface2D::sendMHDtoPIC_magneticField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((interfaceSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_magneticField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()),
@@ -64,7 +64,7 @@ void Interface2D::sendMHDtoPIC_magneticField_yDirection(
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 }
@@ -80,14 +80,14 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
     int interfaceLength, 
     int localNxPIC, int localNyPIC, int buffer, 
     int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD, int localSizeYMHD, 
     int interfaceSizeX, int interfaceSizeY
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
+    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
         double eXPIC, eYPIC, eZPIC;
         double eXMHD, eYMHD, eZMHD;
         double eXPlusX1MHD;
@@ -150,8 +150,8 @@ void Interface2D::sendMHDtoPIC_electricField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_electricField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -164,7 +164,7 @@ void Interface2D::sendMHDtoPIC_electricField_yDirection(
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 }
@@ -187,7 +187,7 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
+    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
         double jXPIC, jYPIC, jZPIC;
         double jXMHD, jYMHD, jZMHD;
         double jXPlusX1MHD; 
@@ -229,8 +229,8 @@ void Interface2D::sendMHDtoPIC_currentField_yDirection(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_currentField_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -243,7 +243,7 @@ void Interface2D::sendMHDtoPIC_currentField_yDirection(
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 }
@@ -270,8 +270,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
-        int indexForReload = j + i * interfaceLength; 
+    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
+        int indexForReload = j + i * interfaceSizeY;  
         int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -330,8 +330,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         vThePIC = sqrt(2.0 * teMHD / mElectron);
 
 
-        reloadParticlesDataIon     [indexForReload].numberAndIndex = max(static_cast<unsigned long long>(round(niPIC)), static_cast<unsigned long long>(1));
-        reloadParticlesDataElectron[indexForReload].numberAndIndex = max(static_cast<unsigned long long>(round(nePIC)), static_cast<unsigned long long>(1));
+        reloadParticlesDataIon     [indexForReload].numAndIndex = max(static_cast<unsigned long long>(round(niPIC)), static_cast<unsigned long long>(1));
+        reloadParticlesDataElectron[indexForReload].numAndIndex = max(static_cast<unsigned long long>(round(nePIC)), static_cast<unsigned long long>(1));
         reloadParticlesDataIon     [indexForReload].u              = uPIC;
         reloadParticlesDataIon     [indexForReload].v              = vPIC;
         reloadParticlesDataIon     [indexForReload].w              = wPIC;
@@ -340,6 +340,15 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         reloadParticlesDataElectron[indexForReload].w              = wPIC - jZPIC / max(round(nePIC), 1.0) / abs(qElectron);
         reloadParticlesDataIon     [indexForReload].vth            = vThiPIC;
         reloadParticlesDataElectron[indexForReload].vth            = vThePIC;
+
+        if (j == 1) {
+            reloadParticlesDataIon[indexForReload - 1]      = reloadParticlesDataIon[indexForReload];
+            reloadParticlesDataElectron[indexForReload - 1] = reloadParticlesDataElectron[indexForReload];
+        }
+        if (j == interfaceSizeY - 2) {
+            reloadParticlesDataIon[indexForReload + 1]      = reloadParticlesDataIon[indexForReload];
+            reloadParticlesDataElectron[indexForReload + 1] = reloadParticlesDataElectron[indexForReload];
+        }
     }
 }
 
@@ -348,12 +357,12 @@ __global__ void deleteParticles_kernel(
     const double* interlockingFunctionY, 
     Particle* particlesSpecies, 
     const int indexOfInterfaceStartInPIC, 
-    int interfaceLength, 
     const unsigned long long existNumSpecies, 
     int step, 
     const float xminForProcs, const float xmaxForProcs, 
     const float yminForProcs, const float ymaxForProcs, 
-    const int buffer
+    const int buffer, 
+    int interfaceSizeX, int interfaceSizeY
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -364,7 +373,7 @@ __global__ void deleteParticles_kernel(
         float deleteXMin = xminForProcs - buffer * PIC2DConst::device_dx;
         float deleteXMax = xmaxForProcs + buffer * PIC2DConst::device_dx;
         float deleteYMin = (indexOfInterfaceStartInPIC - buffer) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
-        float deleteYMax = (indexOfInterfaceStartInPIC - buffer + interfaceLength) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
+        float deleteYMax = (indexOfInterfaceStartInPIC - buffer + interfaceSizeY) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) {
             int j = floor(y) - deleteYMin;
@@ -393,12 +402,12 @@ void Interface2D::deleteParticles(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(particlesIon.data()),
         indexOfInterfaceStartInPIC, 
-        interfaceLength, 
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
-        mPIInfoPIC.buffer
+        mPIInfoPIC.buffer, 
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 
@@ -409,12 +418,12 @@ void Interface2D::deleteParticles(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(particlesElectron.data()),
         indexOfInterfaceStartInPIC, 
-        interfaceLength, 
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
-        mPIInfoPIC.buffer
+        mPIInfoPIC.buffer, 
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 
@@ -443,7 +452,6 @@ __global__ void reloadParticles_kernel(
     Particle* particlesSpecies, 
     unsigned long long restartParticlesIndexSpecies, 
     int indexOfInterfaceStartInPIC, 
-    int interfaceLength, 
     unsigned long long existNumSpecies, 
     int step, 
     const float xminForProcs, const float xmaxForProcs, 
@@ -456,8 +464,8 @@ __global__ void reloadParticles_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
-        int index = j + i * interfaceLength;
+    if (i < interfaceSizeX && j < interfaceSizeY) {
+        int index = j + i * interfaceSizeY; 
         double u = reloadParticlesDataSpecies[index].u;
         double v = reloadParticlesDataSpecies[index].v;
         double w = reloadParticlesDataSpecies[index].w;
@@ -465,7 +473,7 @@ __global__ void reloadParticles_kernel(
         Particle particleSource, particleReload;
         double x, y, z, vx, vy, vz, gamma;
 
-        for (unsigned long long k = reloadParticlesDataSpecies[index].numberAndIndex; k < reloadParticlesDataSpecies[index + 1].numberAndIndex; k++) {
+        for (unsigned long long k = reloadParticlesDataSpecies[index].numAndIndex; k < reloadParticlesDataSpecies[index + 1].numAndIndex; k++) {
             curandState state; 
             curand_init(step, k, 0, &state);
             double randomValue = curand_uniform_double(&state);
@@ -529,8 +537,8 @@ void Interface2D::sendMHDtoPIC_particle(
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((interfaceSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_particle_yDirection_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -547,28 +555,28 @@ void Interface2D::sendMHDtoPIC_particle(
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
     
     deleteParticles(particlesIon, particlesElectron, step);
 
+    //sendrecv
+    Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataIon, mPIInfoInterface);
+    Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataElectron, mPIInfoInterface);
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
     host_reloadParticlesDataElectron = reloadParticlesDataElectron;
-
-    for (int i = 0; i < mPIInfoPIC.localNx; i++) {
-        for (int j = 0; j < interfaceLength; j++) {
+    for (int i = 0; i < mPIInfoInterface.localSizeX; i++) {
+        for (int j = 0; j < mPIInfoInterface.localSizeY; j++) {
             int index;
-            index = j + i * interfaceLength;
-            host_reloadParticlesDataIon[index + 1].numberAndIndex += host_reloadParticlesDataIon[index].numberAndIndex;
-            host_reloadParticlesDataElectron[index + 1].numberAndIndex += host_reloadParticlesDataElectron[index].numberAndIndex;
+            index = j + i * mPIInfoInterface.localSizeY;
+            host_reloadParticlesDataIon[index + 1].numAndIndex += host_reloadParticlesDataIon[index].numAndIndex;
+            host_reloadParticlesDataElectron[index + 1].numAndIndex += host_reloadParticlesDataElectron[index].numAndIndex;
         }
     }
-
     reloadParticlesDataIon = host_reloadParticlesDataIon;
     reloadParticlesDataElectron = host_reloadParticlesDataElectron;
-
 
     std::mt19937 genIon(step), genElectron(step + 1);
     std::uniform_int_distribution<unsigned long long> distIon(0, Interface2DConst::reloadParticlesTotalNum);
@@ -584,14 +592,13 @@ void Interface2D::sendMHDtoPIC_particle(
         thrust::raw_pointer_cast(particlesIon.data()), 
         restartParticlesIndexIon, 
         indexOfInterfaceStartInPIC, 
-        interfaceLength, 
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 
@@ -603,14 +610,13 @@ void Interface2D::sendMHDtoPIC_particle(
         thrust::raw_pointer_cast(particlesElectron.data()), 
         restartParticlesIndexElectron, 
         indexOfInterfaceStartInPIC, 
-        interfaceLength, 
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.localNx, mPIInfoPIC.localNy, mPIInfoPIC.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        interfaceSizeX, interfaceSizeY
+        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
 
