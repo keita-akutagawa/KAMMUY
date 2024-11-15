@@ -483,7 +483,7 @@ __global__ void reloadParticles_kernel(
                     static_cast<unsigned long long>((restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies)
                 ];
 
-                x = particleSource.x; x += i * PIC2DConst::device_dx + xminForProcs;
+                x = particleSource.x; x += i * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC - buffer + j) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
                 z = particleSource.z;
                 vx = particleSource.vx; vx = u + vx * vth;
