@@ -261,7 +261,6 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     );
     cudaDeviceSynchronize();
 
-    //TODO
     ct.divBClean(bXOld, bYOld, U);
 
     IdealMHD2DMPI::sendrecv_U(U, mPIInfo);
@@ -291,7 +290,7 @@ void IdealMHD2D::save(
     std::ofstream ofs(filename, std::ios::binary);
     ofs << std::fixed << std::setprecision(6);
 
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
+    for (int i = mPIInfo.buffer; i < mPIInfo.localNx +  mPIInfo.buffer; i++) {
         for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rho),  sizeof(double));
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rhoU), sizeof(double));

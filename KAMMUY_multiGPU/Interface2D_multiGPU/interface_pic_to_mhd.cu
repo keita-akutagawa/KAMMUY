@@ -40,13 +40,14 @@ __global__ void sendPICtoMHD_kernel(
     int interfaceLength, 
     int localNxMHD, int localNyMHD, int buffer, 
     int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD, int localSizeYMHD, 
+    int interfaceSizeX, int interfaceSizeY
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localNxMHD && j < interfaceLength) {
+    if (0 < i && i < interfaceSizeX - 1 && 0 < y && y < interfaceSizeY - 1) {
         int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -138,8 +139,8 @@ void Interface2D::sendPICtoMHD(
 
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoMHD.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((interfaceSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (interfaceSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -155,7 +156,8 @@ void Interface2D::sendPICtoMHD(
         interfaceLength, 
         mPIInfoMHD.localNx, mPIInfoMHD.localNy, mPIInfoMHD.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
+        interfaceSizeX, interfaceSizeY
     );
     cudaDeviceSynchronize();
 

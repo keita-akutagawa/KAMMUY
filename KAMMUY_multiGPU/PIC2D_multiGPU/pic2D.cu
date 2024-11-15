@@ -102,14 +102,14 @@ void PIC2D::oneStep_periodicXFreeY(
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (mPIInfo.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
-    
+                       
 
     float mixingRatio = (totalSubstep - substep) / totalSubstep;
     thrust::device_vector<ConservationParameter>& USub_lower = interface2D_lower.calculateAndGetSubU(UPast_lower, UNext_lower, mixingRatio);
     thrust::device_vector<ConservationParameter>& USub_upper = interface2D_upper.calculateAndGetSubU(UPast_upper, UNext_upper, mixingRatio);
                        
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
-    PIC2DMPI::sendrecv_field(B, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
     
@@ -121,8 +121,8 @@ void PIC2D::oneStep_periodicXFreeY(
         mPIInfo.localSizeX, mPIInfo.localSizeY
     );
     cudaDeviceSynchronize();
-    PIC2DMPI::sendrecv_field(tmpB, mPIInfo);
-    PIC2DMPI::sendrecv_field(tmpE, mPIInfo);
+    PIC2DMPI::sendrecv_field(tmpB, mPIInfo, mPIInfo.mpi_fieldType);
+    PIC2DMPI::sendrecv_field(tmpE, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryB_x(tmpB);
     boundaryPIC.freeBoundaryB_y(tmpB);
     boundaryPIC.periodicBoundaryE_x(tmpE);
@@ -147,7 +147,7 @@ void PIC2D::oneStep_periodicXFreeY(
     currentCalculator.calculateCurrent(
         tmpCurrent, particlesIon, particlesElectron
     );
-    PIC2DMPI::sendrecv_field(tmpCurrent, mPIInfo);
+    PIC2DMPI::sendrecv_field(tmpCurrent, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
     boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
     getHalfCurrent_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -155,17 +155,21 @@ void PIC2D::oneStep_periodicXFreeY(
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         mPIInfo.localSizeX, mPIInfo.localSizeY
     );
-    PIC2DMPI::sendrecv_field(current, mPIInfo);
+    PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
 
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
-    PIC2DMPI::sendrecv_field(B, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
 
     fieldSolver.timeEvolutionE(E, B, current, PIC2DConst::dt);
-    PIC2DMPI::sendrecv_field(E, mPIInfo);
+    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, PIC2DConst::dt);
+    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
 
@@ -180,21 +184,28 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
+    //isLower = true, isUpper = false;
+    //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
+    //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);
+    //isLower = false, isUpper = true;
+    //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
+    //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);
 
     interface2D_lower.sendMHDtoPIC_magneticField_yDirection(USub_lower, B);
-    interface2D_lower.sendMHDtoPIC_electricField_yDirection(USub_lower, E);
-    interface2D_lower.sendMHDtoPIC_particle(USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep);
     interface2D_upper.sendMHDtoPIC_magneticField_yDirection(USub_upper, B);
-    interface2D_upper.sendMHDtoPIC_electricField_yDirection(USub_upper, E);
-    interface2D_upper.sendMHDtoPIC_particle(USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep);
-
-    PIC2DMPI::sendrecv_field(B, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
-    PIC2DMPI::sendrecv_field(E, mPIInfo);
+    
+    interface2D_lower.sendMHDtoPIC_electricField_yDirection(USub_lower, E);
+    interface2D_upper.sendMHDtoPIC_electricField_yDirection(USub_upper, E);
+    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.freeBoundaryE_y(E);
-}
+    boundaryPIC.freeBoundaryE_y(E);    
+
+    interface2D_lower.sendMHDtoPIC_particle(USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep);
+    interface2D_upper.sendMHDtoPIC_particle(USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep);
+}   
 
 
 void PIC2D::saveFields(

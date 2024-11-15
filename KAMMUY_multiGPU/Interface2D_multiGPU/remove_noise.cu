@@ -49,7 +49,6 @@ __global__ void copyFields_kernel(
     int windowSize, 
     int nxInterface, int nyInterface, 
     int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD, 
     bool isLower, bool isUpper
 )
 {
@@ -81,7 +80,6 @@ __global__ void convolveFields_kernel(
     int windowSize, 
     int nxInterface, int nyInterface, 
     int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD, 
     bool isLower, bool isUpper
 )
 {
@@ -148,7 +146,6 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -161,7 +158,6 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -176,7 +172,6 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -189,7 +184,6 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -215,7 +209,6 @@ void InterfaceNoiseRemover2D::convolve_electricField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -228,7 +221,6 @@ void InterfaceNoiseRemover2D::convolve_electricField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -243,7 +235,6 @@ void InterfaceNoiseRemover2D::convolve_electricField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -256,7 +247,6 @@ void InterfaceNoiseRemover2D::convolve_electricField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -282,7 +272,6 @@ void InterfaceNoiseRemover2D::convolve_currentField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -295,7 +284,6 @@ void InterfaceNoiseRemover2D::convolve_currentField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -310,7 +298,6 @@ void InterfaceNoiseRemover2D::convolve_currentField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -323,7 +310,6 @@ void InterfaceNoiseRemover2D::convolve_currentField(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -352,7 +338,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -365,7 +350,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -378,7 +362,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -391,7 +374,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -404,7 +386,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -417,7 +398,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -430,7 +410,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -443,7 +422,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -458,7 +436,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -471,7 +448,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -484,7 +460,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -497,7 +472,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -510,7 +484,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -523,7 +496,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -536,7 +508,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -549,7 +520,6 @@ void InterfaceNoiseRemover2D::convolveMoments(
             windowSize, 
             nxInterface, nyInterface, 
             mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
         cudaDeviceSynchronize();
@@ -565,7 +535,6 @@ __global__ void copyU_kernel(
     int interfaceLength, 
     int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD, 
     bool isLower, bool isUpper
 )
@@ -596,7 +565,6 @@ __global__ void convolveU_kernel(
     int interfaceLength, 
     int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD, 
     bool isLower, bool isUpper
 )
@@ -663,7 +631,6 @@ void InterfaceNoiseRemover2D::convolveU(
             interfaceLength, 
             windowSize, 
             nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
             mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
@@ -676,7 +643,6 @@ void InterfaceNoiseRemover2D::convolveU(
             interfaceLength, 
             windowSize, 
             nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
             mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
@@ -691,7 +657,6 @@ void InterfaceNoiseRemover2D::convolveU(
             interfaceLength, 
             windowSize, 
             nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
             mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );
@@ -704,7 +669,6 @@ void InterfaceNoiseRemover2D::convolveU(
             interfaceLength, 
             windowSize, 
             nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
             mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
             isLower, isUpper
         );

@@ -93,6 +93,16 @@ __global__ void freeBoundaryForInitialize_y_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
+        //delete particles which are added by periodicBoundaryForInitialize_y()
+        if (particlesSpecies[i].y <= PIC2DConst::device_ymin) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+        if (particlesSpecies[i].y >= PIC2DConst::device_ymax) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+
         if (PIC2DConst::device_ymin < particlesSpecies[i].y && particlesSpecies[i].y < PIC2DConst::device_ymin + PIC2DConst::device_dy) {
             unsigned long long particleIndex = atomicAdd(&(countForAddParticlesSpeciesDown[0]), buffer);
             Particle addParticle = particlesSpecies[i];
@@ -160,6 +170,14 @@ void BoundaryPIC::freeBoundaryForInitializeParticleOfOneSpecies_y(
         particlesSpecies[existNumSpecies + i] = addParticlesSpeciesUp[i];
     }
     existNumSpecies += numForAddParticlesSpeciesUp;
+
+    //Remove dead particles
+    auto partitionEnd = thrust::partition(
+        particlesSpecies.begin(), particlesSpecies.end(), 
+        [] __device__ (const Particle& p) { return p.isExist; }
+    );
+
+    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 }
 
 

@@ -36,7 +36,7 @@ __global__ void initializeReloadParticlesSource_kernel(
             vy = curand_normal(&stateVy);
             vz = curand_normal(&stateVz);
 
-            if (vx * vx + vy * vy + vz * vz < PIC2DConst::device_c * PIC2DConst::device_c) break;
+            if (vx * vx + vy * vy + vz * vz < 1.0f * 1.0f) break;
         }
 
         reloadParticlesSourceSpecies[i].x  = x;
@@ -52,9 +52,10 @@ Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
     PIC2DMPI::MPIInfo& mPIInfoPIC, 
     bool isLower, bool isUpper, 
-    int indexStartMHD, 
-    int indexStartPIC, 
-    int length, 
+    int interfaceSizeX, int interfaceSizeY, 
+    int indexOfInterfaceStartMHD, 
+    int indexOfInterfaceStartPIC, 
+    int interfaceLength, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     thrust::host_vector<double>& host_interlockingFunctionYHalf, 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D
@@ -65,11 +66,14 @@ Interface2D::Interface2D(
       isLower(isLower), 
       isUpper(isUpper), 
 
-      indexOfInterfaceStartInMHD(indexStartMHD), 
-      indexOfInterfaceStartInPIC(indexStartPIC), 
-      interfaceLength(length), 
-      indexOfInterfaceEndInMHD(indexStartMHD + length), 
-      indexOfInterfaceEndInPIC(indexStartPIC + length), 
+      interfaceSizeX(interfaceSizeX), 
+      interfaceSizeY(interfaceSizeY), 
+
+      indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
+      indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC), 
+      interfaceLength(interfaceLength), 
+      indexOfInterfaceEndInMHD(indexOfInterfaceStartMHD + interfaceLength), 
+      indexOfInterfaceEndInPIC(indexOfInterfaceStartPIC + interfaceLength), 
 
       interlockingFunctionY    (interfaceLength, 0.0), 
       interlockingFunctionYHalf(interfaceLength, 0.0),
@@ -85,10 +89,10 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon            (mPIInfoPIC.localNx * interfaceLength + 1), 
-      reloadParticlesDataElectron       (mPIInfoPIC.localNx * interfaceLength + 1), 
-      host_reloadParticlesDataIon       (mPIInfoPIC.localNx * interfaceLength + 1), 
-      host_reloadParticlesDataElectron  (mPIInfoPIC.localNx * interfaceLength + 1), 
+      reloadParticlesDataIon            (interfaceSizeX * interfaceSizeY + 1), 
+      reloadParticlesDataElectron       (interfaceSizeX * interfaceSizeY + 1), 
+      host_reloadParticlesDataIon       (interfaceSizeX * interfaceSizeY + 1), 
+      host_reloadParticlesDataElectron  (interfaceSizeX * interfaceSizeY + 1), 
 
       B_timeAve                   (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
       zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 

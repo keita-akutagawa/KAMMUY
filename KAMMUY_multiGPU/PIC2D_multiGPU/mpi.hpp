@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include "const.hpp"
 #include "field_parameter_struct.hpp"
+#include "moment_struct.hpp" 
 #include "particle_struct.hpp"
 
 
@@ -71,8 +72,10 @@ namespace PIC2DMPI
         unsigned int numForRecvParticlesElectronDown = 0;
         unsigned int numForRecvParticlesElectronUp = 0;
 
-        MPI_Datatype mpi_particle_type;
-        MPI_Datatype mpi_field_type;
+        MPI_Datatype mpi_particleType;
+        MPI_Datatype mpi_fieldType;
+        MPI_Datatype mpi_zerothMomentType;
+        MPI_Datatype mpi_firstMomentType;
 
 
         __host__ __device__
@@ -90,7 +93,7 @@ namespace PIC2DMPI
 
 
     template <typename FieldType>
-    void sendrecv_field_x(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo)
+    void sendrecv_field_x(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo, MPI_Datatype mpi_dataType)
     {
         int localNx = mPIInfo.localNx;
         int localNy = mPIInfo.localNy;
@@ -111,11 +114,11 @@ namespace PIC2DMPI
             }
         }
 
-        MPI_Sendrecv(sendFieldLeft.data(),  sendFieldLeft.size(),  mPIInfo.mpi_field_type, left,  0, 
-                    recvFieldRight.data(), recvFieldRight.size(), mPIInfo.mpi_field_type, right, 0, 
+        MPI_Sendrecv(sendFieldLeft.data(),  sendFieldLeft.size(),  mpi_dataType, left,  0, 
+                    recvFieldRight.data(), recvFieldRight.size(), mpi_dataType, right, 0, 
                     MPI_COMM_WORLD, &st);
-        MPI_Sendrecv(sendFieldRight.data(), sendFieldRight.size(), mPIInfo.mpi_field_type, right, 0, 
-                    recvFieldLeft.data(),  recvFieldLeft.size(),  mPIInfo.mpi_field_type, left,  0, 
+        MPI_Sendrecv(sendFieldRight.data(), sendFieldRight.size(), mpi_dataType, right, 0, 
+                    recvFieldLeft.data(),  recvFieldLeft.size(),  mpi_dataType, left,  0, 
                     MPI_COMM_WORLD, &st);
 
         for (int i = 0; i < mPIInfo.buffer; i++) {
@@ -128,7 +131,7 @@ namespace PIC2DMPI
 
 
     template <typename FieldType>
-    void sendrecv_field_y(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo)
+    void sendrecv_field_y(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo, MPI_Datatype mpi_dataType)
     {
         //int localNx = mPIInfo.localNx;
         int localNy = mPIInfo.localNy;
@@ -149,11 +152,11 @@ namespace PIC2DMPI
             }
         }
 
-        MPI_Sendrecv(sendFieldDown.data(), sendFieldDown.size(), mPIInfo.mpi_field_type, down, 0, 
-                    recvFieldUp.data(),   recvFieldUp.size(),   mPIInfo.mpi_field_type, up,   0, 
+        MPI_Sendrecv(sendFieldDown.data(), sendFieldDown.size(), mPIInfo.mpi_fieldType, down, 0, 
+                    recvFieldUp.data(),   recvFieldUp.size(),   mPIInfo.mpi_fieldType, up,   0, 
                     MPI_COMM_WORLD, &st);
-        MPI_Sendrecv(sendFieldUp.data(),   sendFieldUp.size(),   mPIInfo.mpi_field_type, up,   0, 
-                    recvFieldDown.data(), recvFieldDown.size(), mPIInfo.mpi_field_type, down, 0, 
+        MPI_Sendrecv(sendFieldUp.data(),   sendFieldUp.size(),   mPIInfo.mpi_fieldType, up,   0, 
+                    recvFieldDown.data(), recvFieldDown.size(), mPIInfo.mpi_fieldType, down, 0, 
                     MPI_COMM_WORLD, &st);
 
         for (int i = 0; i < localSizeX; i++) {
@@ -166,10 +169,10 @@ namespace PIC2DMPI
 
 
     template <typename FieldType>
-    void sendrecv_field(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo)
+    void sendrecv_field(thrust::device_vector<FieldType>& field, MPIInfo& mPIInfo, MPI_Datatype mpi_dataType)
     {
-        sendrecv_field_x(field, mPIInfo);
-        sendrecv_field_y(field, mPIInfo);
+        sendrecv_field_x(field, mPIInfo, mpi_dataType);
+        sendrecv_field_y(field, mPIInfo, mpi_dataType);
     }
 
 

@@ -83,6 +83,32 @@ void Interface2D::resetTimeAveParameters()
 }
 
 
+void Interface2D::setMoments(
+    const thrust::device_vector<Particle>& particlesIon, 
+    const thrust::device_vector<Particle>& particlesElectron
+)
+{
+    momentCalculater.calculateZerothMomentOfOneSpecies(
+        zerothMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
+    );
+    momentCalculater.calculateZerothMomentOfOneSpecies(
+        zerothMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
+    );
+
+    momentCalculater.calculateFirstMomentOfOneSpecies(
+        firstMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
+    );
+    momentCalculater.calculateFirstMomentOfOneSpecies(
+        firstMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
+    );
+
+    PIC2DMPI::sendrecv_field_x(zerothMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+}
+
+
 void Interface2D::sumUpTimeAveParameters(
     const thrust::device_vector<MagneticField>& B, 
     const thrust::device_vector<Particle>& particlesIon, 
@@ -95,6 +121,7 @@ void Interface2D::sumUpTimeAveParameters(
     );
     
     setMoments(particlesIon, particlesElectron);
+
     thrust::transform(
         zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
         zerothMomentIon_timeAve.begin(), thrust::plus<ZerothMoment>()

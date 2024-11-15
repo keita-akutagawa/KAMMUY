@@ -78,8 +78,8 @@ void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY)
         MPI_C_BOOL, MPI_C_BOOL, MPI_C_BOOL, MPI_C_BOOL
     };
 
-    MPI_Type_create_struct(12, block_lengths_particle, offsets_particle, types_particle, &mPIInfo.mpi_particle_type);
-    MPI_Type_commit(&mPIInfo.mpi_particle_type);
+    MPI_Type_create_struct(12, block_lengths_particle, offsets_particle, types_particle, &mPIInfo.mpi_particleType);
+    MPI_Type_commit(&mPIInfo.mpi_particleType);
 
     // MagneticField, ElectricField, CurrentField共通
     int block_lengths_field[3] = {1, 1, 1};
@@ -88,8 +88,24 @@ void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY)
     offsets_field[1] = offsetof(MagneticField, bY);
     offsets_field[2] = offsetof(MagneticField, bZ);
     MPI_Datatype types_field[3] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT};
-    MPI_Type_create_struct(3, block_lengths_field, offsets_field, types_field, &mPIInfo.mpi_field_type);
-    MPI_Type_commit(&mPIInfo.mpi_field_type);
+    MPI_Type_create_struct(3, block_lengths_field, offsets_field, types_field, &mPIInfo.mpi_fieldType);
+    MPI_Type_commit(&mPIInfo.mpi_fieldType);
+
+    int block_lengths_zerothMoment[1] = {1};
+    MPI_Aint offsets_zerothMoment[1];
+    offsets_zerothMoment[0] = offsetof(ZerothMoment, n);
+    MPI_Datatype types_zerothMoment[1] = {MPI_FLOAT};
+    MPI_Type_create_struct(1, block_lengths_zerothMoment, offsets_zerothMoment, types_zerothMoment, &mPIInfo.mpi_zerothMomentType);
+    MPI_Type_commit(&mPIInfo.mpi_zerothMomentType);
+
+    int block_lengths_firstMoment[3] = {1, 1, 1};
+    MPI_Aint offsets_firstMoment[3];
+    offsets_firstMoment[0] = offsetof(FirstMoment, x);
+    offsets_firstMoment[1] = offsetof(FirstMoment, y);
+    offsets_firstMoment[2] = offsetof(FirstMoment, z);
+    MPI_Datatype types_firstMoment[3] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT};
+    MPI_Type_create_struct(3, block_lengths_firstMoment, offsets_firstMoment, types_firstMoment, &mPIInfo.mpi_firstMomentType);
+    MPI_Type_commit(&mPIInfo.mpi_firstMomentType);
 }
 
 
@@ -98,6 +114,7 @@ void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY)
 // sendrecv(field用)はヘッダーファイルにある。
 // templeteを使用したため
 
+//////////////////////////////////////////////////
 
 void PIC2DMPI::sendrecv_numParticle_x(
     const unsigned int& numForSendParticlesSpeciesLeft, 
@@ -179,11 +196,11 @@ void PIC2DMPI::sendrecv_particle_x(
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendbufLeft.data()), 
         sendbufLeft.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         left, 0, 
         thrust::raw_pointer_cast(recvbufRight.data()), 
         recvbufRight.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         right, 0, 
         MPI_COMM_WORLD, &st
     );
@@ -191,11 +208,11 @@ void PIC2DMPI::sendrecv_particle_x(
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendbufRight.data()), 
         sendbufRight.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         right, 0, 
         thrust::raw_pointer_cast(recvbufLeft.data()),
         recvbufLeft.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         left, 0, 
         MPI_COMM_WORLD, &st
     );
@@ -359,11 +376,11 @@ void PIC2DMPI::sendrecv_particle_y(
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendbufDown.data()), 
         sendbufDown.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         down, 0, 
         thrust::raw_pointer_cast(recvbufUp.data()), 
         recvbufUp.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         up, 0, 
         MPI_COMM_WORLD, &st
     );
@@ -371,11 +388,11 @@ void PIC2DMPI::sendrecv_particle_y(
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendbufUp.data()), 
         sendbufUp.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         up, 0, 
         thrust::raw_pointer_cast(recvbufDown.data()),
         recvbufDown.size(), 
-        mPIInfo.mpi_particle_type, 
+        mPIInfo.mpi_particleType, 
         down, 0, 
         MPI_COMM_WORLD, &st
     );

@@ -37,6 +37,9 @@ private:
     bool isLower; 
     bool isUpper; 
 
+    int interfaceSizeX; 
+    int interfaceSizeY; 
+
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
     int interfaceLength; 
@@ -80,8 +83,9 @@ public:
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
         bool isLower, bool isUpper, 
-        int indexStartMHD, 
-        int indexStartPIC, 
+        int interfaceSizeX, int interfaceSizeY, 
+        int indexOfInterfaceStartMHD, 
+        int indexOfInterfaceStartPIC, 
         int interfaceLength, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
         thrust::host_vector<double>& host_interlockingFunctionYHalf, 

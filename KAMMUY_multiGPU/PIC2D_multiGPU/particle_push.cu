@@ -291,19 +291,19 @@ void pushPositionOfOneSpecies_kernel(
         float boundaryDeleteDown  = yminForProcs - buffer * PIC2DConst::device_dy + PIC2DConst::device_EPS; 
         float boundaryDeleteUp    = ymaxForProcs + buffer * PIC2DConst::device_dy - PIC2DConst::device_EPS;
 
-        if (x < boundaryDeleteLeft) {
+        if (x <= boundaryDeleteLeft) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (x > boundaryDeleteRight) {
+        if (x >= boundaryDeleteRight) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (y < boundaryDeleteDown) {
+        if (y <= boundaryDeleteDown) {
             particlesSpecies[i].isExist = false;
             return;
         }
-        if (y > boundaryDeleteUp) {
+        if (y >= boundaryDeleteUp) {
             particlesSpecies[i].isExist = false;
             return;
         }
