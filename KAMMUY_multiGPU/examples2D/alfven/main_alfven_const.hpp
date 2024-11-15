@@ -18,16 +18,17 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryname = "";
+std::string directoryName = "/work/gh76/i16144/KAMMUY_multiGPU/examples2D/alfven/results_alfven";
 std::string filenameWithoutStep = "alfven";
-std::ofstream logfile(    directoryname + "/log_alfven.txt"       );
-std::ofstream mpifile_MHD(directoryname + "/mpilog_mhd_alfven.txt");
-std::ofstream mpifile_PIC(directoryname + "/mpilog_pic_alfven.txt");
+std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
+std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
+std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_alfven.txt");
+std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 
-const int buffer = 5; 
+const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 20;
+const int IdealMHD2DConst::totalStep = 100;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -36,10 +37,10 @@ const int particleRecordStep = PIC2DConst::totalStep;
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const double Interface2DConst::EPS = 1.0e-10;
+const double Interface2DConst::EPS = 1.0e-20;
 const double Interface2DConst::PI = 3.14159265358979;
-const float PIC2DConst::EPS = 0.0001f;
-const double IdealMHD2DConst::EPS = 1.0e-10;
+const float PIC2DConst::EPS = 1.0e-10f;
+const double IdealMHD2DConst::EPS = 1.0e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
 const double waveAmp = 0.1;
@@ -48,35 +49,38 @@ const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
 const int PIC2DConst::nx = 20;
 const float PIC2DConst::dx = 1.0f;
-const float PIC2DConst::xmin = 0.0f * dx + PIC2DConst::EPS; 
-const float PIC2DConst::xmax = nx * dx - 0.0f * dx - PIC2DConst::EPS;
+const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
+const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx - 0.0f * PIC2DConst::dx;
 
 const int PIC2DConst::ny = 1000;
 const float PIC2DConst::dy = 1.0f;
-const float PIC2DConst::ymin = 0.0f * dy + PIC2DConst::EPS; 
-const float PIC2DConst::ymax = ny * dy - 0.0f * dy - PIC2DConst::EPS;
+const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
+const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy - 0.0f * PIC2DConst::dy;
 
 
 const int IdealMHD2DConst::nx = PIC2DConst::nx;
 const double IdealMHD2DConst::dx = 1.0;
-const double IdealMHD2DConst::xmin = 0.0 * dx + IdealMHD2DConst::EPS;
-const double IdealMHD2DConst::xmax = nx * dx - 0.0 * dx - IdealMHD2DConst::EPS;
+const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
+const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx - 0.0 * IdealMHD2DConst::dx;
 
 const int IdealMHD2DConst::ny = 9550;
 const double IdealMHD2DConst::dy = 1.0;
-const double IdealMHD2DConst::ymin = 0.0 * dy + IdealMHD2DConst::EPS;
-const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy - IdealMHD2DConst::EPS;
+const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
+const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy - 0.0 * IdealMHD2DConst::dy;
 
 
 // Interface
 
-const int Interface2DConst::windowSizeForConvolution = 2;
+const int Interface2DConst::windowSizeForConvolution = 5;
 
-const int Interface2DConst::interfaceLength = 50;
+const int Interface2DConst::interfaceLength = 20;
 const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
 const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
 const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
+
+const int Interface2DConst::nx = PIC2DConst::nx;
+const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
 thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::interfaceLength, 0.0);
@@ -237,5 +241,8 @@ __constant__ double Interface2DConst::device_PI;
 
 __constant__ int Interface2DConst::device_windowSizeForConvolution;
 __constant__ int Interface2DConst::device_interfaceLength;
+
+__constant__ int Interface2DConst::device_nx; 
+__constant__ int Interface2DConst::device_ny;  
 
 __constant__ unsigned long long Interface2DConst::device_reloadParticlesTotalNum;

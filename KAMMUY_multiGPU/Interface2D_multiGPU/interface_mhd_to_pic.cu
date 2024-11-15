@@ -23,8 +23,8 @@ __global__ void sendMHDtoPIC_magneticField_yDirection_kernel(
         double bXMHD, bYMHD, bZMHD;
         double bXInterface, bYInterface, bZInterface;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
 
         //PICのグリッドにMHDを合わせる
         bXPIC = B[indexPIC].bX;
@@ -96,8 +96,8 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         double bXMHD, bYMHD, bZMHD;
         double eXInterface, eYInterface, eZInterface;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
 
         //PICのグリッドにMHDを合わせる
         eXPIC = E[indexPIC].eX;
@@ -195,8 +195,8 @@ __global__ void sendMHDtoPIC_currentField_yDirection_kernel(
         double jXInterface, jYInterface, jZInterface;
         double dx = IdealMHD2DConst::device_dx, dy = IdealMHD2DConst::device_dy;
 
-        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
 
         //PICのグリッドにMHDを合わせる
         jXPIC = current[indexPIC].jX;
@@ -272,8 +272,8 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
 
     if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
         int indexForReload = j + i * interfaceSizeY;  
-        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double jXMHD, jYMHD, jZMHD, niMHD, neMHD, tiMHD, teMHD;
         double rhoPIC, uPIC, vPIC, wPIC;
@@ -558,12 +558,10 @@ void Interface2D::sendMHDtoPIC_particle(
         mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
     cudaDeviceSynchronize();
-    
-    deleteParticles(particlesIon, particlesElectron, step);
-
-    //sendrecv
     Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataIon, mPIInfoInterface);
     Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataElectron, mPIInfoInterface);
+    
+    deleteParticles(particlesIon, particlesElectron, step);
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
     host_reloadParticlesDataElectron = reloadParticlesDataElectron;

@@ -48,8 +48,8 @@ __global__ void sendPICtoMHD_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
-        int indexPIC = indexOfInterfaceStartInPIC + j + (i + buffer) * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + (i + buffer) * localSizeYMHD;
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double bXCenterMHD, bYCenterMHD;
         double rhoPIC, uPIC, vPIC, wPIC, bXPIC, bYPIC, bZPIC;

@@ -224,9 +224,9 @@ void PIC2D::initialize()
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    PIC2DMPI::sendrecv_field(B, mPIInfo);
-    PIC2DMPI::sendrecv_field(E, mPIInfo);
-    PIC2DMPI::sendrecv_field(current, mPIInfo);
+    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
+    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
+    PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
 
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
@@ -258,6 +258,8 @@ int main(int argc, char** argv)
     PIC2DMPI::setupInfo(mPIInfoPIC, buffer, gridX, gridY);
     IdealMHD2DMPI::MPIInfo mPIInfoMHD;
     IdealMHD2DMPI::setupInfo(mPIInfoMHD, buffer, gridX, gridY);
+    Interface2DMPI::MPIInfo mPIInfoInterface; 
+    Interface2DMPI::setupInfo(mPIInfoInterface, buffer, gridX, gridY); 
 
     if (mPIInfoPIC.rank == 0) {
         std::cout   << mPIInfoPIC.gridX << "," << mPIInfoPIC.gridY << std::endl;
@@ -266,6 +268,10 @@ int main(int argc, char** argv)
     if (mPIInfoMHD.rank == 0) {
         std::cout   << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
         mpifile_MHD << mPIInfoMHD.gridX << "," << mPIInfoMHD.gridY << std::endl;
+    }
+    if (mPIInfoInterface.rank == 0) {
+        std::cout   << mPIInfoInterface.gridX << "," << mPIInfoInterface.gridY << std::endl;
+        mpifile_Interface << mPIInfoInterface.gridX << "," << mPIInfoInterface.gridY << std::endl;
     }
 
     cudaSetDevice(mPIInfoPIC.rank);
@@ -277,10 +283,10 @@ int main(int argc, char** argv)
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
     mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
-                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer)
+                                   + PIC2DConst::numberDensityIon * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
                                    + Interface2DConst::reloadParticlesTotalNum;
     mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs
-                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer)
+                                        + PIC2DConst::numberDensityElectron * (mPIInfoPIC.localSizeX + mPIInfoPIC.localSizeY) * (2 * mPIInfoPIC.buffer + 10)
                                         + Interface2DConst::reloadParticlesTotalNum;
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX * mPIInfoPIC.localGridX;
@@ -309,7 +315,6 @@ int main(int argc, char** argv)
         );
     }
 
-    
     const int nxInterfaceForConvolution = mPIInfoPIC.localSizeX;
     const int nyInterfaceForConvolution = Interface2DConst::interfaceLength + 5 * Interface2DConst::windowSizeForConvolution;
 
@@ -329,7 +334,7 @@ int main(int argc, char** argv)
     bool isLower, isUpper;
     isLower = true, isUpper = false; 
     Interface2D interface2D_lower(
-        mPIInfoMHD, mPIInfoPIC, 
+        mPIInfoMHD, mPIInfoPIC, mPIInfoInterface, 
         isLower, isUpper, 
         indexOfInterfaceStartInMHD_lower, 
         indexOfInterfaceStartInPIC_lower, 
@@ -340,7 +345,7 @@ int main(int argc, char** argv)
     );
     isLower = false, isUpper = true; 
     Interface2D interface2D_upper(
-        mPIInfoMHD, mPIInfoPIC, 
+        mPIInfoMHD, mPIInfoPIC, mPIInfoInterface, 
         isLower, isUpper, 
         indexOfInterfaceStartInMHD_upper, 
         indexOfInterfaceStartInPIC_upper, 
@@ -391,25 +396,25 @@ int main(int argc, char** argv)
         if (step % recordStep == 0) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;
             pIC2D.saveFields(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             pIC2D.saveZerothMoments(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             pIC2D.saveFirstMoments(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_U_lower", step
+                directoryName, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_U_upper", step
+                directoryName, filenameWithoutStep + "_U_upper", step
             );
         }
         
         if (isParticleRecord && step % particleRecordStep == 0) {
             pIC2D.saveParticle(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
         }
 
@@ -497,19 +502,19 @@ int main(int argc, char** argv)
         if (idealMHD2D_lower.checkCalculationIsCrashed() || idealMHD2D_upper.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;
             pIC2D.saveFields(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             pIC2D.saveZerothMoments(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             pIC2D.saveFirstMoments(
-                directoryname, filenameWithoutStep, step
+                directoryName, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
-                directoryname, filenameWithoutStep + "_U_lower", step
+                directoryName, filenameWithoutStep + "_U_lower", step
             );
             idealMHD2D_upper.save(
-                directoryname, filenameWithoutStep + "_U_upper", step
+                directoryName, filenameWithoutStep + "_U_upper", step
             );
             std::cout << "Calculation stopped! : " << step << " steps" << std::endl;
             break;
