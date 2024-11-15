@@ -64,7 +64,7 @@ void Interface2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int grid
     offsets_reloadParticlesData[3] = offsetof(ReloadParticlesData, w);
     offsets_reloadParticlesData[4] = offsetof(ReloadParticlesData, vth);
     MPI_Datatype types_reloadParticlesData[5] = {MPI_UNSIGNED_LONG, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
-    MPI_Type_create_struct(3, block_lengths_reloadParticlesData, offsets_reloadParticlesData, types_reloadParticlesData, &mPIInfo.mpi_reloadParticlesDataType);
+    MPI_Type_create_struct(5, block_lengths_reloadParticlesData, offsets_reloadParticlesData, types_reloadParticlesData, &mPIInfo.mpi_reloadParticlesDataType);
     MPI_Type_commit(&mPIInfo.mpi_reloadParticlesDataType);
 }
 
