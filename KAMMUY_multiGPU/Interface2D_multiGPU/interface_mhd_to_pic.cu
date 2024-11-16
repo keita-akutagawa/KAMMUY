@@ -479,9 +479,7 @@ __global__ void reloadParticles_kernel(
             double randomValue = curand_uniform_double(&state);
 
             if (randomValue < interlockingFunctionY[j]) {
-                particleSource = reloadParticlesSpecies[
-                    static_cast<unsigned long long>((restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies)
-                ];
+                particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
                 x = particleSource.x; x += i * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC - buffer + j) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
@@ -500,9 +498,7 @@ __global__ void reloadParticles_kernel(
                 particleReload.gamma = gamma;
                 particleReload.isExist = true;
 
-                particlesSpecies[
-                    static_cast<unsigned long long>(existNumSpecies + k)
-                ] = particleReload;
+                particlesSpecies[existNumSpecies + k] = particleReload;
             } 
         }
     }
@@ -517,21 +513,11 @@ void Interface2D::sendMHDtoPIC_particle(
 {
     setMoments(particlesIon, particlesElectron); 
 
-    if (isLower) {
-        interfaceNoiseRemover2D.convolveMoments(
-            zerothMomentIon, zerothMomentElectron, 
-            firstMomentIon, firstMomentElectron, 
-            isLower, isUpper
-        );
-    }
-
-    if (isUpper) { 
-        interfaceNoiseRemover2D.convolveMoments(
-            zerothMomentIon, zerothMomentElectron, 
-            firstMomentIon, firstMomentElectron, 
-            isLower, isUpper
-        );
-    }
+    interfaceNoiseRemover2D.convolveMoments(
+        zerothMomentIon, zerothMomentElectron, 
+        firstMomentIon, firstMomentElectron, 
+        isLower, isUpper
+    );
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());

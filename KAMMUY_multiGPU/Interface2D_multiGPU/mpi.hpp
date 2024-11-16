@@ -34,7 +34,7 @@ namespace Interface2DMPI
     void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
 
     void sendrecv_reloadParticlesData_x(
-        thrust::device_vector<ReloadParticlesData> reloadParticlesDataSpecies, 
+        thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
         MPIInfo& mPIInfo
     );
 }

@@ -158,6 +158,11 @@ void PIC2D::oneStep_periodicXFreeY(
     PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
+    interface2D_lower.sendMHDtoPIC_currentField_yDirection(USub_lower, current);
+    interface2D_upper.sendMHDtoPIC_currentField_yDirection(USub_upper, current);
+    PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
+    boundaryPIC.periodicBoundaryCurrent_x(current);
+    boundaryPIC.freeBoundaryCurrent_y(current);
 
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
     PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);

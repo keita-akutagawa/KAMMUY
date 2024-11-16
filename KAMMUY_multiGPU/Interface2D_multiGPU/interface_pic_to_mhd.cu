@@ -159,8 +159,6 @@ void Interface2D::sendPICtoMHD(
         mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
         mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
-    cudaDeviceSynchronize();
-
 }
 
 

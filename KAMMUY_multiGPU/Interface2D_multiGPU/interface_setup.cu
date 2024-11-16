@@ -174,17 +174,6 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
-    bool isLower, isUpper;
-
-    isLower = true; isUpper = false;
-    interfaceNoiseRemover2D.convolve_magneticField(B_timeAve, isLower, isUpper);
-    interfaceNoiseRemover2D.convolveMoments(
-        zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
-        firstMomentIon_timeAve, firstMomentElectron_timeAve, 
-        isLower, isUpper
-    );
-
-    isLower = false; isUpper = true;
     interfaceNoiseRemover2D.convolve_magneticField(B_timeAve, isLower, isUpper);
     interfaceNoiseRemover2D.convolveMoments(
         zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 

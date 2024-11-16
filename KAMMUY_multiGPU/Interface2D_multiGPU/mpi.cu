@@ -69,8 +69,10 @@ void Interface2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int grid
 }
 
 
+// index differences are existed between this sendrecv and another (in PIC or MHD) sendrecv
+// because interface size = (nx + 2buffer) X ny( = interfaceLength)
 void Interface2DMPI::sendrecv_reloadParticlesData_x(
-    thrust::device_vector<ReloadParticlesData> reloadParticlesDataSpecies, 
+    thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
     MPIInfo& mPIInfo
 )
 {
@@ -88,8 +90,8 @@ void Interface2DMPI::sendrecv_reloadParticlesData_x(
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < localNy; j++) {
-            sendDataLeft[ j + i * localNy] = reloadParticlesDataSpecies[j + mPIInfo.buffer + (mPIInfo.buffer + i) * localSizeY];
-            sendDataRight[j + i * localNy] = reloadParticlesDataSpecies[j + mPIInfo.buffer + (localNx + i)        * localSizeY];
+            sendDataLeft[ j + i * localNy] = reloadParticlesDataSpecies[j + (mPIInfo.buffer + i) * localSizeY];
+            sendDataRight[j + i * localNy] = reloadParticlesDataSpecies[j + (localNx + i)        * localSizeY];
         }
     }
 
@@ -102,8 +104,8 @@ void Interface2DMPI::sendrecv_reloadParticlesData_x(
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < localNy; j++) {
-            reloadParticlesDataSpecies[j + mPIInfo.buffer + i                              * localSizeY] = recvDataLeft[ j + i * localNy];
-            reloadParticlesDataSpecies[j + mPIInfo.buffer + (localNx + mPIInfo.buffer + i) * localSizeY] = recvDataRight[j + i * localNy];
+            reloadParticlesDataSpecies[j + i                              * localSizeY] = recvDataLeft[ j + i * localNy];
+            reloadParticlesDataSpecies[j + (localNx + mPIInfo.buffer + i) * localSizeY] = recvDataRight[j + i * localNy];
         }
     }
 }

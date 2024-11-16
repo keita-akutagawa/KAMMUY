@@ -32,9 +32,9 @@ class Interface2D
 private:
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
     PIC2DMPI::MPIInfo& mPIInfoPIC;
+    Interface2DMPI::MPIInfo& mPIInfoInterface; 
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
-    Interface2DMPI::MPIInfo& mPIInfoInterface; 
     Interface2DMPI::MPIInfo* device_mPIInfoInterface; 
 
     bool isLower; 
