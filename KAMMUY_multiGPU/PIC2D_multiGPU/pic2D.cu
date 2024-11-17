@@ -189,6 +189,7 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
+    //bool isLower, isUpper; 
     //isLower = true, isUpper = false;
     //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
     //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);

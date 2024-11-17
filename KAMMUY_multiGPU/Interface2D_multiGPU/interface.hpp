@@ -37,8 +37,8 @@ private:
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
     Interface2DMPI::MPIInfo* device_mPIInfoInterface; 
 
-    bool isLower; 
-    bool isUpper; 
+    const bool isLower; 
+    const bool isUpper; 
 
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
@@ -75,7 +75,7 @@ private:
     thrust::device_vector<ConservationParameter> UHalf;
 
     MomentCalculater momentCalculater;
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D;
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D;
 
 
 public:

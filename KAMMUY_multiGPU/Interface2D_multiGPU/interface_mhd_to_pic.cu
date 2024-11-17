@@ -283,7 +283,7 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         double qIon = PIC2DConst::device_qIon, qElectron = PIC2DConst::device_qElectron;
 
         //整数格子点上で計算する。リロードに使う。
-        rhoMHD = max(U[indexMHD].rho, IdealMHD2DConst::device_EPS);
+        rhoMHD = max(U[indexMHD].rho, mIon * 1 + mElectron * 1);
         uMHD   = U[indexMHD].rhoU / (rhoMHD + IdealMHD2DConst::device_EPS);
         vMHD   = U[indexMHD].rhoV / (rhoMHD + IdealMHD2DConst::device_EPS);
         wMHD   = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS);
@@ -308,7 +308,7 @@ __global__ void sendMHDtoPIC_particle_yDirection_kernel(
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
 
-        rhoPIC =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * zerothMomentElectron[indexPIC].n, PIC2DConst::device_EPS);
+        rhoPIC =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * zerothMomentElectron[indexPIC].n, mIon * 1 + mElectron * 1);
         uPIC   = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS);
         vPIC   = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS);
         wPIC   = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS);
@@ -360,7 +360,6 @@ __global__ void deleteParticles_kernel(
     const unsigned long long existNumSpecies, 
     int step, 
     const float xminForProcs, const float xmaxForProcs, 
-    const float yminForProcs, const float ymaxForProcs, 
     const int buffer, 
     int interfaceSizeX, int interfaceSizeY
 )
@@ -376,7 +375,7 @@ __global__ void deleteParticles_kernel(
         float deleteYMax = (indexOfInterfaceStartInPIC - buffer + interfaceSizeY) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) {
-            int j = floor(y) - deleteYMin;
+            int j = floorf(y - deleteYMin);
             curandState state; 
             curand_init(step, i, 0, &state);
             double randomValue = curand_uniform_double(&state);
@@ -405,7 +404,6 @@ void Interface2D::deleteParticles(
         mPIInfoPIC.existNumIonPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
-        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.buffer, 
         mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
@@ -421,7 +419,6 @@ void Interface2D::deleteParticles(
         mPIInfoPIC.existNumElectronPerProcs, 
         step, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
-        mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
         mPIInfoPIC.buffer, 
         mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
     );
@@ -513,11 +510,18 @@ void Interface2D::sendMHDtoPIC_particle(
 {
     setMoments(particlesIon, particlesElectron); 
 
-    interfaceNoiseRemover2D.convolveMoments(
-        zerothMomentIon, zerothMomentElectron, 
-        firstMomentIon, firstMomentElectron, 
-        isLower, isUpper
-    );
+    for (int count = 0; count < 3; count++) {
+        interfaceNoiseRemover2D.convolveMoments(
+            zerothMomentIon, zerothMomentElectron, 
+            firstMomentIon, firstMomentElectron, 
+            isLower, isUpper
+        );
+
+        PIC2DMPI::sendrecv_field_x(zerothMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    }
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());

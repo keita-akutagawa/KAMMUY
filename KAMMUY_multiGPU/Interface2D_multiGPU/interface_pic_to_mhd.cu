@@ -58,7 +58,7 @@ __global__ void sendPICtoMHD_kernel(
         double mIon = PIC2DConst::device_mIon, mElectron = PIC2DConst::device_mElectron;
 
         //MHDのグリッドにPICを合わせる
-        rhoMHD      = max(U[indexMHD].rho, IdealMHD2DConst::device_EPS);
+        rhoMHD      = max(U[indexMHD].rho, mIon * 1 + mElectron * 1);
         uMHD        = U[indexMHD].rhoU / (rhoMHD + IdealMHD2DConst::device_EPS);
         vMHD        = U[indexMHD].rhoV / (rhoMHD + IdealMHD2DConst::device_EPS);
         wMHD        = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS);
@@ -79,7 +79,7 @@ __global__ void sendPICtoMHD_kernel(
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
         
-        rhoPIC      =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * ZerothMomentElectron[indexPIC].n, PIC2DConst::device_EPS);
+        rhoPIC      =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * ZerothMomentElectron[indexPIC].n, mIon * 1 + mElectron * 1);
         uPIC        = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS);
         vPIC        = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS);
         wPIC        = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS);
