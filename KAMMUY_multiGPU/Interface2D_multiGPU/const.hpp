@@ -9,6 +9,7 @@ namespace Interface2DConst
 
     extern const int interfaceLength; 
     extern const int windowSizeForConvolution;
+    extern const int convolutionCount; 
 
     extern const int nx; 
     extern const int ny; 

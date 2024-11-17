@@ -510,7 +510,7 @@ void Interface2D::sendMHDtoPIC_particle(
 {
     setMoments(particlesIon, particlesElectron); 
 
-    for (int count = 0; count < 3; count++) {
+    for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
         interfaceNoiseRemover2D.convolveMoments(
             zerothMomentIon, zerothMomentElectron, 
             firstMomentIon, firstMomentElectron, 

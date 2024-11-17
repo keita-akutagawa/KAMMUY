@@ -486,17 +486,19 @@ int main(int argc, char** argv)
 
         U_lower = idealMHD2D_lower.getURef();
         U_upper = idealMHD2D_upper.getURef();
-        isLower = true, isUpper = false;
-        interfaceNoiseRemover2D.convolveU(U_lower, isLower, isUpper);
-        isLower = false, isUpper = true;
-        interfaceNoiseRemover2D.convolveU(U_upper, isLower, isUpper);
-        
-        IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
-        boundaryMHD.periodicBoundaryX2nd_U(U_lower);
-        boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
-        IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
-        boundaryMHD.periodicBoundaryX2nd_U(U_upper);
-        boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            isLower = true, isUpper = false;
+            interfaceNoiseRemover2D.convolveU(U_lower, isLower, isUpper);
+            isLower = false, isUpper = true;
+            interfaceNoiseRemover2D.convolveU(U_upper, isLower, isUpper);
+
+            IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
+            boundaryMHD.periodicBoundaryX2nd_U(U_lower);
+            boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
+            IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
+            boundaryMHD.periodicBoundaryX2nd_U(U_upper);
+            boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
+        }
 
         //when crashed 
         if (idealMHD2D_lower.checkCalculationIsCrashed() || idealMHD2D_upper.checkCalculationIsCrashed()) {

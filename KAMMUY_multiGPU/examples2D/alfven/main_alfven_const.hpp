@@ -18,7 +18,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/work/gh76/i16144/KAMMUY_multiGPU/examples2D/alfven/results_alfven";
+std::string directoryName = "";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
@@ -28,9 +28,9 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 100;
+const int IdealMHD2DConst::totalStep = 10000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 1;
+const int recordStep = 10;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -71,7 +71,8 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy -
 
 // Interface
 
-const int Interface2DConst::windowSizeForConvolution = 5;
+const int Interface2DConst::windowSizeForConvolution = 2;
+const int Interface2DConst::convolutionCount = 5;
 
 const int Interface2DConst::interfaceLength = 20;
 const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
@@ -87,7 +88,7 @@ thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DCons
 thrust::host_vector<double> host_interlockingFunctionY_upper(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_upper(Interface2DConst::interfaceLength, 0.0);
 
-const unsigned long long Interface2DConst::reloadParticlesTotalNum = PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNum = PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
 // PIC
 
