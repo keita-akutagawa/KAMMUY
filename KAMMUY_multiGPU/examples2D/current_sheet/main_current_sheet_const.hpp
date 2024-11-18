@@ -36,9 +36,9 @@ __constant__ float device_betaUpstream;
 __constant__ float device_sheatThickness;
 __constant__ float device_triggerRatio;
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 10;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 10;
+const int recordStep = 1;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -128,7 +128,7 @@ const float PIC2DConst::ionInertialLength = PIC2DConst::c / PIC2DConst::omegaPi;
 
 float PIC2DConst::dt = 0.0f;
 
-const unsigned long long harrisNumIon = round(PIC2DConst::nx * PIC2DConst::numberDensityIon * 2.0f * PIC2DConst::sheatThickness);
+const unsigned long long harrisNumIon = round(PIC2DConst::nx * PIC2DConst::numberDensityIon * 2.0f * sheatThickness);
 const unsigned long long backgroundNumIon = round(0.2f * PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityIon);
 const unsigned long long harrisNumElectron = harrisNumIon;
 const unsigned long long backgroundNumElectron = backgroundNumIon;
@@ -145,8 +145,8 @@ const float PIC2DConst::bulkVxElectron = -PIC2DConst::bulkVxElectron / PIC2DCons
 const float PIC2DConst::bulkVyElectron = -PIC2DConst::bulkVyElectron / PIC2DConst::tRatio;
 const float PIC2DConst::bulkVzElectron = -PIC2DConst::bulkVzElectron / PIC2DConst::tRatio;
 
-const float vThIonBackground = sqrt(0.2f * 2.0f * tIon / mIon);
-const float vThElectronBackground = sqrt(0.2f * 2.0f * tElectron / mElectron);
+const float vThIonBackground = sqrt(0.2f * 2.0f * PIC2DConst::tIon / PIC2DConst::mIon);
+const float vThElectronBackground = sqrt(0.2f * 2.0f * PIC2DConst::tElectron / PIC2DConst::mElectron);
 const float bulkVxElectronBackground = 0.0f;
 const float bulkVyElectronBackground = 0.0f;
 const float bulkVzElectronBackground = 0.0f;

@@ -7,7 +7,7 @@ void IdealMHD2D::initializeU()
 }
 
 
-__global__ void initializeU_Lower_kernel(
+__global__ void initializeU_lower_kernel(
     ConservationParameter* U, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
@@ -27,7 +27,7 @@ __global__ void initializeU_Lower_kernel(
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
-            bX  = -1.0 * IdealMHD2DConst::device_b0;
+            bX  = -1.0 * IdealMHD2DConst::device_B0;
             bY  = 0.0;
             bZ  = 0.0;
             p   = IdealMHD2DConst::device_p0 * device_betaUpstream;
@@ -48,7 +48,7 @@ __global__ void initializeU_Lower_kernel(
 }
 
 
-__global__ void initializeU_Upper_kernel(
+__global__ void initializeU_upper_kernel(
     ConservationParameter* U, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
@@ -68,7 +68,7 @@ __global__ void initializeU_Upper_kernel(
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
-            bX  = 1.0 * IdealMHD2DConst::device_b0;
+            bX  = 1.0 * IdealMHD2DConst::device_B0;
             bY  = 0.0;
             bZ  = 0.0;
             p   = IdealMHD2DConst::device_p0 * device_betaUpstream;
@@ -104,18 +104,19 @@ void initializeU(
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    initializeU_Lower_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(U_Lower.data()), 
+    initializeU_lower_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U_lower.data()), 
         device_mPIInfoMHD
     );
     cudaDeviceSynchronize();
 
-
-    initializeU_Upper_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(U_Upper.data()), 
+    initializeU_upper_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U_upper.data()), 
         device_mPIInfoMHD
     );
     cudaDeviceSynchronize();
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
     boundaryMHD.periodicBoundaryX2nd_U(U_lower);
@@ -144,14 +145,14 @@ __global__ void initializePICField_kernel(
 
             float bX, bY, bZ, eX, eY, eZ;
             float x = i * PIC2DConst::device_dx, y = j * PIC2DConst::device_dy;
-            float xCenter = 0.5f * (device_xmax - device_xmin);
-            float yCenter = 0.5f * (device_ymax - device_ymin);
+            float xCenter = 0.5f * (PIC2DConst::device_xmax - PIC2DConst::device_xmin);
+            float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
 
-            bX = PIC2DConst::device_b0 * tanh((y - yCenter) / device_sheatThickness)
-            - PIC2DConst::device_b0 * device_triggerRatio * (y - yCenter) / device_sheatThickness
+            bX = PIC2DConst::device_B0 * tanh((y - yCenter) / device_sheatThickness)
+            - PIC2DConst::device_B0 * device_triggerRatio * (y - yCenter) / device_sheatThickness
             * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
             / pow(2.0f * device_sheatThickness, 2));;
-            bY = PIC2DConst::device_b0 * device_triggerRatio * (x - xCenter) / device_sheatThickness
+            bY = PIC2DConst::device_B0 * device_triggerRatio * (x - xCenter) / device_sheatThickness
             * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
             / pow(2.0f * device_sheatThickness, 2)); 
             bZ = 0.0f;
@@ -176,29 +177,29 @@ void PIC2D::initialize()
 
     initializeParticle.uniformForPosition_x(
         0, mPIInfo.existNumIonPerProcs, 
-        mPIInfo.xminForProcs, mPIInfo.yminForProcs, 
+        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
         0 + mPIInfo.rank, particlesIon
     );
     initializeParticle.uniformForPosition_x(
         0, mPIInfo.existNumElectronPerProcs, 
-        mPIInfo.xminForProcs, mPIInfo.yminForProcs, 
+        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
         10000 + mPIInfo.rank, particlesElectron
     );
 
-    initializeParticle.harrisForPositionY(
+    initializeParticle.harrisForPosition_y(
         0, harrisNumIonPerProcs, 
         20000 + mPIInfo.rank, sheatThickness, particlesIon
     );
-    initializeParticle.uniformForPositionY(
+    initializeParticle.uniformForPosition_y(
         harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
         PIC2DConst::ymin, PIC2DConst::ymax, 
         30000 + mPIInfo.rank, particlesIon
     );
-    initializeParticle.harrisForPositionY(
+    initializeParticle.harrisForPosition_y(
         0, harrisNumElectronPerProcs, 
         40000 + mPIInfo.rank, sheatThickness, particlesElectron
     );
-    initializeParticle.uniformForPositionY(
+    initializeParticle.uniformForPosition_y(
         harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
         PIC2DConst::ymin, PIC2DConst::ymax, 
         50000 + mPIInfo.rank, particlesElectron
@@ -211,8 +212,8 @@ void PIC2D::initialize()
         60000 + mPIInfo.rank, particlesIon
     );
     initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxIonB, PIC2DConst::bulkVyIonB, PIC2DConst::bulkVzIonB, 
-        PIC2DConst::vThIonB, PIC2DConst::vThIonB, PIC2DConst::vThIonB, 
+        bulkVxIonBackground, bulkVyIonBackground, bulkVzIonBackground, 
+        vThIonBackground, vThIonBackground, vThIonBackground, 
         harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
         70000 + mPIInfo.rank, particlesIon
     );
@@ -223,8 +224,8 @@ void PIC2D::initialize()
         80000 + mPIInfo.rank, particlesElectron
     );
     initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxElectronB, PIC2DConst::bulkVyElectronB, PIC2DConst::bulkVzElectronB, 
-        PIC2DConst::vThElectronB, PIC2DConst::vThElectronB, PIC2DConst::vThElectronB, 
+        bulkVxElectronBackground, bulkVyElectronBackground, bulkVzElectronBackground, 
+        vThElectronBackground, vThElectronBackground, vThElectronBackground, 
         harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
         90000 + mPIInfo.rank, particlesElectron
     );
@@ -235,7 +236,9 @@ void PIC2D::initialize()
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     initializePICField_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(E.data()), thrust::raw_pointer_cast(B.data())
+        thrust::raw_pointer_cast(E.data()), 
+        thrust::raw_pointer_cast(B.data()), 
+        device_mPIInfo
     );
     cudaDeviceSynchronize();
 
@@ -296,9 +299,9 @@ int main(int argc, char** argv)
     PIC2DConst::initializeDeviceConstants();
     IdealMHD2DConst::initializeDeviceConstants();
     Interface2DConst::initializeDeviceConstants();
-    cudaMemcpyToSymbol(device_sheatThickness, &sheatThickness, sizeof(double));
-    cudaMemcpyToSymbol(device_betaUpstream, &betaUpstream, sizeof(double));
-    cudaMemcpyToSymbol(device_triggerRatio, &triggerRatio, sizeof(double));
+    cudaMemcpyToSymbol(device_sheatThickness, &sheatThickness, sizeof(float));
+    cudaMemcpyToSymbol(device_betaUpstream, &betaUpstream, sizeof(float));
+    cudaMemcpyToSymbol(device_triggerRatio, &triggerRatio, sizeof(float));
     
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
@@ -399,8 +402,8 @@ int main(int argc, char** argv)
     pIC2D.initialize();
 
 
-    const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio_PIC)));
-    for (int step = 0; step < IdealMHD2DConst::totalStep_MHD + 1; step++) {
+    const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
+    for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (mPIInfoPIC.rank == 0) {

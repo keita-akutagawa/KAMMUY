@@ -194,18 +194,19 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
 }
 
 
-/*
-__global__ void harrisForPositionY_kernel(
+__global__ void harrisForPosition_y_kernel(
     Particle* particle, float sheatThickness, 
-    const unsigned long long nStart, const unsigned long long nEnd, const int seed
+    const unsigned long long nStart, 
+    const unsigned long long nEnd, 
+    const int seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < nEnd - nStart) {
         curandState state; 
-        curand_init(seed, 10 * i, 0, &state);
-        float yCenter = 0.5f * (device_ymax - device_ymin) + device_ymin;
+        curand_init(seed, 100 * (i + offset), 0, &state);
+        float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         float randomValue;
         float y;
@@ -213,14 +214,15 @@ __global__ void harrisForPositionY_kernel(
             randomValue = curand_uniform(&state);
             y = yCenter + sheatThickness * atanh(2.0f * randomValue - 1.0f);
 
-            if (device_ymin < y && y < device_ymax) break;
+            if (PIC2DConst::device_ymin < y && y < PIC2DConst::device_ymax) break;
         }
         
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 
-void InitializeParticle::harrisForPositionY(
+void InitializeParticle::harrisForPosition_y(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
@@ -231,41 +233,44 @@ void InitializeParticle::harrisForPositionY(
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
 
-    harrisForPositionY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    harrisForPosition_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), sheatThickness, 
-        nStart, nEnd, seed
+        nStart, nEnd, 
+        seed, mPIInfo.rank * (nEnd - nStart)
     );
-
     cudaDeviceSynchronize();
 }
 
 
-__global__ void harrisBackgroundForPositionY_kernel(
+__global__ void harrisBackgroundForPosition_y_kernel(
     Particle* particle, float sheatThickness, 
-    const unsigned long long nStart, const unsigned long long nEnd, const int seed
+    const unsigned long long nStart, 
+    const unsigned long long nEnd, 
+    const int seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < nEnd - nStart) {
         curandState state; 
-        curand_init(seed, 10 * i, 0, &state);
-        float yCenter = 0.5f * (device_ymax - device_ymin) + device_ymin;
+        curand_init(seed, 100 * (i + offset), 0, &state);
+        float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         float randomValue;
         float y;
         while (true) {
             randomValue = curand_uniform(&state);
-            y = randomValue * (device_ymax - device_ymin);
+            y = randomValue * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
 
             if (randomValue < (1.0f - 1.0f / cosh((y - yCenter) / sheatThickness))) break;
         } 
         
         particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true;
     }
 }
 
-void InitializeParticle::harrisBackgroundForPositionY(
+void InitializeParticle::harrisBackgroundForPosition_y(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     int seed, 
@@ -276,12 +281,11 @@ void InitializeParticle::harrisBackgroundForPositionY(
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
 
-    harrisBackgroundForPositionY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    harrisBackgroundForPosition_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), sheatThickness, 
-        nStart, nEnd, seed
+        nStart, nEnd, 
+        seed, mPIInfo.rank * (nEnd - nStart)
     );
-
     cudaDeviceSynchronize();
 }
-*/
 
