@@ -18,7 +18,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/work/gh76/i16144/KAMMUY_multiGPU/examples2D/current_sheet/results_current_sheet";
+std::string directoryName = "";
 std::string filenameWithoutStep = "current_sheet";
 std::ofstream logfile(    directoryName + "/log_current_sheet.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_current_sheet.txt");
