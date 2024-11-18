@@ -9,41 +9,45 @@ This is the modern computing style in a CPU & GPU environment.
 
 KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditional belief system of the Ainu people in Hokkaido, Japan.
 
-# DO NOT USE multiGPUs CODE
-
+# DO NOT USE CODEs
 
 ## Schemes (multiGPUs)
 
 ### MHD
+
 - HLLD
 - MUSCL(minmod)
 - RK2
 - Upwind CT
 
 ### PIC
+
 - Yee lattice
 - Leapfrog
 - Langdon-Marder type correction
 
 ### Interface
+
 - interlocking method
 - convolution
-  
 
 ## Schemes (singleGPU)
 
 ### MHD
+
 - HLLD
 - MUSCL(minmod)
 - RK2
 - CT
 
 ### PIC
+
 - Yee lattice
 - Leapfrog
 - Langdon-Marder type correction
 
 ### Interface
+
 - interlocking method
 - convolution
 
