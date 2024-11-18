@@ -23,7 +23,7 @@ __global__ void initializeU_lower_kernel(
 
             double rho, u, v, w, bX, bY, bZ, e, p;
             
-            rho = IdealMHD2DConst::device_rho0 * device_betaUpstream;
+            rho = IdealMHD2DConst::device_rho0 * sqrt(device_betaUpstream);
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
@@ -64,7 +64,7 @@ __global__ void initializeU_upper_kernel(
 
             double rho, u, v, w, bX, bY, bZ, e, p;
             
-            rho = IdealMHD2DConst::device_rho0 * device_betaUpstream;
+            rho = IdealMHD2DConst::device_rho0 * sqrt(device_betaUpstream);
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
@@ -556,5 +556,4 @@ int main(int argc, char** argv)
 
     return 0;
 }
-
 
