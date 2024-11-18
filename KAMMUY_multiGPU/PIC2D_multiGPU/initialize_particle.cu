@@ -179,7 +179,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         ymin, ymax, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed + 1, mPIInfo.rank * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 
@@ -187,7 +187,8 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         bulkVxSpecies, bulkVySpecies, bulkVzSpecies, 
         vxThSpecies, vyThSpecies, vzThSpecies, 
-        nStart, nEnd, seed, mPIInfo.rank * (nEnd - nStart)
+        nStart, nEnd, 
+        seed + 2, mPIInfo.rank * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
