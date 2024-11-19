@@ -53,8 +53,7 @@ public:
         thrust::device_vector<Particle>& particlesSpecies
     );
 
-    /*
-    void harrisForPositionY(
+    void harrisForPosition_y(
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
@@ -62,14 +61,13 @@ public:
         thrust::device_vector<Particle>& particlesSpecies
     );
 
-    void harrisBackgroundForPositionY(
+    void harrisBackgroundForPosition_y(
         unsigned long long nStart, 
         unsigned long long nEnd, 
         int seed, 
         float sheatThickness, 
         thrust::device_vector<Particle>& particlesSpecies
     );
-    */
 
 private:
 

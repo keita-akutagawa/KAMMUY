@@ -95,6 +95,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         double rho, u, v, w;
         double bXMHD, bYMHD, bZMHD;
         double eXInterface, eYInterface, eZInterface;
+        double mIon = PIC2DConst::device_mIon, mElectron = PIC2DConst::device_mElectron; 
 
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
@@ -104,7 +105,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         eYPIC = E[indexPIC].eY;
         eZPIC = E[indexPIC].eZ;
 
-        rho = max(U[indexMHD].rho, IdealMHD2DConst::device_EPS);
+        rho = max(U[indexMHD].rho, mIon * 1 + mElectron * 1);
         u = U[indexMHD].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -115,7 +116,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         eYMHD = -(w * bXMHD - u * bZMHD);
         eZMHD = -(u * bYMHD - v * bXMHD);
 
-        rho = max(U[indexMHD + localSizeYMHD].rho, IdealMHD2DConst::device_EPS);
+        rho = max(U[indexMHD + localSizeYMHD].rho, mIon * 1 + mElectron * 1);
         u = U[indexMHD + localSizeYMHD].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD + localSizeYMHD].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD + localSizeYMHD].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -124,7 +125,7 @@ __global__ void sendMHDtoPIC_electricField_yDirection_kernel(
         bZMHD = U[indexMHD + localSizeYMHD].bZ;
         eXPlusX1MHD = -(v * bZMHD - w * bYMHD);
 
-        rho = max(U[indexMHD + 1].rho, IdealMHD2DConst::device_EPS);
+        rho = max(U[indexMHD + 1].rho, mIon * 1 + mElectron * 1);
         u = U[indexMHD + 1].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD + 1].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD + 1].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -378,7 +379,7 @@ __global__ void deleteParticles_kernel(
             int j = floorf(y - deleteYMin);
             curandState state; 
             curand_init(step, i, 0, &state);
-            double randomValue = curand_uniform_double(&state);
+            float randomValue = curand_uniform(&state);
             if (randomValue < interlockingFunctionY[j]) {
                 particlesSpecies[i].isExist = false;
             }
@@ -463,17 +464,17 @@ __global__ void reloadParticles_kernel(
 
     if (i < interfaceSizeX && j < interfaceSizeY) {
         int index = j + i * interfaceSizeY; 
-        double u = reloadParticlesDataSpecies[index].u;
-        double v = reloadParticlesDataSpecies[index].v;
-        double w = reloadParticlesDataSpecies[index].w;
-        double vth = reloadParticlesDataSpecies[index].vth;
+        float u = reloadParticlesDataSpecies[index].u;
+        float v = reloadParticlesDataSpecies[index].v;
+        float w = reloadParticlesDataSpecies[index].w;
+        float vth = reloadParticlesDataSpecies[index].vth;
         Particle particleSource, particleReload;
-        double x, y, z, vx, vy, vz, gamma;
+        float x, y, z, vx, vy, vz, gamma;
 
         for (unsigned long long k = reloadParticlesDataSpecies[index].numAndIndex; k < reloadParticlesDataSpecies[index + 1].numAndIndex; k++) {
             curandState state; 
             curand_init(step, k, 0, &state);
-            double randomValue = curand_uniform_double(&state);
+            float randomValue = curand_uniform(&state);
 
             if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
@@ -484,11 +485,11 @@ __global__ void reloadParticles_kernel(
                 vx = particleSource.vx; vx = u + vx * vth;
                 vy = particleSource.vy; vy = v + vy * vth;
                 vz = particleSource.vz; vz = w + vz * vth;
-                gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
                     printf("particle exceeds light speed... ");
                     continue; //delete if particle speed exceeds light speed c. 
                 };
+                gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
                 particleReload.x = x; particleReload.y = y; particleReload.z = z;
                 particleReload.vx = vx * gamma; particleReload.vy = vy * gamma, particleReload.vz = vz * gamma; 

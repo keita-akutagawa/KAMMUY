@@ -98,6 +98,8 @@ void PIC2D::oneStep_periodicXFreeY(
 )
 {
     MPI_Barrier(MPI_COMM_WORLD);
+
+    bool isLower, isUpper; 
     
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -163,6 +165,12 @@ void PIC2D::oneStep_periodicXFreeY(
     PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
+    //isLower = true, isUpper = false;
+    //interfaceNoiseRemover2D.convolve_currentField(current, isLower, isUpper);
+    //isLower = false, isUpper = true;
+    //interfaceNoiseRemover2D.convolve_currentField(current, isLower, isUpper);
+    //boundaryPIC.periodicBoundaryCurrent_x(current);
+    //boundaryPIC.freeBoundaryCurrent_y(current);
 
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
     PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
@@ -189,7 +197,6 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
-    //bool isLower, isUpper; 
     //isLower = true, isUpper = false;
     //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
     //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);

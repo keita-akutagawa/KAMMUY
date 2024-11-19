@@ -158,17 +158,17 @@ __global__ void calculateTimeAveParameters_kernel(
     if (i < localSizeXPIC && j < localSizeYPIC) {
         int index = j + i * localSizeYPIC;
 
-        B_timeAve[index].bX                   /= static_cast<double>(substeps);
-        B_timeAve[index].bY                   /= static_cast<double>(substeps);
-        B_timeAve[index].bZ                   /= static_cast<double>(substeps);
-        zerothMomentIon_timeAve[index].n      /= static_cast<double>(substeps);
-        zerothMomentElectron_timeAve[index].n /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].x       /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].y       /= static_cast<double>(substeps);
-        firstMomentIon_timeAve[index].z       /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].x  /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].y  /= static_cast<double>(substeps);
-        firstMomentElectron_timeAve[index].z  /= static_cast<double>(substeps);
+        B_timeAve[index].bX                   /= static_cast<float>(substeps);
+        B_timeAve[index].bY                   /= static_cast<float>(substeps);
+        B_timeAve[index].bZ                   /= static_cast<float>(substeps);
+        zerothMomentIon_timeAve[index].n      /= static_cast<float>(substeps);
+        zerothMomentElectron_timeAve[index].n /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].x       /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].y       /= static_cast<float>(substeps);
+        firstMomentIon_timeAve[index].z       /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].x  /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].y  /= static_cast<float>(substeps);
+        firstMomentElectron_timeAve[index].z  /= static_cast<float>(substeps);
     }
 }
 

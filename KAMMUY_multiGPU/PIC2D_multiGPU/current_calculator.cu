@@ -65,11 +65,11 @@ __global__ void calculateCurrentOfOneSpecies_kernel(
         yIndex2 = (yIndex2 == localSizeY) ? 0 : yIndex2;
 
         if (xIndex1 < 0 || xIndex1 >= localSizeX) {
-            printf("ERROR %f %d %d\n", particlesSpecies[i].x, xIndex1, particlesSpecies[i].isExist);
+            //printf("ERROR %f %d %d\n", particlesSpecies[i].x, xIndex1, particlesSpecies[i].isExist);
             return;
         }
         if (yIndex1 < 0 || yIndex1 >= localSizeY) {
-            printf("ERROR %f %d %d\n", particlesSpecies[i].x, xIndex1, particlesSpecies[i].isExist);
+            //printf("ERROR %f %d %d\n", particlesSpecies[i].x, xIndex1, particlesSpecies[i].isExist);
             return;
         }
         
