@@ -563,6 +563,7 @@ void PIC2D::saveParticle(
 
     std::string filenameXIon, filenameXElectron;
     std::string filenameVIon, filenameVElectron;
+    std::string filenameNumIon, filenameNumElectron;
     std::string filenameKineticEnergy;
 
     filenameXIon = directoryname + "/"
@@ -579,6 +580,14 @@ void PIC2D::saveParticle(
              + ".bin";
     filenameVElectron = directoryname + "/"
              + filenameWithoutStep + "_v_electron_" + std::to_string(step)
+             + "_" + std::to_string(mPIInfo.rank)
+             + ".bin";
+    filenameNumIon = directoryname + "/"
+             + filenameWithoutStep + "_num_ion_" + std::to_string(step)
+             + "_" + std::to_string(mPIInfo.rank)
+             + ".bin";
+    filenameNumElectron = directoryname + "/"
+             + filenameWithoutStep + "_num_electron_" + std::to_string(step)
              + "_" + std::to_string(mPIInfo.rank)
              + ".bin";
     filenameKineticEnergy = directoryname + "/"
@@ -642,6 +651,12 @@ void PIC2D::saveParticle(
     std::ofstream ofsKineticEnergy(filenameKineticEnergy, std::ios::binary);
     ofsKineticEnergy << std::fixed << std::setprecision(6);
     ofsKineticEnergy.write(reinterpret_cast<const char*>(&KineticEnergy), sizeof(float));
+
+    std::ofstream ofsNumIon(filenameNumIon, std::ios::binary);
+    std::ofstream ofsNumElectron(filenameNumElectron, std::ios::binary);
+
+    ofsNumIon.write(reinterpret_cast<const char*>(&mPIInfo.existNumIonPerProcs), sizeof(unsigned long long));
+    ofsNumElectron.write(reinterpret_cast<const char*>(&mPIInfo.existNumElectronPerProcs), sizeof(unsigned long long));
 }
 
 

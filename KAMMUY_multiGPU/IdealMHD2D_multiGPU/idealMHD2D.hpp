@@ -10,7 +10,7 @@
 class IdealMHD2D
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo; 
+    IdealMHD2DMPI::MPIInfo& mPIInfo; 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo; 
 
     FluxSolver fluxSolver;
