@@ -43,5 +43,8 @@ void RestartMHD::loadU(
 
     U = hU; 
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    IdealMHD2DMPI::sendrecv_U(U, mPIInfo);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 

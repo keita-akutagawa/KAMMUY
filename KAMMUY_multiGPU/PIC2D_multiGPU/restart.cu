@@ -56,6 +56,11 @@ void RestartPIC::loadFields(
     B = host_B; 
     E = host_E; 
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
+    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
+    MPI_Barrier(MPI_COMM_WORLD);
+    
 }
 
 

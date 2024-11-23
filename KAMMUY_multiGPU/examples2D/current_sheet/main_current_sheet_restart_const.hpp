@@ -17,6 +17,9 @@
 #include "../../PIC2D_multiGPU/const.hpp"
 #include "../../Interface2D_multiGPU/const.hpp"
 
+#include "../../IdealMHD2D_multiGPU/restart.hpp"
+#include "../../PIC2D_multiGPU/restart.hpp"
+
 
 std::string directoryName = "";
 std::string filenameWithoutStep = "current_sheet";
@@ -27,6 +30,7 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_current_sheet
 
 
 const int buffer = 3; 
+const int restartStep = 1100; 
 
 
 const float betaUpstream = 0.5f * 0.5f;

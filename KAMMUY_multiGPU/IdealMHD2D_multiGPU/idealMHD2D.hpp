@@ -52,6 +52,8 @@ public:
 
     bool checkCalculationIsCrashed();
 
+    thrust::host_vector<ConservationParameter>& getHostURef();
+
     thrust::device_vector<ConservationParameter>& getURef();
 
     thrust::device_vector<ConservationParameter>& getUPastRef();

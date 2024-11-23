@@ -1,265 +1,4 @@
-#include "main_current_sheet_const.hpp"
-
-
-// 別にinitializeUを作ることにする。
-void IdealMHD2D::initializeU()
-{
-}
-
-
-__global__ void initializeU_lower_kernel(
-    ConservationParameter* U, 
-    IdealMHD2DMPI::MPIInfo* device_mPIInfo
-)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (i < IdealMHD2DConst::device_nx && j < IdealMHD2DConst::device_ny) {
-        IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
-
-        if (mPIInfo.isInside(i, j)) {
-            int index = mPIInfo.globalToLocal(i, j);
-
-            double rho, u, v, w, bX, bY, bZ, e, p;
-            
-            rho = IdealMHD2DConst::device_rho0 * sqrt(device_betaUpstream);
-            u   = 0.0;
-            v   = 0.0;
-            w   = 0.0;
-            bX  = -1.0 * IdealMHD2DConst::device_B0;
-            bY  = 0.0;
-            bZ  = 0.0;
-            p   = IdealMHD2DConst::device_p0 * device_betaUpstream;
-            e   = p / (IdealMHD2DConst::device_gamma - 1.0)
-                + 0.5 * rho * (u * u + v * v + w * w)
-                + 0.5 * (bX * bX + bY * bY + bZ * bZ);
-
-            U[index].rho  = rho;
-            U[index].rhoU = rho * u;
-            U[index].rhoV = rho * v;
-            U[index].rhoW = rho * w;
-            U[index].bX   = bX;
-            U[index].bY   = bY;
-            U[index].bZ   = bZ;
-            U[index].e    = e;
-        }
-    }
-}
-
-
-__global__ void initializeU_upper_kernel(
-    ConservationParameter* U, 
-    IdealMHD2DMPI::MPIInfo* device_mPIInfo
-)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (i < IdealMHD2DConst::device_nx && j < IdealMHD2DConst::device_ny) {
-        IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
-
-        if (mPIInfo.isInside(i, j)) {
-            int index = mPIInfo.globalToLocal(i, j);
-
-            double rho, u, v, w, bX, bY, bZ, e, p;
-            
-            rho = IdealMHD2DConst::device_rho0 * sqrt(device_betaUpstream);
-            u   = 0.0;
-            v   = 0.0;
-            w   = 0.0;
-            bX  = 1.0 * IdealMHD2DConst::device_B0;
-            bY  = 0.0;
-            bZ  = 0.0;
-            p   = IdealMHD2DConst::device_p0 * device_betaUpstream;
-            e   = p / (IdealMHD2DConst::device_gamma - 1.0)
-                + 0.5 * rho * (u * u + v * v + w * w)
-                + 0.5 * (bX * bX + bY * bY + bZ * bZ);
-
-            U[index].rho  = rho;
-            U[index].rhoU = rho * u;
-            U[index].rhoV = rho * v;
-            U[index].rhoW = rho * w;
-            U[index].bX   = bX;
-            U[index].bY   = bY;
-            U[index].bZ   = bZ;
-            U[index].e    = e;
-        }
-    }
-}
-
-
-void initializeU(
-    thrust::device_vector<ConservationParameter>& U_lower, 
-    thrust::device_vector<ConservationParameter>& U_upper, 
-    BoundaryMHD& boundaryMHD, 
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD
-)
-{
-    IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
-    cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
-    cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
-
-    dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
-    initializeU_lower_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(U_lower.data()), 
-        device_mPIInfoMHD
-    );
-    cudaDeviceSynchronize();
-
-    initializeU_upper_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(U_upper.data()), 
-        device_mPIInfoMHD
-    );
-    cudaDeviceSynchronize();
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
-    boundaryMHD.periodicBoundaryX2nd_U(U_lower);
-    boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
-    IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
-    boundaryMHD.periodicBoundaryX2nd_U(U_upper);
-    boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-}
-
-
-__global__ void initializePICField_kernel(
-    ElectricField* E, MagneticField* B, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
-)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (i < PIC2DConst::device_nx && j < PIC2DConst::device_ny) {
-        PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
-
-        if (mPIInfo.isInside(i, j)) {
-            int index = mPIInfo.globalToLocal(i, j);
-
-            float bX, bY, bZ, eX, eY, eZ;
-            float x = i * PIC2DConst::device_dx, y = j * PIC2DConst::device_dy;
-            float xCenter = 0.5f * (PIC2DConst::device_xmax - PIC2DConst::device_xmin);
-            float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
-
-            bX = PIC2DConst::device_B0 * tanh((y - yCenter) / device_sheatThickness)
-            - PIC2DConst::device_B0 * device_triggerRatio * (y - yCenter) / device_sheatThickness
-            * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-            / pow(2.0f * device_sheatThickness, 2));;
-            bY = PIC2DConst::device_B0 * device_triggerRatio * (x - xCenter) / device_sheatThickness
-            * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-            / pow(2.0f * device_sheatThickness, 2)); 
-            bZ = 0.0f;
-            eX = 0.0f;
-            eY = 0.0f;
-            eZ = 0.0f;
-
-            E[index].eX = eX;
-            E[index].eY = eY;
-            E[index].eZ = eZ;
-            B[index].bX = bX;
-            B[index].bY = bY; 
-            B[index].bZ = bZ;
-        }
-    }
-}
-
-void PIC2D::initialize()
-{
-    unsigned long long harrisNumIonPerProcs = harrisNumIon / mPIInfo.procs; 
-    unsigned long long harrisNumElectronPerProcs = harrisNumElectron / mPIInfo.procs; 
-
-    initializeParticle.uniformForPosition_x(
-        0, mPIInfo.existNumIonPerProcs, 
-        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
-        0 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.uniformForPosition_x(
-        0, mPIInfo.existNumElectronPerProcs, 
-        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
-        10000 + mPIInfo.rank, particlesElectron
-    );
-
-    initializeParticle.harrisForPosition_y(
-        0, harrisNumIonPerProcs, 
-        20000 + mPIInfo.rank, sheatThickness, particlesIon
-    );
-    initializeParticle.uniformForPosition_y(
-        harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
-        PIC2DConst::ymin, PIC2DConst::ymax, 
-        30000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.harrisForPosition_y(
-        0, harrisNumElectronPerProcs, 
-        40000 + mPIInfo.rank, sheatThickness, particlesElectron
-    );
-    initializeParticle.uniformForPosition_y(
-        harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
-        PIC2DConst::ymin, PIC2DConst::ymax, 
-        50000 + mPIInfo.rank, particlesElectron
-    );
-
-    initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxIon, PIC2DConst::bulkVyIon, PIC2DConst::bulkVzIon, 
-        PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
-        0, harrisNumIonPerProcs, 
-        60000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxIonBackground, bulkVyIonBackground, bulkVzIonBackground, 
-        vThIonBackground, vThIonBackground, vThIonBackground, 
-        harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
-        70000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxElectron, PIC2DConst::bulkVyElectron, PIC2DConst::bulkVzElectron, 
-        PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
-        0, harrisNumElectronPerProcs, 
-        80000 + mPIInfo.rank, particlesElectron
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxElectronBackground, bulkVyElectronBackground, bulkVzElectronBackground, 
-        vThElectronBackground, vThElectronBackground, vThElectronBackground, 
-        harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
-        90000 + mPIInfo.rank, particlesElectron
-    );
-    
-
-    dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((PIC2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
-    initializePICField_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(E.data()), 
-        thrust::raw_pointer_cast(B.data()), 
-        device_mPIInfo
-    );
-    cudaDeviceSynchronize();
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
-    PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
-    PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
-
-    boundaryPIC.periodicBoundaryB_x(B);
-    boundaryPIC.freeBoundaryB_y(B);
-    boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.freeBoundaryE_y(E);
-    boundaryPIC.periodicBoundaryCurrent_x(current);
-    boundaryPIC.freeBoundaryCurrent_y(current);
-    boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
-    //boundaryPIC.freeBoundaryForInitializeParticle_y(particlesIon, particlesElectron);
-    
-    MPI_Barrier(MPI_COMM_WORLD);
-}
-
+#include "main_current_sheet_restart_const.hpp"
 
 
 int main(int argc, char** argv)
@@ -302,7 +41,7 @@ int main(int argc, char** argv)
     cudaMemcpyToSymbol(device_sheatThickness, &sheatThickness, sizeof(float));
     cudaMemcpyToSymbol(device_betaUpstream, &betaUpstream, sizeof(float));
     cudaMemcpyToSymbol(device_triggerRatio, &triggerRatio, sizeof(float));
-    
+
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
     mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs
@@ -378,32 +117,57 @@ int main(int argc, char** argv)
         interfaceNoiseRemover2D
     );
     BoundaryMHD boundaryMHD(mPIInfoMHD);
-    
-    if (mPIInfoPIC.rank == 0) {
-        size_t free_mem = 0;
-        size_t total_mem = 0;
-        cudaError_t status = cudaMemGetInfo(&free_mem, &total_mem);
+    BoundaryPIC boundaryPIC(mPIInfoPIC); 
 
-        std::cout << "Free memory: " << free_mem / (1024 * 1024) << " MB" << std::endl;
-        std::cout << "Total memory: " << total_mem / (1024 * 1024) << " MB" << std::endl;
 
-        std::cout << "exist number of partices is " 
-                  << mPIInfoPIC.procs * (mPIInfoPIC.existNumIonPerProcs + mPIInfoPIC.existNumElectronPerProcs) 
-                  << std::endl;
-        std::cout << "exist number of partices + buffer particles is " 
-                  << mPIInfoPIC.procs * (mPIInfoPIC.totalNumIonPerProcs + mPIInfoPIC.totalNumElectronPerProcs) 
-                  << std::endl;
-    }
+    RestartMHD restartMHD(mPIInfoMHD); 
+    RestartPIC restartPIC(mPIInfoPIC); 
 
-    thrust::device_vector<ConservationParameter>& U_lower = idealMHD2D_lower.getURef();
-    thrust::device_vector<ConservationParameter>& U_upper = idealMHD2D_upper.getURef();
+    thrust::host_vector  <ConservationParameter>& hU_lower = idealMHD2D_lower.getHostURef();
+    thrust::device_vector<ConservationParameter>& U_lower  = idealMHD2D_lower.getURef();
+    thrust::host_vector  <ConservationParameter>& hU_upper = idealMHD2D_upper.getHostURef();
+    thrust::device_vector<ConservationParameter>& U_upper  = idealMHD2D_upper.getURef();
+    restartMHD.loadU(
+        hU_lower, 
+        U_lower, 
+        directoryName, filenameWithoutStep + "_U_lower", restartStep
+    ); 
+    restartMHD.loadU(
+        hU_upper, 
+        U_upper, 
+        directoryName, filenameWithoutStep + "_U_upper", restartStep
+    ); 
+    boundaryMHD.periodicBoundaryX2nd_U(U_lower);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
+    boundaryMHD.periodicBoundaryX2nd_U(U_upper);
+    boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
 
-    initializeU(U_lower, U_upper, boundaryMHD, mPIInfoMHD);
-    pIC2D.initialize();
-
+    thrust::host_vector  <MagneticField>& host_B = pIC2D.getHostBRef();
+    thrust::device_vector<MagneticField>& B      = pIC2D.getBRef();
+    thrust::host_vector  <ElectricField>& host_E = pIC2D.getHostERef(); 
+    thrust::device_vector<ElectricField>& E      = pIC2D.getERef();
+    thrust::host_vector<Particle>&   host_particlesIon      = pIC2D.getHostParticlesIonRef();
+    thrust::device_vector<Particle>& particlesIon           = pIC2D.getParticlesIonRef();
+    thrust::host_vector<Particle>&   host_particlesElectron = pIC2D.getHostParticlesElectronRef();
+    thrust::device_vector<Particle>& particlesElectron      = pIC2D.getParticlesElectronRef();
+    restartPIC.loadFields(
+        host_B, host_E, 
+        B, E, 
+        directoryName, filenameWithoutStep, restartStep
+    ); 
+    restartPIC.loadParticles(
+        host_particlesIon, host_particlesElectron, 
+        particlesIon, particlesElectron, 
+        directoryName, filenameWithoutStep, restartStep
+    );
+    boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+    boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
-    for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
+    for (int step = restartStep + 1; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (mPIInfoPIC.rank == 0) {

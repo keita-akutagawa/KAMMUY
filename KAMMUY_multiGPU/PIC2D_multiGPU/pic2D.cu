@@ -663,15 +663,45 @@ void PIC2D::saveParticle(
 //////////////////////////////////////////////////
 
 
+thrust::host_vector<MagneticField>& PIC2D::getHostBRef()
+{
+    return host_B;
+}
+
+
 thrust::device_vector<MagneticField>& PIC2D::getBRef()
 {
     return B;
 }
 
 
+thrust::host_vector<ElectricField>& PIC2D::getHostERef()
+{
+    return host_E;
+}
+
+
+thrust::device_vector<ElectricField>& PIC2D::getERef()
+{
+    return E;
+}
+
+
+thrust::host_vector<Particle>& PIC2D::getHostParticlesIonRef()
+{
+    return host_particlesIon;
+}
+
+
 thrust::device_vector<Particle>& PIC2D::getParticlesIonRef()
 {
     return particlesIon;
+}
+
+
+thrust::host_vector<Particle>& PIC2D::getHostParticlesElectronRef()
+{
+    return host_particlesElectron;
 }
 
 

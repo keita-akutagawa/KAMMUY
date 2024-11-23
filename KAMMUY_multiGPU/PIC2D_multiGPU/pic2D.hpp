@@ -116,9 +116,19 @@ public:
         int step
     );
 
+    thrust::host_vector<MagneticField>& getHostBRef();
+
     thrust::device_vector<MagneticField>& getBRef();
 
+    thrust::host_vector<ElectricField>& getHostERef(); 
+
+    thrust::device_vector<ElectricField>& getERef(); 
+
+    thrust::host_vector<Particle>& getHostParticlesIonRef();
+
     thrust::device_vector<Particle>& getParticlesIonRef();
+
+    thrust::host_vector<Particle>& getHostParticlesElectronRef();
 
     thrust::device_vector<Particle>& getParticlesElectronRef();
 

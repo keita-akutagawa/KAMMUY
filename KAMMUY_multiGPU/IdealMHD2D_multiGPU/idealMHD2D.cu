@@ -535,6 +535,11 @@ void IdealMHD2D::backUToCenterHalfForCT(
 }
 
 
+thrust::host_vector<ConservationParameter>& IdealMHD2D::getHostURef()
+{
+    return hU;
+}
+
 
 thrust::device_vector<ConservationParameter>& IdealMHD2D::getURef()
 {
