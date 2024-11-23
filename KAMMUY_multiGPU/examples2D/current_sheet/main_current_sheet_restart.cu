@@ -1,6 +1,15 @@
 #include "main_current_sheet_restart_const.hpp"
 
 
+void IdealMHD2D::initializeU()
+{
+}
+
+void PIC2D::initialize()
+{
+}
+
+
 int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
