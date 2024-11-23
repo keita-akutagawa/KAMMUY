@@ -149,9 +149,9 @@ void RestartPIC::loadParticles(
         host_particlesIon[i].x = x;
         host_particlesIon[i].y = y;
         host_particlesIon[i].z = z; 
-        host_particlesIon[i].vx = vx;
-        host_particlesIon[i].vy = vy;
-        host_particlesIon[i].vz = vz;
+        host_particlesIon[i].vx = vx * gamma;
+        host_particlesIon[i].vy = vy * gamma;
+        host_particlesIon[i].vz = vz * gamma;
         host_particlesIon[i].gamma = gamma;
         host_particlesIon[i].isExist = true;
     }
@@ -171,9 +171,9 @@ void RestartPIC::loadParticles(
         host_particlesElectron[i].x = x;
         host_particlesElectron[i].y = y;
         host_particlesElectron[i].z = z; 
-        host_particlesElectron[i].vx = vx;
-        host_particlesElectron[i].vy = vy;
-        host_particlesElectron[i].vz = vz;
+        host_particlesElectron[i].vx = vx * gamma;
+        host_particlesElectron[i].vy = vy * gamma;
+        host_particlesElectron[i].vz = vz * gamma;
         host_particlesElectron[i].gamma = gamma;
         host_particlesElectron[i].isExist = true;
     }
