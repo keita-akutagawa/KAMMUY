@@ -173,7 +173,6 @@ int main(int argc, char** argv)
     boundaryPIC.freeBoundaryB_y(B);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
-    boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
     for (int step = restartStep + 1; step < IdealMHD2DConst::totalStep + 1; step++) {
