@@ -18,20 +18,20 @@ public:
     ); 
 
     void loadFields(
-        thrust::host_vector<MagneticField> host_B, 
-        thrust::host_vector<ElectricField> host_E, 
-        thrust::device_vector<MagneticField> B, 
-        thrust::device_vector<ElectricField> E, 
+        thrust::host_vector<MagneticField>& host_B, 
+        thrust::host_vector<ElectricField>& host_E, 
+        thrust::device_vector<MagneticField>& B, 
+        thrust::device_vector<ElectricField>& E, 
         std::string directoryname, 
         std::string filenameWithoutStep, 
         int step
     );
 
     void loadParticles(
-        thrust::host_vector<Particle> host_particlesIon, 
-        thrust::host_vector<Particle> host_particlesElectron, 
-        thrust::device_vector<Particle> particlesIon, 
-        thrust::device_vector<Particle> particlesElectron, 
+        thrust::host_vector<Particle>& host_particlesIon, 
+        thrust::host_vector<Particle>& host_particlesElectron, 
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron, 
         std::string directoryname, 
         std::string filenameWithoutStep, 
         int step
