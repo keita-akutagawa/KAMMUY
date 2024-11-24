@@ -554,6 +554,30 @@ __global__ void copyU_kernel(
         }
 
         tmpU[indexForCopy] = U[indexMHD];
+        if (isnan(tmpU[indexForCopy].rho)) {
+            tmpU[indexForCopy].rho = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].rhoU)) {
+            tmpU[indexForCopy].rhoU = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].rhoV)) {
+            tmpU[indexForCopy].rhoV = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].rhoW)) {
+            tmpU[indexForCopy].rhoW = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].bX)) {
+            tmpU[indexForCopy].bX = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].bY)) {
+            tmpU[indexForCopy].bY = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].bZ)) {
+            tmpU[indexForCopy].bZ = IdealMHD2DConst::device_EPS;
+        }
+        if (isnan(tmpU[indexForCopy].e)) {
+            tmpU[indexForCopy].e = IdealMHD2DConst::device_EPS;
+        }
     }
 }
 
