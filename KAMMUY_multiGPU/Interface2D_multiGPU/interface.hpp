@@ -44,6 +44,8 @@ private:
     int localSizeYPIC; 
     int localSizeXMHD; 
     int localSizeYMHD; 
+    int localSizeXInterface; 
+    int localSizeYInterface; 
 
     thrust::device_vector<double> interlockingFunctionY;
     thrust::device_vector<double> interlockingFunctionYHalf;

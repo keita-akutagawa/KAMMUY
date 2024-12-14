@@ -138,8 +138,8 @@ void Interface2D::sendPICtoMHD(
 
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((Interface2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (Interface2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((localSizeXInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (localSizeYInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -155,7 +155,7 @@ void Interface2D::sendPICtoMHD(
         mPIInfoMHD.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
         localSizeXMHD, localSizeYMHD, 
-        Interface2DConst::nx, Interface2DConst::ny 
+        localSizeXInterface, localSizeYInterface 
     );
 }
 

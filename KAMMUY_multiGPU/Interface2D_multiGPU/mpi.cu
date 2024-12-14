@@ -53,7 +53,7 @@ void Interface2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int grid
     mPIInfo.localNy = Interface2DConst::ny / mPIInfo.gridY;
     mPIInfo.buffer = buffer;
     mPIInfo.localSizeX = mPIInfo.localNx + 2 * mPIInfo.buffer;
-    mPIInfo.localSizeY = mPIInfo.localNy; //not need buffer!
+    mPIInfo.localSizeY = mPIInfo.localNy; //nyにはbuffer領域を含めているので
 
 
     int block_lengths_reloadParticlesData[5] = {1, 1, 1, 1, 1};

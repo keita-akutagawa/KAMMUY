@@ -74,12 +74,12 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy -
 const int Interface2DConst::convolutionCount = 3;
 
 const int Interface2DConst::interfaceLength = 20;
-const int indexOfInterfaceStartInPIC_lower = 0 ;
+const int indexOfInterfaceStartInPIC_lower = 0;
 const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
 const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
 const int indexOfInterfaceStartInMHD_upper = 0;
 
-const int Interface2DConst::nx = PIC2DConst::nx + 2 * buffer;
+const int Interface2DConst::nx = PIC2DConst::nx; 
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
 thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::ny, 0.0);
@@ -87,7 +87,7 @@ thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DCons
 thrust::host_vector<double> host_interlockingFunctionY_upper(Interface2DConst::ny, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_upper(Interface2DConst::ny, 0.0);
 
-const unsigned long long Interface2DConst::reloadParticlesTotalNum = PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNum = 10000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
 // PIC
 

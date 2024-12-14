@@ -23,8 +23,8 @@ private:
 
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
-    int nxInterface; 
-    int nyInterface;
+    int localSizeXInterface; 
+    int localSizeYInterface; 
 
     thrust::device_vector<MagneticField> tmpB;
     thrust::device_vector<ElectricField> tmpE;
