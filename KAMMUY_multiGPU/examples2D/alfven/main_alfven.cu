@@ -412,7 +412,6 @@ int main(int argc, char** argv)
 
 
         // STEP1 : MHD - predictor
-        std::cout << "AAA" << std::endl;
 
         idealMHD2D_lower.calculateDt();
         double dt_lower = IdealMHD2DConst::dt;
@@ -435,7 +434,6 @@ int main(int argc, char** argv)
 
 
         // STEP2 : PIC
-        std::cout << "AAA" << std::endl;
 
         interface2D_lower.resetTimeAveParameters();
         interface2D_upper.resetTimeAveParameters();
@@ -448,7 +446,6 @@ int main(int argc, char** argv)
                 interfaceNoiseRemover2D_lower, interfaceNoiseRemover2D_upper, 
                 step, substep, totalSubstep
             );
-            std::cout << "BBB" << std::endl;
 
             thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
             thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
@@ -463,7 +460,6 @@ int main(int argc, char** argv)
 
 
         // STEP3 : MHD - corrector
-        std::cout << "AAA" << std::endl;
         
         interface2D_lower.sendPICtoMHD(UPast_lower, UNext_lower);
         interface2D_upper.sendPICtoMHD(UPast_upper, UNext_upper);
