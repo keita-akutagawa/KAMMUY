@@ -37,8 +37,7 @@ __global__ void sendPICtoMHD_kernel(
     ConservationParameter* U, 
     int indexOfInterfaceStartInMHD, 
     int indexOfInterfaceStartInPIC, 
-    int interfaceLength, 
-    int localNxMHD, int localNyMHD, int buffer, 
+    int buffer, 
     int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD, 
     int interfaceSizeX, int interfaceSizeY
@@ -126,21 +125,21 @@ void Interface2D::sendPICtoMHD(
 )
 {
     dim3 threadsPerBlockForSetUHalf(16, 16);
-    dim3 blocksPerGridForSetUHalf((mPIInfoMHD.localSizeX + threadsPerBlockForSetUHalf.x - 1) / threadsPerBlockForSetUHalf.x,
-                                  (mPIInfoMHD.localSizeY + threadsPerBlockForSetUHalf.y - 1) / threadsPerBlockForSetUHalf.y);
+    dim3 blocksPerGridForSetUHalf((localSizeXMHD + threadsPerBlockForSetUHalf.x - 1) / threadsPerBlockForSetUHalf.x,
+                                  (localSizeYMHD + threadsPerBlockForSetUHalf.y - 1) / threadsPerBlockForSetUHalf.y);
 
     setUHalf_kernel<<<blocksPerGridForSetUHalf, threadsPerBlockForSetUHalf>>>(
         thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(UNext.data()), 
         thrust::raw_pointer_cast(UHalf.data()), 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        localSizeXMHD, localSizeYMHD
     );
     cudaDeviceSynchronize();
 
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((Interface2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (Interface2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -153,11 +152,10 @@ void Interface2D::sendPICtoMHD(
         thrust::raw_pointer_cast(UHalf.data()), 
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
-        interfaceLength, 
-        mPIInfoMHD.localNx, mPIInfoMHD.localNy, mPIInfoMHD.buffer, 
+        mPIInfoMHD.buffer, 
         mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
+        localSizeXMHD, localSizeYMHD, 
+        Interface2DConst::nx, Interface2DConst::ny 
     );
 }
 

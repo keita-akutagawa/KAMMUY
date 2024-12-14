@@ -93,13 +93,12 @@ void PIC2D::oneStep_periodicXFreeY(
     thrust::device_vector<ConservationParameter>& UNext_upper, 
     Interface2D& interface2D_lower, 
     Interface2D& interface2D_upper, 
-    InterfaceNoiseRemover2D& interfaceNoiseRemover2D, 
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_lower, 
+    InterfaceNoiseRemover2D& interfaceNoiseRemover2D_upper, 
     int step, int substep, int totalSubstep
 )
 {
     MPI_Barrier(MPI_COMM_WORLD);
-
-    bool isLower, isUpper; 
     
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -160,17 +159,16 @@ void PIC2D::oneStep_periodicXFreeY(
     PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
-    interface2D_lower.sendMHDtoPIC_currentField_yDirection(USub_lower, current);
-    interface2D_upper.sendMHDtoPIC_currentField_yDirection(USub_upper, current);
+    interface2D_lower.sendMHDtoPIC_currentField_y(USub_lower, current);
+    interface2D_upper.sendMHDtoPIC_currentField_y(USub_upper, current);
     PIC2DMPI::sendrecv_field(current, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
-    //isLower = true, isUpper = false;
-    //interfaceNoiseRemover2D.convolve_currentField(current, isLower, isUpper);
-    //isLower = false, isUpper = true;
-    //interfaceNoiseRemover2D.convolve_currentField(current, isLower, isUpper);
-    //boundaryPIC.periodicBoundaryCurrent_x(current);
-    //boundaryPIC.freeBoundaryCurrent_y(current);
+
+    interfaceNoiseRemover2D_lower.convolve_currentField(current);
+    interfaceNoiseRemover2D_upper.convolve_currentField(current);
+    boundaryPIC.periodicBoundaryCurrent_x(current);
+    boundaryPIC.freeBoundaryCurrent_y(current);
 
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
     PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
@@ -197,27 +195,29 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
-    //isLower = true, isUpper = false;
-    //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
-    //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);
-    //isLower = false, isUpper = true;
-    //interfaceNoiseRemover2D.convolve_magneticField(B, isLower, isUpper);
-    //interfaceNoiseRemover2D.convolve_electricField(E, isLower, isUpper);
+    interfaceNoiseRemover2D_lower.convolve_magneticField(B);
+    interfaceNoiseRemover2D_lower.convolve_electricField(E);
+    interfaceNoiseRemover2D_upper.convolve_magneticField(B);
+    interfaceNoiseRemover2D_upper.convolve_electricField(E);
 
-    interface2D_lower.sendMHDtoPIC_magneticField_yDirection(USub_lower, B);
-    interface2D_upper.sendMHDtoPIC_magneticField_yDirection(USub_upper, B);
+    interface2D_lower.sendMHDtoPIC_magneticField_y(USub_lower, B);
+    interface2D_upper.sendMHDtoPIC_magneticField_y(USub_upper, B);
     PIC2DMPI::sendrecv_field(B, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
     
-    interface2D_lower.sendMHDtoPIC_electricField_yDirection(USub_lower, E);
-    interface2D_upper.sendMHDtoPIC_electricField_yDirection(USub_upper, E);
+    interface2D_lower.sendMHDtoPIC_electricField_y(USub_lower, E);
+    interface2D_upper.sendMHDtoPIC_electricField_y(USub_upper, E);
     PIC2DMPI::sendrecv_field(E, mPIInfo, mPIInfo.mpi_fieldType);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);    
 
-    interface2D_lower.sendMHDtoPIC_particle(USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep);
-    interface2D_upper.sendMHDtoPIC_particle(USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep);
+    interface2D_lower.sendMHDtoPIC_particle(
+        USub_lower, particlesIon, particlesElectron, step * totalSubstep + substep
+    );
+    interface2D_upper.sendMHDtoPIC_particle(
+        USub_upper, particlesIon, particlesElectron, step * totalSubstep + substep
+    );
 }   
 
 

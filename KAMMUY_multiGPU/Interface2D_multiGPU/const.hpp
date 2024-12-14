@@ -8,7 +8,7 @@ namespace Interface2DConst
     extern const double PI;
 
     extern const int interfaceLength; 
-    extern const int windowSizeForConvolution;
+
     extern const int convolutionCount; 
 
     extern const int nx; 
@@ -21,7 +21,6 @@ namespace Interface2DConst
     extern __constant__ double device_PI;
 
     extern __constant__ int device_interfaceLength; 
-    extern __constant__ int device_windowSizeForConvolution;
 
     extern __constant__ int device_nx; 
     extern __constant__ int device_ny; 

@@ -6,7 +6,6 @@ __global__ void calculateSubU_kernel(
     const ConservationParameter* UNext, 
     ConservationParameter* USub, 
     double mixingRatio, 
-    int localSizeXPIC, int localSizeYPIC, 
     int localSizeXMHD, int localSizeYMHD
 )
 {
@@ -34,16 +33,15 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (mPIInfoMHD.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((localSizeXMHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (localSizeYMHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(UNext.data()), 
         thrust::raw_pointer_cast(USub.data()), 
         mixingRatio, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        localSizeXMHD, localSizeYMHD
     );
     cudaDeviceSynchronize();
 
@@ -148,8 +146,7 @@ __global__ void calculateTimeAveParameters_kernel(
     FirstMoment* firstMomentIon_timeAve, 
     FirstMoment* firstMomentElectron_timeAve, 
     int substeps, 
-    int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXPIC, int localSizeYPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -174,16 +171,24 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
-    interfaceNoiseRemover2D.convolve_magneticField(B_timeAve, isLower, isUpper);
-    interfaceNoiseRemover2D.convolveMoments(
-        zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
-        firstMomentIon_timeAve, firstMomentElectron_timeAve, 
-        isLower, isUpper
-    );
+
+    for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+        interfaceNoiseRemover2D.convolve_magneticField(B_timeAve);
+        interfaceNoiseRemover2D.convolveMoments(
+            zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
+            firstMomentIon_timeAve, firstMomentElectron_timeAve
+        );
+
+        PIC2DMPI::sendrecv_field_x(B_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_fieldType);
+        PIC2DMPI::sendrecv_field_x(zerothMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(zerothMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    }
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (mPIInfoPIC.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((localSizeXPIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (localSizeYPIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateTimeAveParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B_timeAve.data()), 
@@ -192,8 +197,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
         thrust::raw_pointer_cast(firstMomentIon_timeAve.data()), 
         thrust::raw_pointer_cast(firstMomentElectron_timeAve.data()), 
         substeps, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        localSizeXPIC, localSizeYPIC
     );
     cudaDeviceSynchronize();
 }

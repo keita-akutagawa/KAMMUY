@@ -294,65 +294,57 @@ int main(int argc, char** argv)
     mPIInfoPIC.yminForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * mPIInfoPIC.localGridY;
     mPIInfoPIC.ymaxForProcs = PIC2DConst::ymin + (PIC2DConst::ymax - PIC2DConst::ymin) / mPIInfoPIC.gridY * (mPIInfoPIC.localGridY + 1);
 
-    for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
-        host_interlockingFunctionY_lower[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
+    for (int j = 0; j < Interface2DConst::ny; j++) {
+        host_interlockingFunctionY_lower[j] = max(
+            0.5 * (1.0 + cos(Interface2DConst::PI * (j - 0.0) / (Interface2DConst::ny - 0.0))), 
             Interface2DConst::EPS
         );
-        host_interlockingFunctionY_upper[i] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (i - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
-            Interface2DConst::EPS
-        );
-    }
-    for (int i = 0; i < Interface2DConst::interfaceLength; i++) {
-        host_interlockingFunctionYHalf_lower[i] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
-            Interface2DConst::EPS
-        );
-        host_interlockingFunctionYHalf_upper[i] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (i + 0.5 - 0.0) / (Interface2DConst::interfaceLength - 0.0))), 
+        host_interlockingFunctionY_upper[j] = max(
+            0.5 * (1.0 - cos(Interface2DConst::PI * (j - 0.0) / (Interface2DConst::ny - 0.0))), 
             Interface2DConst::EPS
         );
     }
-
-    const int nxInterfaceForConvolution = mPIInfoPIC.localSizeX;
-    const int nyInterfaceForConvolution = Interface2DConst::interfaceLength + 5 * Interface2DConst::windowSizeForConvolution;
+    for (int j = 0; j < Interface2DConst::ny; j++) {
+        host_interlockingFunctionYHalf_lower[j] = max(
+            0.5 * (1.0 + cos(Interface2DConst::PI * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0))), 
+            Interface2DConst::EPS
+        );
+        host_interlockingFunctionYHalf_upper[j] = max(
+            0.5 * (1.0 - cos(Interface2DConst::PI * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0))), 
+            Interface2DConst::EPS
+        );
+    }
 
     IdealMHD2D idealMHD2D_lower(mPIInfoMHD);
     IdealMHD2D idealMHD2D_upper(mPIInfoMHD);
     PIC2D pIC2D(mPIInfoPIC); 
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D( 
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D_lower( 
         mPIInfoMHD, mPIInfoPIC, 
         indexOfInterfaceStartInMHD_lower, 
         indexOfInterfaceStartInPIC_lower, 
+        Interface2DConst::nx, Interface2DConst::ny
+    );
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D_upper( 
+        mPIInfoMHD, mPIInfoPIC, 
         indexOfInterfaceStartInMHD_upper, 
         indexOfInterfaceStartInPIC_upper, 
-        Interface2DConst::interfaceLength, 
-        Interface2DConst::windowSizeForConvolution, 
-        nxInterfaceForConvolution, nyInterfaceForConvolution
+        Interface2DConst::nx, Interface2DConst::ny
     );
-    bool isLower, isUpper;
-    isLower = true, isUpper = false; 
     Interface2D interface2D_lower(
         mPIInfoMHD, mPIInfoPIC, mPIInfoInterface, 
-        isLower, isUpper, 
         indexOfInterfaceStartInMHD_lower, 
         indexOfInterfaceStartInPIC_lower, 
-        Interface2DConst::interfaceLength, 
         host_interlockingFunctionY_lower, 
         host_interlockingFunctionYHalf_lower, 
-        interfaceNoiseRemover2D
+        interfaceNoiseRemover2D_lower
     );
-    isLower = false, isUpper = true; 
     Interface2D interface2D_upper(
         mPIInfoMHD, mPIInfoPIC, mPIInfoInterface, 
-        isLower, isUpper, 
         indexOfInterfaceStartInMHD_upper, 
         indexOfInterfaceStartInPIC_upper, 
-        Interface2DConst::interfaceLength, 
         host_interlockingFunctionY_upper, 
         host_interlockingFunctionYHalf_upper,
-        interfaceNoiseRemover2D
+        interfaceNoiseRemover2D_upper
     );
     BoundaryMHD boundaryMHD(mPIInfoMHD);
     
@@ -451,7 +443,7 @@ int main(int argc, char** argv)
                 UPast_lower, UPast_upper, 
                 UNext_lower, UNext_upper, 
                 interface2D_lower, interface2D_upper, 
-                interfaceNoiseRemover2D, 
+                interfaceNoiseRemover2D_lower, interfaceNoiseRemover2D_upper, 
                 step, substep, totalSubstep
             );
 
@@ -487,10 +479,8 @@ int main(int argc, char** argv)
         U_lower = idealMHD2D_lower.getURef();
         U_upper = idealMHD2D_upper.getURef();
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            isLower = true, isUpper = false;
-            interfaceNoiseRemover2D.convolveU(U_lower, isLower, isUpper);
-            isLower = false, isUpper = true;
-            interfaceNoiseRemover2D.convolveU(U_upper, isLower, isUpper);
+            interfaceNoiseRemover2D_lower.convolveU(U_lower);
+            interfaceNoiseRemover2D_upper.convolveU(U_upper);
 
             IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
             boundaryMHD.periodicBoundaryX2nd_U(U_lower);

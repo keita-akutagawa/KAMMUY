@@ -76,7 +76,8 @@ public:
         thrust::device_vector<ConservationParameter>& UNext_upper, 
         Interface2D& interface2D_lower, 
         Interface2D& interface2D_upper, 
-        InterfaceNoiseRemover2D& interfaceNoiseRemover2D, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_lower, 
+        InterfaceNoiseRemover2D& interfaceNoiseRemover2D_upper,  
         int step, int substep, int totalSubstep
     );
 

@@ -52,10 +52,8 @@ Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
     PIC2DMPI::MPIInfo& mPIInfoPIC, 
     Interface2DMPI::MPIInfo& mPIInfoInterface, 
-    bool isLower, bool isUpper, 
     int indexOfInterfaceStartMHD, 
     int indexOfInterfaceStartPIC, 
-    int interfaceLength, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     thrust::host_vector<double>& host_interlockingFunctionYHalf, 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D
@@ -64,17 +62,16 @@ Interface2D::Interface2D(
       mPIInfoPIC(mPIInfoPIC), 
       mPIInfoInterface(mPIInfoInterface), 
 
-      isLower(isLower), 
-      isUpper(isUpper), 
-
       indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
-      indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC), 
-      interfaceLength(interfaceLength), 
-      indexOfInterfaceEndInMHD(indexOfInterfaceStartMHD + interfaceLength), 
-      indexOfInterfaceEndInPIC(indexOfInterfaceStartPIC + interfaceLength), 
+      indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC),
 
-      interlockingFunctionY    (interfaceLength, 0.0), 
-      interlockingFunctionYHalf(interfaceLength, 0.0),
+      localSizeXPIC(mPIInfoPIC.localSizeX), 
+      localSizeYPIC(mPIInfoPIC.localSizeY), 
+      localSizeXMHD(mPIInfoMHD.localSizeX), 
+      localSizeYMHD(mPIInfoMHD.localSizeY), 
+
+      interlockingFunctionY    (Interface2DConst::ny, 0.0), 
+      interlockingFunctionYHalf(Interface2DConst::ny, 0.0),
 
       zerothMomentIon     (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
       zerothMomentElectron(mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
@@ -87,10 +84,10 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon          (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
-      reloadParticlesDataElectron     (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
-      host_reloadParticlesDataIon     (mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
-      host_reloadParticlesDataElectron(mPIInfoInterface.localSizeX * mPIInfoInterface.localSizeY + 1), 
+      reloadParticlesDataIon          (Interface2DConst::nx * Interface2DConst::ny + 1), 
+      reloadParticlesDataElectron     (Interface2DConst::nx * Interface2DConst::ny + 1), 
+      host_reloadParticlesDataIon     (Interface2DConst::nx * Interface2DConst::ny + 1), 
+      host_reloadParticlesDataElectron(Interface2DConst::nx * Interface2DConst::ny + 1), 
       
       B_timeAve                   (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 
       zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * mPIInfoPIC.localSizeY), 

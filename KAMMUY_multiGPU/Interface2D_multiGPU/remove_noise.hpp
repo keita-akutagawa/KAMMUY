@@ -21,12 +21,8 @@ private:
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
-    int indexOfInterfaceStartInMHD_lower;
-    int indexOfInterfaceStartInPIC_lower;
-    int indexOfInterfaceStartInMHD_upper;
-    int indexOfInterfaceStartInPIC_upper;
-    int interfaceLength; 
-    int windowSize;
+    int indexOfInterfaceStartInMHD;
+    int indexOfInterfaceStartInPIC;
     int nxInterface; 
     int nyInterface;
 
@@ -41,46 +37,41 @@ public:
     InterfaceNoiseRemover2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
-        int indexOfInterfaceStartInMHD_lower, 
-        int indexOfInterfaceStartInPIC_lower, 
-        int indexOfInterfaceStartInMHD_upper, 
-        int indexOfInterfaceStartInPIC_upper, 
-        int interfaceLength, 
-        int windowSizeForConvolution, 
+        int indexOfInterfaceStartInMHD, 
+        int indexOfInterfaceStartInPIC, 
         int nxInterface, 
         int nyInterface
     );
 
 
     void convolve_magneticField(
-        thrust::device_vector<MagneticField>& B, 
-        bool isLower, bool isUpper
+        thrust::device_vector<MagneticField>& B
     );
 
     void convolve_electricField(
-        thrust::device_vector<ElectricField>& E, 
-        bool isLower, bool isUpper
+        thrust::device_vector<ElectricField>& E
     );
 
     void convolve_currentField(
-        thrust::device_vector<CurrentField>& current, 
-        bool isLower, bool isUpper
+        thrust::device_vector<CurrentField>& current
     );
 
     void convolveMoments(
         thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         thrust::device_vector<FirstMoment>& firstMomentIon, 
-        thrust::device_vector<FirstMoment>& firstMomentElectron, 
-        bool isLower, bool isUpper
+        thrust::device_vector<FirstMoment>& firstMomentElectron
     );
 
     void convolveU(
-        thrust::device_vector<ConservationParameter>& U, 
-        bool isLower, bool isUpper
+        thrust::device_vector<ConservationParameter>& U
     );
 
 private:
+    void convolveMomentsOfOneSpecies(
+        thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
+        thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies
+    );
 
 };
 

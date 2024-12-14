@@ -37,14 +37,13 @@ private:
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
     Interface2DMPI::MPIInfo* device_mPIInfoInterface; 
 
-    const bool isLower; 
-    const bool isUpper; 
-
     int indexOfInterfaceStartInMHD;
     int indexOfInterfaceStartInPIC;
-    int interfaceLength; 
-    int indexOfInterfaceEndInMHD;
-    int indexOfInterfaceEndInPIC;
+
+    int localSizeXPIC; 
+    int localSizeYPIC; 
+    int localSizeXMHD; 
+    int localSizeYMHD; 
 
     thrust::device_vector<double> interlockingFunctionY;
     thrust::device_vector<double> interlockingFunctionYHalf;
@@ -83,41 +82,49 @@ public:
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
         Interface2DMPI::MPIInfo& mPIInfoInterface, 
-        bool isLower, bool isUpper, 
         int indexOfInterfaceStartMHD, 
         int indexOfInterfaceStartPIC, 
-        int interfaceLength, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
         thrust::host_vector<double>& host_interlockingFunctionYHalf, 
         InterfaceNoiseRemover2D& interfaceNoiseRemover2D
     );
 
-    void sendMHDtoPIC_magneticField_yDirection(
+    void sendMHDtoPIC_magneticField_y(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<MagneticField>& B
     );
 
-    void sendMHDtoPIC_electricField_yDirection(
+    void sendMHDtoPIC_electricField_y(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<ElectricField>& E
     );
 
-    void sendMHDtoPIC_currentField_yDirection(
+    void sendMHDtoPIC_currentField_y(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<CurrentField>& Current
     );
 
-    void deleteParticles(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron, 
-        int step
+    //CUDAのラムダ制限のためpublicに移動
+    void deleteParticlesSpecies(
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpeciesPerProcs, 
+        int seed
+    );
+
+    //CUDAのラムダ制限のためpublicに移動
+    void reloadParticlesSpecies(
+        thrust::device_vector<Particle>& particlesSpecies, 
+        thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
+        thrust::device_vector<Particle>& reloadParticlesSourceSpecies, 
+        unsigned long long& existNumSpeciesPerProcs, 
+        int seed 
     );
 
     void sendMHDtoPIC_particle(
         const thrust::device_vector<ConservationParameter>& U, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron, 
-        int step
+        int seed
     );
 
 
@@ -151,7 +158,6 @@ private:
         const thrust::device_vector<Particle>& particlesIon, 
         const thrust::device_vector<Particle>& particlesElectron
     );
-
 };
 
 #endif

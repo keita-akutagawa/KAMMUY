@@ -4,23 +4,15 @@
 InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
     PIC2DMPI::MPIInfo& mPIInfoPIC, 
-    int indexOfInterfaceStartInMHD_lower, 
-    int indexOfInterfaceStartInPIC_lower, 
-    int indexOfInterfaceStartInMHD_upper, 
-    int indexOfInterfaceStartInPIC_upper, 
-    int interfaceLength, 
-    int windowSizeForConvolution, 
+    int indexOfInterfaceStartInMHD, 
+    int indexOfInterfaceStartInPIC, 
     int nxInterface, int nyInterface
 )
     : mPIInfoMHD(mPIInfoMHD), 
       mPIInfoPIC(mPIInfoPIC), 
 
-      indexOfInterfaceStartInMHD_lower(indexOfInterfaceStartInMHD_lower), 
-      indexOfInterfaceStartInPIC_lower(indexOfInterfaceStartInPIC_lower), 
-      indexOfInterfaceStartInMHD_upper(indexOfInterfaceStartInMHD_upper), 
-      indexOfInterfaceStartInPIC_upper(indexOfInterfaceStartInPIC_upper), 
-      interfaceLength(interfaceLength), 
-      windowSize(windowSizeForConvolution), 
+      indexOfInterfaceStartInMHD(indexOfInterfaceStartInMHD), 
+      indexOfInterfaceStartInPIC(indexOfInterfaceStartInPIC), 
       nxInterface(nxInterface), 
       nyInterface(nyInterface), 
 
@@ -41,15 +33,12 @@ InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
 
 
 template <typename FieldType>
-__global__ void copyFields_kernel(
+__global__ void copyFieldsPIC_kernel(
     const FieldType* field, 
     FieldType* tmpField, 
     int indexOfInterfaceStartInPIC, 
-    int interfaceLength, 
-    int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXPIC, int localSizeYPIC, 
-    bool isLower, bool isUpper
+    int localSizeXPIC, int localSizeYPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -57,14 +46,7 @@ __global__ void copyFields_kernel(
 
     if (i < nxInterface && j < nyInterface) {
         int indexForCopy = j + i * nyInterface;
-        int indexPIC;
-        if (isLower) {
-            indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
-        }
-        if (isUpper) {
-            indexPIC = indexOfInterfaceStartInPIC
-                     + j - (nyInterface - interfaceLength) + i * localSizeYPIC;
-        }
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
 
         tmpField[indexForCopy] = field[indexPIC];
     }
@@ -76,244 +58,159 @@ __global__ void convolveFields_kernel(
     const FieldType* tmpField, 
     FieldType* field, 
     int indexOfInterfaceStartInPIC, 
-    int interfaceLength, 
-    int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXPIC, int localSizeYPIC, 
-    bool isLower, bool isUpper
+    int localSizeXPIC, int localSizeYPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < nxInterface && windowSize <= j && j < nyInterface - windowSize) {
+    if (0 < i && i < nxInterface - 1 && 0 < j && j < nyInterface - 1) {
         int indexForCopy = j + i * nyInterface;
-        int indexPIC;
-        if (isLower) {
-            indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
-        }
-        if (isUpper) {
-            indexPIC = indexOfInterfaceStartInPIC
-                     + j - (nyInterface - interfaceLength) + i * localSizeYPIC;
-        }
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         
         FieldType convolvedField; 
-        int windowSizeX = min(min(i, nxInterface - 1 - i), windowSize);
-        int windowSizeY = min(min(j, nyInterface - 1 - j), windowSize);
 
-        for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
-            for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedField = convolvedField + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
-                               * tmpField[indexForCopy + sizeX * nyInterface + sizeY];
-            }
-        }
+        convolvedField = 0.5 * tmpField[indexForCopy] + 0.25 * (tmpField[indexForCopy + nyInterface] + tmpField[indexForCopy - nyInterface]);
+        convolvedField = 0.5 * tmpField[indexForCopy] + 0.25 * (tmpField[indexForCopy + 1] + tmpField[indexForCopy - 1]);
         
         field[indexPIC] = convolvedField;
-
-        if (isLower) {
-            if (j == windowSize) {
-                for (int tmp = 1; tmp <= windowSize; tmp++) {
-                    field[indexPIC - tmp] = convolvedField;
-                }
-            }
-        }
-        if (isUpper) {
-            if (j == nyInterface - windowSize - 1) {
-                for (int tmp = 1; tmp <= windowSize; tmp++) {
-                    field[indexPIC + tmp] = convolvedField;
-                }
-            }
-        }
     }
 }
 
 
 void InterfaceNoiseRemover2D::convolve_magneticField(
-    thrust::device_vector<MagneticField>& B, 
-    bool isLower, bool isUpper
+    thrust::device_vector<MagneticField>& B
 )
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    if (isLower) {
-        copyFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(B.data()), 
-            thrust::raw_pointer_cast(tmpB.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
+    copyFieldsPIC_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(B.data()), 
+        thrust::raw_pointer_cast(tmpB.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
     
-        convolveFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpB.data()), 
-            thrust::raw_pointer_cast(B.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+    convolveFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpB.data()), 
+        thrust::raw_pointer_cast(B.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
 
-    if (isUpper) {
-        copyFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(B.data()), 
-            thrust::raw_pointer_cast(tmpB.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    
-        convolveFields_kernel<MagneticField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpB.data()), 
-            thrust::raw_pointer_cast(B.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
 }
 
 
 void InterfaceNoiseRemover2D::convolve_electricField(
-    thrust::device_vector<ElectricField>& E, 
-    bool isLower, bool isUpper
+    thrust::device_vector<ElectricField>& E
 )
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    if (isLower) {
-        copyFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(E.data()), 
-            thrust::raw_pointer_cast(tmpE.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
+    copyFieldsPIC_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(E.data()), 
+        thrust::raw_pointer_cast(tmpE.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
 
-        convolveFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpE.data()), 
-            thrust::raw_pointer_cast(E.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+    convolveFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpE.data()), 
+        thrust::raw_pointer_cast(E.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
 
-    if (isUpper) {
-        copyFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(E.data()), 
-            thrust::raw_pointer_cast(tmpE.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<ElectricField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpE.data()), 
-            thrust::raw_pointer_cast(E.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
 }
 
 
 void InterfaceNoiseRemover2D::convolve_currentField(
-    thrust::device_vector<CurrentField>& current, 
-    bool isLower, bool isUpper
+    thrust::device_vector<CurrentField>& current
 )
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    if (isLower) {
-        copyFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(current.data()), 
-            thrust::raw_pointer_cast(tmpCurrent.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-        
-        convolveFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpCurrent.data()), 
-            thrust::raw_pointer_cast(current.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+    copyFieldsPIC_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(current.data()), 
+        thrust::raw_pointer_cast(tmpCurrent.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
+    
+    convolveFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpCurrent.data()), 
+        thrust::raw_pointer_cast(current.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
 
-    if (isUpper) {
-        copyFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(current.data()), 
-            thrust::raw_pointer_cast(tmpCurrent.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-        
-        convolveFields_kernel<CurrentField><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpCurrent.data()), 
-            thrust::raw_pointer_cast(current.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+}
+
+
+void InterfaceNoiseRemover2D::convolveMomentsOfOneSpecies(
+    thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
+    thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    copyFieldsPIC_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(zerothMomentOfOneSpecies.data()), 
+        thrust::raw_pointer_cast(tmpZerothMoment.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
+
+    convolveFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpZerothMoment.data()), 
+        thrust::raw_pointer_cast(zerothMomentOfOneSpecies.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
+
+    copyFieldsPIC_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(firstMomentOfOneSpecies.data()), 
+        thrust::raw_pointer_cast(tmpFirstMoment.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
+
+    convolveFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpFirstMoment.data()), 
+        thrust::raw_pointer_cast(firstMomentOfOneSpecies.data()), 
+        indexOfInterfaceStartInPIC, 
+        nxInterface, nyInterface, 
+        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+    );
+    cudaDeviceSynchronize();
+
 }
 
 
@@ -321,209 +218,15 @@ void InterfaceNoiseRemover2D::convolveMoments(
     thrust::device_vector<ZerothMoment>& zerothMomentIon, 
     thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
     thrust::device_vector<FirstMoment>& firstMomentIon, 
-    thrust::device_vector<FirstMoment>& firstMomentElectron, 
-    bool isLower, bool isUpper
+    thrust::device_vector<FirstMoment>& firstMomentElectron
 )
 {
-    dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
-    if (isLower) {
-        copyFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(zerothMomentIon.data()), 
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            thrust::raw_pointer_cast(zerothMomentIon.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(firstMomentIon.data()), 
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            thrust::raw_pointer_cast(firstMomentIon.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(zerothMomentElectron.data()), 
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            thrust::raw_pointer_cast(zerothMomentElectron.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(firstMomentElectron.data()), 
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            thrust::raw_pointer_cast(firstMomentElectron.data()), 
-            indexOfInterfaceStartInPIC_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
-
-    if (isUpper) {
-        copyFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(zerothMomentIon.data()), 
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            thrust::raw_pointer_cast(zerothMomentIon.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(firstMomentIon.data()), 
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            thrust::raw_pointer_cast(firstMomentIon.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(zerothMomentElectron.data()), 
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<ZerothMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpZerothMoment.data()), 
-            thrust::raw_pointer_cast(zerothMomentElectron.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        copyFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(firstMomentElectron.data()), 
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveFields_kernel<FirstMoment><<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpFirstMoment.data()), 
-            thrust::raw_pointer_cast(firstMomentElectron.data()), 
-            indexOfInterfaceStartInPIC_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+    convolveMomentsOfOneSpecies(
+        zerothMomentIon, firstMomentIon
+    );
+    convolveMomentsOfOneSpecies(
+        zerothMomentElectron, firstMomentElectron
+    );
 }
 
 
@@ -532,11 +235,8 @@ __global__ void copyU_kernel(
     const ConservationParameter* U, 
     ConservationParameter* tmpU, 
     int indexOfInterfaceStartInMHD, 
-    int interfaceLength, 
-    int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXMHD, int localSizeYMHD, 
-    bool isLower, bool isUpper
+    int localSizeXMHD, int localSizeYMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -544,40 +244,9 @@ __global__ void copyU_kernel(
 
     if (i < nxInterface && j < nyInterface) {
         int indexForCopy = j + i * nyInterface;
-        int indexMHD;
-        if (isLower) {
-            indexMHD = indexOfInterfaceStartInMHD
-                     + j - (nyInterface - interfaceLength) + i * localSizeYMHD;
-        }
-        if (isUpper) {
-            indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
-        }
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
 
         tmpU[indexForCopy] = U[indexMHD];
-        if (isnan(tmpU[indexForCopy].rho)) {
-            tmpU[indexForCopy].rho = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].rhoU)) {
-            tmpU[indexForCopy].rhoU = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].rhoV)) {
-            tmpU[indexForCopy].rhoV = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].rhoW)) {
-            tmpU[indexForCopy].rhoW = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].bX)) {
-            tmpU[indexForCopy].bX = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].bY)) {
-            tmpU[indexForCopy].bY = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].bZ)) {
-            tmpU[indexForCopy].bZ = IdealMHD2DConst::device_EPS;
-        }
-        if (isnan(tmpU[indexForCopy].e)) {
-            tmpU[indexForCopy].e = IdealMHD2DConst::device_EPS;
-        }
     }
 }
 
@@ -586,117 +255,51 @@ __global__ void convolveU_kernel(
     const ConservationParameter* tmpU, 
     ConservationParameter* U, 
     int indexOfInterfaceStartInMHD, 
-    int interfaceLength, 
-    int windowSize, 
     int nxInterface, int nyInterface, 
-    int localSizeXMHD, int localSizeYMHD, 
-    bool isLower, bool isUpper
+    int localSizeXMHD, int localSizeYMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < nxInterface && windowSize <= j && j < nyInterface - windowSize) {
+    if (0 < i && i < nxInterface - 1 && 0 < j && j < nyInterface - 1) {
         int indexForCopy = j + i * nyInterface;
-        int indexMHD;
-        if (isLower) {
-            indexMHD = indexOfInterfaceStartInMHD
-                     + j - (nyInterface - interfaceLength) + i * localSizeYMHD;
-        }
-        if (isUpper) {
-            indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
-        }
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
         
         ConservationParameter convolvedU;
-        int windowSizeX = min(min(i, nxInterface - 1 - i), windowSize);
-        int windowSizeY = min(min(j, nyInterface - 1 - j), windowSize);
 
-        for (int sizeX = -windowSizeX; sizeX <= windowSizeX; sizeX++) {
-            for (int sizeY = -windowSizeY; sizeY <= windowSizeY; sizeY++) {
-                convolvedU = convolvedU + (1.0 / (2.0 * windowSizeX + 1.0) / (2.0 * windowSizeY + 1.0))
-                           * tmpU[indexForCopy + sizeX * nyInterface + sizeY];
-            }
-        }
-
+        convolvedU = 0.5 * tmpU[indexForCopy] + 0.25 * (tmpU[indexForCopy + nyInterface] + tmpU[indexForCopy - nyInterface]);
+        convolvedU = 0.5 * tmpU[indexForCopy] + 0.25 * (tmpU[indexForCopy + 1] + tmpU[indexForCopy - 1]);
+        
         U[indexMHD] = convolvedU;
-
-        if (isLower) {
-            if (j == nyInterface - windowSize - 1) {
-                for (int tmp = 1; tmp <= windowSize; tmp++) {
-                    U[indexMHD + tmp] = convolvedU;
-                }
-            }
-        }
-        if (isUpper) {
-            if (j == windowSize) {
-                for (int tmp = 1; tmp <= windowSize; tmp++) {
-                    U[indexMHD - tmp] = convolvedU;
-                }
-            }
-        }
     }
 }
 
 
 void InterfaceNoiseRemover2D::convolveU(
-    thrust::device_vector<ConservationParameter>& U,  
-    bool isLower, bool isUpper
+    thrust::device_vector<ConservationParameter>& U
 )
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((nxInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (nyInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    if (isLower) {
-        copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(U.data()), 
-            thrust::raw_pointer_cast(tmpU.data()),
-            indexOfInterfaceStartInMHD_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
+    copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U.data()), 
+        thrust::raw_pointer_cast(tmpU.data()),
+        indexOfInterfaceStartInMHD, 
+        nxInterface, nyInterface, 
+        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+    );
+    cudaDeviceSynchronize();
 
-        convolveU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpU.data()), 
-            thrust::raw_pointer_cast(U.data()), 
-            indexOfInterfaceStartInMHD_lower, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
-
-    if (isUpper) {
-        copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(U.data()), 
-            thrust::raw_pointer_cast(tmpU.data()),
-            indexOfInterfaceStartInMHD_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-
-        convolveU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-            thrust::raw_pointer_cast(tmpU.data()), 
-            thrust::raw_pointer_cast(U.data()), 
-            indexOfInterfaceStartInMHD_upper, 
-            interfaceLength, 
-            windowSize, 
-            nxInterface, nyInterface, 
-            mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY, 
-            isLower, isUpper
-        );
-        cudaDeviceSynchronize();
-    }
+    convolveU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpU.data()), 
+        thrust::raw_pointer_cast(U.data()), 
+        indexOfInterfaceStartInMHD, 
+        nxInterface, nyInterface, 
+        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+    );
+    cudaDeviceSynchronize();
 }
 
