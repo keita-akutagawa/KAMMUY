@@ -35,21 +35,20 @@ __global__ void setFlux_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeX - 1 && 0 < j && j < localSizeY - 1) {
+    if (0 < i && i < localSizeX && 0 < j && j < localSizeY) {
         int index = j + i * localSizeY;
         double rho, u, v, bX, bY;
-        double xPosition = i * device_dx, yPosition = j * device_dy;
 
         rho = U[index].rho;
         u   = U[index].rhoU / rho;
         v   = U[index].rhoV / rho;
         bX  = 0.5 * (U[index].bX + U[index - localSizeY].bX);
         bY  = 0.5 * (U[index].bY + U[index - 1].bY);
-  
+
         NumericalFluxF_f5[index] = fluxF[index].f5;
         NumericalFluxG_f4[index] = fluxG[index].f4;
-        FluxF_f5[index] = u * bY - v * bX - eta * jZ;
-        FluxG_f4[index] = -(u * bY - v * bX - eta * jZ);
+        FluxF_f5[index] = u * bY - v * bX;
+        FluxG_f4[index] = -(u * bY - v * bX);
         NumericalFluxF_f0[index] = fluxF[index].f0;
         NumericalFluxG_f0[index] = fluxG[index].f0;
     }
@@ -192,7 +191,7 @@ __global__ void CT_kernel(
     const double* bXOld, const double* bYOld, 
     const double* eZVector, 
     ConservationParameter* U, 
-    int localSizeX, int localSizeY
+    int localSizeX, int localSizeY, int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -202,9 +201,9 @@ __global__ void CT_kernel(
         int index = j + i * localSizeY;
 
         U[index].bX = bXOld[index]
-                    - device_dt / device_dy * (eZVector[index] - eZVector[index - 1]);
+                    - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (eZVector[index] - eZVector[index - 1]);
         U[index].bY = bYOld[index]
-                    + device_dt / device_dx * (eZVector[index] - eZVector[index - localSizeY]);
+                    + IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (eZVector[index] - eZVector[index - localSizeY]);
     }
 }
 
@@ -242,8 +241,9 @@ void CT::divBClean(
         thrust::raw_pointer_cast(bYOld.data()),
         thrust::raw_pointer_cast(eZVector.data()),
         thrust::raw_pointer_cast(U.data()), 
-        mPIInfo.localSizeX, mPIInfo.localSizeY
+        mPIInfo.localSizeX, mPIInfo.localSizeY, mPIInfo.buffer
     );
     cudaDeviceSynchronize();
+
 }
 
