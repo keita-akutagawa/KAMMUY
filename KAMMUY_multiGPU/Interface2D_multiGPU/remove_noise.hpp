@@ -21,10 +21,10 @@ private:
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
-    int indexOfInterfaceStartInMHD;
-    int indexOfInterfaceStartInPIC;
-    int localSizeXInterface; 
-    int localSizeYInterface; 
+    int indexOfConvolutionStartInMHD;
+    int indexOfConvolutionStartInPIC;
+    int localSizeXConvolution; 
+    int localSizeYConvolution; 
 
     thrust::device_vector<MagneticField> tmpB;
     thrust::device_vector<ElectricField> tmpE;
@@ -37,10 +37,10 @@ public:
     InterfaceNoiseRemover2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
-        int indexOfInterfaceStartInMHD, 
-        int indexOfInterfaceStartInPIC, 
-        int nxInterface, 
-        int nyInterface
+        int indexOfConvolutionStartInMHD, 
+        int indexOfConvolutionStartInPIC, 
+        int localSizeXConvolution, 
+        int localSizeYConvolution
     );
 
 

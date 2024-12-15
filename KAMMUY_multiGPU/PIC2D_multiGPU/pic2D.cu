@@ -104,7 +104,6 @@ void PIC2D::oneStep_periodicXFreeY(
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (mPIInfo.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
                        
-
     float mixingRatio = (totalSubstep - substep) / totalSubstep;
     thrust::device_vector<ConservationParameter>& USub_lower = interface2D_lower.calculateAndGetSubU(UPast_lower, UNext_lower, mixingRatio);
     thrust::device_vector<ConservationParameter>& USub_upper = interface2D_upper.calculateAndGetSubU(UPast_upper, UNext_upper, mixingRatio);
@@ -258,8 +257,8 @@ void PIC2D::saveFields(
 
     std::ofstream ofsB(filenameB, std::ios::binary);
     ofsB << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsB.write(reinterpret_cast<const char*>(&host_B[index].bX), sizeof(float));
@@ -274,8 +273,8 @@ void PIC2D::saveFields(
 
     std::ofstream ofsE(filenameE, std::ios::binary);
     ofsE << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsE.write(reinterpret_cast<const char*>(&host_E[index].eX), sizeof(float));
@@ -290,8 +289,8 @@ void PIC2D::saveFields(
 
     std::ofstream ofsCurrent(filenameCurrent, std::ios::binary);
     ofsCurrent << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsCurrent.write(reinterpret_cast<const char*>(&host_current[index].jX), sizeof(float));
@@ -388,8 +387,8 @@ void PIC2D::saveZerothMoments(
 
     std::ofstream ofsZerothMomentIon(filenameZerothMomentIon, std::ios::binary);
     ofsZerothMomentIon << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsZerothMomentIon.write(reinterpret_cast<const char*>(
@@ -400,8 +399,8 @@ void PIC2D::saveZerothMoments(
 
     std::ofstream ofsZerothMomentElectron(filenameZerothMomentElectron, std::ios::binary);
     ofsZerothMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsZerothMomentElectron.write(reinterpret_cast<const char*>(
@@ -437,8 +436,8 @@ void PIC2D::saveFirstMoments(
 
     std::ofstream ofsFirstMomentIon(filenameFirstMomentIon, std::ios::binary);
     ofsFirstMomentIon << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsFirstMomentIon.write(reinterpret_cast<const char*>(
@@ -455,8 +454,8 @@ void PIC2D::saveFirstMoments(
 
     std::ofstream ofsFirstMomentElectron(filenameFirstMomentElectron, std::ios::binary);
     ofsFirstMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsFirstMomentElectron.write(reinterpret_cast<const char*>(
@@ -498,8 +497,8 @@ void PIC2D::saveSecondMoments(
 
     std::ofstream ofsSecondMomentIon(filenameSecondMomentIon, std::ios::binary);
     ofsSecondMomentIon << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
@@ -525,8 +524,8 @@ void PIC2D::saveSecondMoments(
 
     std::ofstream ofsSecondMomentElectron(filenameSecondMomentElectron, std::ios::binary);
     ofsSecondMomentElectron << std::fixed << std::setprecision(6);
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             int index = j + mPIInfo.localSizeY * i;
 
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(

@@ -24,9 +24,6 @@ __global__ void sendMHDtoPIC_magneticField_y_kernel(
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
 
-        if (indexPIC >= localSizeXPIC * localSizeYPIC) printf("PIC INDEX OUT");
-        if (indexMHD >= localSizeXMHD * localSizeYMHD) printf("MHD INDEX OUT");
-
         //PICのグリッドにMHDを合わせる
         bXPIC = B[indexPIC].bX;
         bYPIC = B[indexPIC].bY;
@@ -360,8 +357,8 @@ __global__ void deleteParticles_kernel(
         float y = particlesSpecies[i].y;
         float deleteXMin = xminForProcs - buffer * PIC2DConst::device_dx;
         float deleteXMax = xmaxForProcs + buffer * PIC2DConst::device_dx;
-        float deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy + PIC2DConst::device_ymin;
-        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
+        float deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy;
+        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface) * PIC2DConst::device_dy;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) {
             int j = floorf(y - deleteYMin);
@@ -394,7 +391,7 @@ void Interface2D::deleteParticlesSpecies(
         seed, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.buffer, 
-        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
+        localSizeXInterface, localSizeYInterface
     );
     cudaDeviceSynchronize();
 
@@ -445,7 +442,7 @@ __global__ void reloadParticlesSpecies_kernel(
                 particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
                 x = particleSource.x; x += i * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
-                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy + PIC2DConst::device_ymin;
+                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
                 z = particleSource.z;
                 vx = particleSource.vx; vx = u + vx * vth;
                 vy = particleSource.vy; vy = v + vy * vth;
@@ -535,8 +532,8 @@ void Interface2D::sendMHDtoPIC_particle(
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
 
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoInterface.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (mPIInfoInterface.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((localSizeXInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (localSizeYInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_particle_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -554,6 +551,7 @@ void Interface2D::sendMHDtoPIC_particle(
         localSizeXInterface, localSizeYInterface
     );
     cudaDeviceSynchronize();
+
     Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataIon, mPIInfoInterface);
     Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataElectron, mPIInfoInterface);
     
@@ -566,10 +564,11 @@ void Interface2D::sendMHDtoPIC_particle(
     
     host_reloadParticlesDataIon = reloadParticlesDataIon;
     host_reloadParticlesDataElectron = reloadParticlesDataElectron;
-    for (int i = 0; i < mPIInfoInterface.localSizeX; i++) {
-        for (int j = 0; j < mPIInfoInterface.localSizeY; j++) {
+    
+    for (int i = 0; i < localSizeXInterface; i++) {
+        for (int j = 0; j < localSizeYInterface; j++) {
             int index;
-            index = j + i * mPIInfoInterface.localSizeY;
+            index = j + i * localSizeYInterface;
             host_reloadParticlesDataIon[index + 1].numAndIndex += host_reloadParticlesDataIon[index].numAndIndex;
             host_reloadParticlesDataElectron[index + 1].numAndIndex += host_reloadParticlesDataElectron[index].numAndIndex;
         }

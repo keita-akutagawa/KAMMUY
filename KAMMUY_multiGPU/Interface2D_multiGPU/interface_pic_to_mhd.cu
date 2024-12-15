@@ -153,7 +153,7 @@ void Interface2D::sendPICtoMHD(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         mPIInfoMHD.buffer, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY, 
+        localSizeXPIC, localSizeYPIC, 
         localSizeXMHD, localSizeYMHD, 
         localSizeXInterface, localSizeYInterface 
     );
