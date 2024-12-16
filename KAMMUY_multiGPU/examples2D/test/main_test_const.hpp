@@ -109,7 +109,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.3f * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;

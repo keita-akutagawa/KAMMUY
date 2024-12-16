@@ -167,7 +167,7 @@ void PIC2D::initialize()
 {
 
     for (int i = 0; i < mPIInfo.localNx; i++) {
-        for (int j = 0; j < mPIInfo.localSizeY; j++) {
+        for (int j = 0; j < mPIInfo.localNy; j++) {
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
 
@@ -222,7 +222,7 @@ void PIC2D::initialize()
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
     boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
-    //boundaryPIC.freeBoundaryForInitializeParticle_y(particlesIon, particlesElectron);
+    boundaryPIC.freeBoundaryForInitializeParticle_y(particlesIon, particlesElectron);
     
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -383,6 +383,9 @@ int main(int argc, char** argv)
             pIC2D.saveFirstMoments(
                 directoryName, filenameWithoutStep, step
             );
+            pIC2D.saveSecondMoments(
+                directoryName, filenameWithoutStep, step
+            );
             idealMHD2D_lower.save(
                 directoryName, filenameWithoutStep + "_U_lower", step
             );
@@ -483,6 +486,9 @@ int main(int argc, char** argv)
                 directoryName, filenameWithoutStep, step
             );
             pIC2D.saveFirstMoments(
+                directoryName, filenameWithoutStep, step
+            );
+            pIC2D.saveSecondMoments(
                 directoryName, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(

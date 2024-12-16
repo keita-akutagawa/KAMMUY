@@ -65,7 +65,7 @@ __global__ void initializeU_upper_kernel(
         if (mPIInfo.isInside(i, j)) {
             int index = mPIInfo.globalToLocal(i, j);
             double rho, u, v, w, bX, bY, bZ, e, p;
-            double y = j * PIC2DConst::device_dy + 9500 * IdealMHD2DConst::device_dy + 950 * PIC2DConst::device_dy;
+            double y = j * PIC2DConst::device_dy + 9500 * IdealMHD2DConst::device_dy + 150 * PIC2DConst::device_dy;
             
             rho = IdealMHD2DConst::device_rho0;
             u   = waveAmp * VA * cos(waveNumber * y);
@@ -320,15 +320,15 @@ int main(int argc, char** argv)
     PIC2D pIC2D(mPIInfoPIC); 
     InterfaceNoiseRemover2D interfaceNoiseRemover2D_lower( 
         mPIInfoMHD, mPIInfoPIC, 
-        indexOfInterfaceStartInMHD_lower, 
-        indexOfInterfaceStartInPIC_lower, 
-        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
+        indexOfConvolutionStartInMHD_lowerInterface, 
+        indexOfConvolutionStartInPIC_lowerInterface, 
+        convolutionSizeX, convolutionSizeY 
     );
     InterfaceNoiseRemover2D interfaceNoiseRemover2D_upper( 
         mPIInfoMHD, mPIInfoPIC, 
-        indexOfInterfaceStartInMHD_upper, 
-        indexOfInterfaceStartInPIC_upper, 
-        mPIInfoInterface.localSizeX, mPIInfoInterface.localSizeY
+        indexOfConvolutionStartInMHD_upperInterface, 
+        indexOfConvolutionStartInPIC_upperInterface, 
+        convolutionSizeX, convolutionSizeY 
     );
     Interface2D interface2D_lower(
         mPIInfoMHD, mPIInfoPIC, mPIInfoInterface, 
@@ -394,6 +394,9 @@ int main(int argc, char** argv)
                 directoryName, filenameWithoutStep, step
             );
             pIC2D.saveFirstMoments(
+                directoryName, filenameWithoutStep, step
+            );
+            pIC2D.saveSecondMoments(
                 directoryName, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
@@ -482,12 +485,8 @@ int main(int argc, char** argv)
             interfaceNoiseRemover2D_lower.convolveU(U_lower);
             interfaceNoiseRemover2D_upper.convolveU(U_upper);
 
-            IdealMHD2DMPI::sendrecv_U(U_lower, mPIInfoMHD);
-            boundaryMHD.periodicBoundaryX2nd_U(U_lower);
-            boundaryMHD.symmetricBoundaryY2nd_U(U_lower);
-            IdealMHD2DMPI::sendrecv_U(U_upper, mPIInfoMHD);
-            boundaryMHD.periodicBoundaryX2nd_U(U_upper);
-            boundaryMHD.symmetricBoundaryY2nd_U(U_upper);
+            IdealMHD2DMPI::sendrecv_U_x(U_lower, mPIInfoMHD);
+            IdealMHD2DMPI::sendrecv_U_x(U_upper, mPIInfoMHD);
         }
 
         //when crashed 
@@ -500,6 +499,9 @@ int main(int argc, char** argv)
                 directoryName, filenameWithoutStep, step
             );
             pIC2D.saveFirstMoments(
+                directoryName, filenameWithoutStep, step
+            );
+            pIC2D.saveSecondMoments(
                 directoryName, filenameWithoutStep, step
             );
             idealMHD2D_lower.save(
@@ -525,5 +527,6 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
 
 
