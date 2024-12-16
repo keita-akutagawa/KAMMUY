@@ -408,7 +408,7 @@ void Interface2D::deleteParticlesSpecies(
 __global__ void reloadParticlesSpecies_kernel(
     const double* interlockingFunctionY, 
     const ReloadParticlesData* reloadParticlesDataSpecies, 
-    const Particle* reloadParticlesSpecies, 
+    const Particle* reloadParticlesSourceSpecies, 
     unsigned long long reloadParticlesTotalNumSpecies, 
     Particle* particlesSpecies, 
     unsigned long long restartParticlesIndexSpecies, 
@@ -439,16 +439,17 @@ __global__ void reloadParticlesSpecies_kernel(
             float randomValue = curand_uniform(&state);
 
             if (randomValue < interlockingFunctionY[j]) {
-                particleSource = reloadParticlesSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
+                particleSource = reloadParticlesSourceSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
                 x = particleSource.x; x += i * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
                 y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
                 z = particleSource.z;
+                
                 vx = particleSource.vx; vx = u + vx * vth;
                 vy = particleSource.vy; vy = v + vy * vth;
                 vz = particleSource.vz; vz = w + vz * vth;
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
-                    printf("particle exceeds light speed... ");
+                    printf("particle exceeds light speed... \n");
                     continue; //delete if particle speed exceeds light speed c. 
                 };
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
