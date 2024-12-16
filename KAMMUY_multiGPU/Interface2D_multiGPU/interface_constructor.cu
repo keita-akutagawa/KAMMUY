@@ -22,7 +22,7 @@ __global__ void initializeReloadParticlesSource_kernel(
         curand_init(seed + 4, 100 * i, 0, &stateVz);
 
         float x, y, z, vx, vy, vz;
-        float EPS = 0.00001f;
+        float EPS = 0.001f;
         while (true) {
             x  = curand_uniform(&stateX);
             y  = curand_uniform(&stateY);
@@ -31,13 +31,9 @@ __global__ void initializeReloadParticlesSource_kernel(
             if (EPS < x && x < 1.0f - EPS && EPS < y && y < 1.0f - EPS) break;
         }
         
-        while (true) {
-            vx = curand_normal(&stateVx);
-            vy = curand_normal(&stateVy);
-            vz = curand_normal(&stateVz);
-
-            if (vx * vx + vy * vy + vz * vz < 1.0f * 1.0f) break;
-        }
+        vx = curand_normal(&stateVx);
+        vy = curand_normal(&stateVy);
+        vz = curand_normal(&stateVz);
 
         reloadParticlesSourceSpecies[i].x  = x;
         reloadParticlesSourceSpecies[i].y  = y;
