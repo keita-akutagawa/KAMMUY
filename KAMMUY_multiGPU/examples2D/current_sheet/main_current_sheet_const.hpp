@@ -18,7 +18,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_multiGPU/results_current_sheet";
 std::string filenameWithoutStep = "current_sheet";
 std::ofstream logfile(    directoryName + "/log_current_sheet.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_current_sheet.txt");
@@ -75,14 +75,20 @@ const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
 
 // Interface
 
-const int Interface2DConst::windowSizeForConvolution = 5;
 const int Interface2DConst::convolutionCount = 3;
 
 const int Interface2DConst::interfaceLength = 20;
-const int indexOfInterfaceStartInPIC_lower = 0 + buffer;
-const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny - Interface2DConst::interfaceLength + buffer;
-const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny - Interface2DConst::interfaceLength + buffer;
-const int indexOfInterfaceStartInMHD_upper = 0 + buffer;
+const int indexOfInterfaceStartInPIC_lower = 0;
+const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
+const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
+const int indexOfInterfaceStartInMHD_upper = 0;
+
+const int convolutionSizeX = PIC2DConst::nx + 2 * buffer; 
+const int convolutionSizeY = Interface2DConst::interfaceLength + 10; 
+const int indexOfConvolutionStartInPIC_lowerInterface = 0;
+const int indexOfConvolutionStartInMHD_lowerInterface = IdealMHD2DConst::ny + 2 * buffer - convolutionSizeY; 
+const int indexOfConvolutionStartInPIC_upperInterface = PIC2DConst::ny + 2 * buffer - convolutionSizeY; 
+const int indexOfConvolutionStartInMHD_upperInterface = 0;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
@@ -92,7 +98,7 @@ thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DCons
 thrust::host_vector<double> host_interlockingFunctionY_upper(Interface2DConst::interfaceLength, 0.0);
 thrust::host_vector<double> host_interlockingFunctionYHalf_upper(Interface2DConst::interfaceLength, 0.0);
 
-const unsigned long long Interface2DConst::reloadParticlesTotalNum = PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNum = 100000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
 // PIC
 
