@@ -263,7 +263,6 @@ __device__ double IdealMHD2DConst::device_dt;
 __constant__ double Interface2DConst::device_EPS;
 __constant__ double Interface2DConst::device_PI;
 
-__constant__ int Interface2DConst::device_windowSizeForConvolution;
 __constant__ int Interface2DConst::device_interfaceLength;
 
 __constant__ int Interface2DConst::device_nx; 
