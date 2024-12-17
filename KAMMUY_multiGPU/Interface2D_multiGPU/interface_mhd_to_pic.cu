@@ -413,7 +413,7 @@ __global__ void reloadParticlesSpecies_kernel(
     Particle* particlesSpecies, 
     unsigned long long restartParticlesIndexSpecies, 
     int indexOfInterfaceStartInPIC, 
-    unsigned long long existNumSpecies, 
+    unsigned long long* particlesNumCounter, 
     int step, 
     const float xminForProcs, const float xmaxForProcs, 
     const float yminForProcs, const float ymaxForProcs, 
@@ -433,10 +433,11 @@ __global__ void reloadParticlesSpecies_kernel(
         Particle particleSource, particleReload;
         float x, y, z, vx, vy, vz, gamma;
 
-        for (unsigned long long k = reloadParticlesDataSpecies[index].numAndIndex; k < reloadParticlesDataSpecies[index + 1].numAndIndex; k++) {
+        for (unsigned long long k = 0; k < reloadParticlesDataSpecies[index].numAndIndex; k++) {
             curandState state; 
             curand_init(step, k, 0, &state);
             float randomValue = curand_uniform(&state);
+            unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
 
             if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSourceSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
@@ -459,7 +460,7 @@ __global__ void reloadParticlesSpecies_kernel(
                 particleReload.gamma = gamma;
                 particleReload.isExist = true;
 
-                particlesSpecies[existNumSpecies + k] = particleReload;
+                particlesSpecies[loadIndex] = particleReload;
             } 
         }
     }
@@ -478,6 +479,9 @@ void Interface2D::reloadParticlesSpecies(
     std::uniform_int_distribution<unsigned long long> distSpecies(0, Interface2DConst::reloadParticlesTotalNum);
     unsigned long long restartParticlesIndexSpecies = distSpecies(genSpecies);
 
+    thrust::device_vector<unsigned long long> particlesNumCounter(1, 0);
+    particlesNumCounter[0] = existNumSpeciesPerProcs;
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((localSizeXInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (localSizeYInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -490,7 +494,7 @@ void Interface2D::reloadParticlesSpecies(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         restartParticlesIndexSpecies, 
         indexOfInterfaceStartInPIC, 
-        existNumSpeciesPerProcs, 
+        thrust::raw_pointer_cast(particlesNumCounter.data()), 
         seed, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
         mPIInfoPIC.yminForProcs, mPIInfoPIC.ymaxForProcs, 
@@ -562,20 +566,6 @@ void Interface2D::sendMHDtoPIC_particle(
     deleteParticlesSpecies(
         particlesElectron, mPIInfoPIC.existNumElectronPerProcs, seed + 1
     );
-    
-    host_reloadParticlesDataIon = reloadParticlesDataIon;
-    host_reloadParticlesDataElectron = reloadParticlesDataElectron;
-    
-    for (int i = 0; i < localSizeXInterface; i++) {
-        for (int j = 0; j < localSizeYInterface; j++) {
-            int index;
-            index = j + i * localSizeYInterface;
-            host_reloadParticlesDataIon[index + 1].numAndIndex += host_reloadParticlesDataIon[index].numAndIndex;
-            host_reloadParticlesDataElectron[index + 1].numAndIndex += host_reloadParticlesDataElectron[index].numAndIndex;
-        }
-    }
-    reloadParticlesDataIon = host_reloadParticlesDataIon;
-    reloadParticlesDataElectron = host_reloadParticlesDataElectron;
 
     reloadParticlesSpecies(
         particlesIon, reloadParticlesDataIon, reloadParticlesSourceIon, 

@@ -63,8 +63,6 @@ private:
 
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
-    thrust::host_vector<ReloadParticlesData> host_reloadParticlesDataIon;
-    thrust::host_vector<ReloadParticlesData> host_reloadParticlesDataElectron;
 
     thrust::device_vector<MagneticField> B_timeAve;
     thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;

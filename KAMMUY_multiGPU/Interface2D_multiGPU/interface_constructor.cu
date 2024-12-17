@@ -82,10 +82,8 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon          (localSizeXInterface * localSizeYInterface + 1), 
-      reloadParticlesDataElectron     (localSizeXInterface * localSizeYInterface + 1), 
-      host_reloadParticlesDataIon     (localSizeXInterface * localSizeYInterface + 1), 
-      host_reloadParticlesDataElectron(localSizeXInterface * localSizeYInterface + 1), 
+      reloadParticlesDataIon     (localSizeXInterface * localSizeYInterface), 
+      reloadParticlesDataElectron(localSizeXInterface * localSizeYInterface), 
       
       B_timeAve                   (localSizeXPIC * localSizeYPIC), 
       zerothMomentIon_timeAve     (localSizeXPIC * localSizeYPIC), 
