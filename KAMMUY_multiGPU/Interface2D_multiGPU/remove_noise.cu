@@ -71,24 +71,19 @@ __global__ void convolveFields_kernel(
         
         FieldType convolvedField; 
 
-        convolvedField = 0.25 * tmpField[indexForCopy]
-                       + 0.125 * (tmpField[indexForCopy + 1]
-                                + tmpField[indexForCopy + localSizeYConvolution]
-                                + tmpField[indexForCopy - 1]
-                                + tmpField[indexForCopy - localSizeYConvolution])
-                       + 0.0625 * (tmpField[indexForCopy + localSizeYConvolution + 1]
-                                 + tmpField[indexForCopy + localSizeYConvolution - 1]
-                                 + tmpField[indexForCopy - localSizeYConvolution - 1]
-                                 + tmpField[indexForCopy - localSizeYConvolution + 1]);
+        convolvedField = 1.0 / 9.0 * (
+                         tmpField[indexForCopy]
+                       + tmpField[indexForCopy + 1]
+                       + tmpField[indexForCopy + 1 - localSizeYConvolution]
+                       + tmpField[indexForCopy - localSizeYConvolution]
+                       + tmpField[indexForCopy - 1 - localSizeYConvolution]
+                       + tmpField[indexForCopy - 1]
+                       + tmpField[indexForCopy - 1 + localSizeYConvolution]
+                       + tmpField[indexForCopy + localSizeYConvolution]
+                       + tmpField[indexForCopy + 1 + localSizeYConvolution]
+        );
         
         field[indexPIC] = convolvedField;
-
-        if (j == 1) {
-            field[indexPIC - 1] = field[indexPIC];
-        }
-        if (j == localSizeYConvolution - 2) {
-            field[indexPIC + 1] = field[indexPIC];
-        }
     }
 }
 
@@ -282,24 +277,19 @@ __global__ void convolveU_kernel(
         
         ConservationParameter convolvedU;
 
-        convolvedU = 0.25 * tmpU[indexForCopy]
-                   + 0.125 * (tmpU[indexForCopy + 1]
-                            + tmpU[indexForCopy + localSizeYConvolution]
-                            + tmpU[indexForCopy - 1]
-                            + tmpU[indexForCopy - localSizeYConvolution])
-                   + 0.0625 * (tmpU[indexForCopy + localSizeYConvolution + 1]
-                             + tmpU[indexForCopy + localSizeYConvolution - 1]
-                             + tmpU[indexForCopy - localSizeYConvolution - 1]
-                             + tmpU[indexForCopy - localSizeYConvolution + 1]);
+        convolvedU = 1.0 / 9.0 * (
+                     tmpU[indexForCopy]
+                   + tmpU[indexForCopy + 1]
+                   + tmpU[indexForCopy + 1 - localSizeYConvolution]
+                   + tmpU[indexForCopy - localSizeYConvolution]
+                   + tmpU[indexForCopy - 1 - localSizeYConvolution]
+                   + tmpU[indexForCopy - 1]
+                   + tmpU[indexForCopy - 1 + localSizeYConvolution]
+                   + tmpU[indexForCopy + localSizeYConvolution]
+                   + tmpU[indexForCopy + 1 + localSizeYConvolution]
+        );
         
         U[indexMHD] = convolvedU;
-
-        if (j == 1) {
-            U[indexMHD - 1] = U[indexMHD];
-        }
-        if (j == localSizeYConvolution - 2) {
-            U[indexMHD + 1] = U[indexMHD];
-        }
     }
 }
 

@@ -18,19 +18,19 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_multiGPU/results_test";
-std::string filenameWithoutStep = "test";
-std::ofstream logfile(    directoryName + "/log_test.txt"       );
-std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_test.txt");
-std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_test.txt");
-std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_test.txt");
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_multiGPU/results_fast_mode";
+std::string filenameWithoutStep = "fast_mode";
+std::ofstream logfile(    directoryName + "/log_fast_mode.txt"       );
+std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_fast_mode.txt");
+std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_fast_mode.txt");
+std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_fast_mode.txt");
 
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 10;
+const int IdealMHD2DConst::totalStep = 10000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 1;
+const int recordStep = 100;
 const bool isParticleRecord = true;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -71,7 +71,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy -
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 3;
 
 const int Interface2DConst::interfaceLength = 20;
 const int indexOfInterfaceStartInPIC_lower = 0;
@@ -80,7 +80,7 @@ const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - Inter
 const int indexOfInterfaceStartInMHD_upper = 0;
 
 const int convolutionSizeX = PIC2DConst::nx + 2 * buffer; 
-const int convolutionSizeY = Interface2DConst::interfaceLength + 0; 
+const int convolutionSizeY = Interface2DConst::interfaceLength + 10; 
 const int indexOfConvolutionStartInPIC_lowerInterface = 0;
 const int indexOfConvolutionStartInMHD_lowerInterface = IdealMHD2DConst::ny + 2 * buffer - convolutionSizeY; 
 const int indexOfConvolutionStartInPIC_upperInterface = PIC2DConst::ny + 2 * buffer - convolutionSizeY; 

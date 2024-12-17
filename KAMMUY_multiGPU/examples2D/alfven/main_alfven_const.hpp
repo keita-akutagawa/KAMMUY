@@ -44,7 +44,7 @@ const double IdealMHD2DConst::EPS = 1.0e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
 const double waveAmp = 0.1;
-const double waveLength = 5000.0;
+const double waveLength = 500.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
 const int PIC2DConst::nx = 20;
@@ -63,7 +63,7 @@ const double IdealMHD2DConst::dx = 1.0;
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx - 0.0 * IdealMHD2DConst::dx;
 
-const int IdealMHD2DConst::ny = 9550;
+const int IdealMHD2DConst::ny = 1170;
 const double IdealMHD2DConst::dy = 1.0;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy - 0.0 * IdealMHD2DConst::dy;

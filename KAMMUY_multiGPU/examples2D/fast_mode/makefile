@@ -3,7 +3,7 @@ CFLAGS = -ccbin=mpic++ -gencode=arch=compute_60,code=sm_80 -rdc=true --extended-
 SRCDIRS = ../../PIC2D_multiGPU ../../IdealMHD2D_multiGPU ../../Interface2D_multiGPU
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
-MAIN = main_alfven.o
+MAIN = main_fast_mode.o
 EXECUTABLE = program
 
 .PHONY: all clean
@@ -16,7 +16,7 @@ $(EXECUTABLE): $(OBJS) $(MAIN)
 %.o: %.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(MAIN): main_alfven.cu
+$(MAIN): main_fast_mode.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)

@@ -117,8 +117,16 @@ void Interface2D::sumUpTimeAveParameters(
         B_timeAve.begin(), B_timeAve.end(), B.begin(), 
         B_timeAve.begin(), thrust::plus<MagneticField>()
     );
-    
-    setMoments(particlesIon, particlesElectron);
+
+    setMoments(particlesIon, particlesElectron); 
+    interfaceNoiseRemover2D.convolveMoments(
+        zerothMomentIon, zerothMomentElectron, 
+        firstMomentIon, firstMomentElectron
+    );
+    PIC2DMPI::sendrecv_field_x(zerothMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
 
     thrust::transform(
         zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
@@ -171,20 +179,6 @@ __global__ void calculateTimeAveParameters_kernel(
 
 void Interface2D::calculateTimeAveParameters(int substeps)
 {
-
-    for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-        interfaceNoiseRemover2D.convolve_magneticField(B_timeAve);
-        interfaceNoiseRemover2D.convolveMoments(
-            zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
-            firstMomentIon_timeAve, firstMomentElectron_timeAve
-        );
-
-        PIC2DMPI::sendrecv_field_x(B_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_fieldType);
-        PIC2DMPI::sendrecv_field_x(zerothMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-        PIC2DMPI::sendrecv_field_x(zerothMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-        PIC2DMPI::sendrecv_field_x(firstMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
-        PIC2DMPI::sendrecv_field_x(firstMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
-    }
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((localSizeXPIC + threadsPerBlock.x - 1) / threadsPerBlock.x,

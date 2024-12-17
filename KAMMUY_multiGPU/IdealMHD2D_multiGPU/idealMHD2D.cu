@@ -290,8 +290,8 @@ void IdealMHD2D::save(
     std::ofstream ofs(filename, std::ios::binary);
     ofs << std::fixed << std::setprecision(6);
 
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx +  mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rho),  sizeof(double));
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rhoU), sizeof(double));
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rhoV), sizeof(double));
