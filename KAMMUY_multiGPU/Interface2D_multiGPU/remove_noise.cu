@@ -65,23 +65,20 @@ __global__ void convolveFields_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXConvolution - 1 && 0 < j && j < localSizeYConvolution - 1) {
+    if (2 <= i && i <= localSizeXConvolution - 3 && 2 <= j && j <= localSizeYConvolution - 3) {
         int indexForCopy = j + i * localSizeYConvolution;
         int indexPIC = indexOfConvolutionStartInPIC + j + i * localSizeYPIC;
         
         FieldType convolvedField; 
 
-        convolvedField = 1.0 / 9.0 * (
-                         tmpField[indexForCopy]
-                       + tmpField[indexForCopy + 1]
-                       + tmpField[indexForCopy + 1 - localSizeYConvolution]
-                       + tmpField[indexForCopy - localSizeYConvolution]
-                       + tmpField[indexForCopy - 1 - localSizeYConvolution]
-                       + tmpField[indexForCopy - 1]
-                       + tmpField[indexForCopy - 1 + localSizeYConvolution]
-                       + tmpField[indexForCopy + localSizeYConvolution]
-                       + tmpField[indexForCopy + 1 + localSizeYConvolution]
-        );
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex; 
+                localIndex = indexForCopy + windowY + windowX * localSizeYConvolution; 
+                convolvedField = convolvedField + tmpField[localIndex];
+            }
+        }
+        convolvedField = 1.0 / 9.0 * convolvedField; 
         
         field[indexPIC] = convolvedField;
     }
@@ -277,17 +274,14 @@ __global__ void convolveU_kernel(
         
         ConservationParameter convolvedU;
 
-        convolvedU = 1.0 / 9.0 * (
-                     tmpU[indexForCopy]
-                   + tmpU[indexForCopy + 1]
-                   + tmpU[indexForCopy + 1 - localSizeYConvolution]
-                   + tmpU[indexForCopy - localSizeYConvolution]
-                   + tmpU[indexForCopy - 1 - localSizeYConvolution]
-                   + tmpU[indexForCopy - 1]
-                   + tmpU[indexForCopy - 1 + localSizeYConvolution]
-                   + tmpU[indexForCopy + localSizeYConvolution]
-                   + tmpU[indexForCopy + 1 + localSizeYConvolution]
-        );
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex; 
+                localIndex = indexForCopy + windowY + windowX * localSizeYConvolution; 
+                convolvedU = convolvedU + tmpU[localIndex];
+            }
+        }
+        convolvedU = 1.0 / 9.0 * convolvedU; 
         
         U[indexMHD] = convolvedU;
     }

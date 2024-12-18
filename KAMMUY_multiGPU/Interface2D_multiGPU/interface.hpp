@@ -23,6 +23,7 @@
 #include "../PIC2D_multiGPU/particle_struct.hpp"
 #include "../PIC2D_multiGPU/moment_calculater.hpp"
 #include "../PIC2D_multiGPU/is_exist_transform.hpp"
+#include "../PIC2D_multiGPU/boundary.hpp"
 #include "../IdealMHD2D_multiGPU/mpi.hpp"
 #include "../PIC2D_multiGPU/mpi.hpp"
 
@@ -74,6 +75,7 @@ private:
     thrust::device_vector<ConservationParameter> UHalf;
 
     MomentCalculater momentCalculater;
+    BoundaryPIC boundaryPIC; 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D;
 
 

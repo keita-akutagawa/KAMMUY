@@ -99,11 +99,6 @@ void Interface2D::setMoments(
     momentCalculater.calculateFirstMomentOfOneSpecies(
         firstMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
     );
-
-    PIC2DMPI::sendrecv_field_x(zerothMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-    PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-    PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
-    PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
 }
 
 
@@ -119,14 +114,6 @@ void Interface2D::sumUpTimeAveParameters(
     );
 
     setMoments(particlesIon, particlesElectron); 
-    interfaceNoiseRemover2D.convolveMoments(
-        zerothMomentIon, zerothMomentElectron, 
-        firstMomentIon, firstMomentElectron
-    );
-    PIC2DMPI::sendrecv_field_x(zerothMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-    PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
-    PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
-    PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
 
     thrust::transform(
         zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
@@ -194,6 +181,36 @@ void Interface2D::calculateTimeAveParameters(int substeps)
         localSizeXPIC, localSizeYPIC
     );
     cudaDeviceSynchronize();
+
+    PIC2DMPI::sendrecv_field_x(B_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_fieldType);
+    PIC2DMPI::sendrecv_field_x(zerothMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(zerothMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    PIC2DMPI::sendrecv_field_x(firstMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+    boundaryPIC.freeBoundaryB_y(B_timeAve);
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon_timeAve); 
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron_timeAve); 
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
+
+    for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+        interfaceNoiseRemover2D.convolve_magneticField(B_timeAve); 
+        interfaceNoiseRemover2D.convolveMoments(
+            zerothMomentIon_timeAve, zerothMomentElectron_timeAve, 
+            firstMomentIon_timeAve, firstMomentElectron_timeAve
+        );
+
+        PIC2DMPI::sendrecv_field_x(B_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_fieldType);
+        PIC2DMPI::sendrecv_field_x(zerothMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(zerothMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentIon_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+        PIC2DMPI::sendrecv_field_x(firstMomentElectron_timeAve, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+        boundaryPIC.freeBoundaryB_y(B_timeAve);
+        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon_timeAve); 
+        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron_timeAve); 
+        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
+        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
+    }
 }
 
 

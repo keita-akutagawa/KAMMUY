@@ -95,6 +95,7 @@ Interface2D::Interface2D(
       UHalf(localSizeXMHD * localSizeYMHD), 
 
       momentCalculater(mPIInfoPIC), 
+      boundaryPIC(mPIInfoPIC), 
       interfaceNoiseRemover2D(interfaceNoiseRemover2D)
 {
 

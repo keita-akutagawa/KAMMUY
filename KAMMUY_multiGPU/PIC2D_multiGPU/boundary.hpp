@@ -7,6 +7,7 @@
 #include "const.hpp"
 #include "particle_struct.hpp"
 #include "field_parameter_struct.hpp"
+#include "moment_struct.hpp"
 #include "mpi.hpp"
 
 
@@ -171,6 +172,34 @@ public:
     );
     void freeBoundaryCurrent_y(
         thrust::device_vector<CurrentField>& current
+    );
+
+    void periodicBoundaryZerothMoment_x(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+    void periodicBoundaryZerothMoment_y(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+
+    void freeBoundaryZerothMoment_x(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+    void freeBoundaryZerothMoment_y(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+
+    void periodicBoundaryFirstMoment_x(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+    void periodicBoundaryFirstMoment_y(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+
+    void freeBoundaryFirstMoment_x(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+    void freeBoundaryFirstMoment_y(
+        thrust::device_vector<FirstMoment>& firstMoment
     );
 
 private:

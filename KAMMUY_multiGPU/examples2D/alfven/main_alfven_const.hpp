@@ -28,9 +28,9 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 100;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 100;
+const int recordStep = 10;
 const bool isParticleRecord = true;
 const int particleRecordStep = PIC2DConst::totalStep;
 

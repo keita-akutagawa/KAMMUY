@@ -357,17 +357,17 @@ __global__ void deleteParticles_kernel(
         float y = particlesSpecies[i].y;
         float deleteXMin = xminForProcs - buffer * PIC2DConst::device_dx;
         float deleteXMax = xmaxForProcs + buffer * PIC2DConst::device_dx;
-        float deleteYMin = indexOfInterfaceStartInPIC * PIC2DConst::device_dy;
-        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface) * PIC2DConst::device_dy;
+        float deleteYMin = (indexOfInterfaceStartInPIC + 0.5) * PIC2DConst::device_dy;
+        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface - 0.5) * PIC2DConst::device_dy;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) {
             int j = floorf(y - deleteYMin);
             curandState state; 
             curand_init(seed, i, 0, &state);
             float randomValue = curand_uniform(&state);
-            if (randomValue < interlockingFunctionY[j]) {
+            //if (randomValue < interlockingFunctionY[j]) {
                 particlesSpecies[i].isExist = false;
-            }
+            //}
         }
     }
 }
@@ -411,10 +411,9 @@ __global__ void reloadParticlesSpecies_kernel(
     const Particle* reloadParticlesSourceSpecies, 
     unsigned long long reloadParticlesTotalNumSpecies, 
     Particle* particlesSpecies, 
-    unsigned long long restartParticlesIndexSpecies, 
     int indexOfInterfaceStartInPIC, 
     unsigned long long* particlesNumCounter, 
-    int step, 
+    int seed, 
     const float xminForProcs, const float xmaxForProcs, 
     const float yminForProcs, const float ymaxForProcs, 
     int buffer, 
@@ -424,7 +423,7 @@ __global__ void reloadParticlesSpecies_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeXInterface && j < localSizeYInterface) {
+    if (i < localSizeXInterface && 0 < j && j < localSizeYInterface) {
         int index = j + i * localSizeYInterface; 
         float u = reloadParticlesDataSpecies[index].u;
         float v = reloadParticlesDataSpecies[index].v;
@@ -433,17 +432,19 @@ __global__ void reloadParticlesSpecies_kernel(
         Particle particleSource, particleReload;
         float x, y, z, vx, vy, vz, gamma;
 
-        for (unsigned long long k = 0; k < reloadParticlesDataSpecies[index].numAndIndex; k++) {
-            curandState state; 
-            curand_init(step, k, 0, &state);
-            float randomValue = curand_uniform(&state);
-            unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
+        curandState stateReloadIndex, stateReload; 
+        curand_init(seed, i * j, 0, &stateReloadIndex);
+        unsigned long long restartParticlesIndexSpecies = static_cast<unsigned long long>(curand_uniform(&stateReloadIndex) * reloadParticlesTotalNumSpecies);
 
-            if (randomValue < interlockingFunctionY[j]) {
+        for (unsigned long long k = 0; k < reloadParticlesDataSpecies[index].numAndIndex; k++) {
+            curand_init(seed, k, 0, &stateReload);
+            float randomValue = curand_uniform(&stateReload);
+
+            //if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSourceSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
-                x = particleSource.x; x += i * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
-                y = particleSource.y; y += (indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
+                x = particleSource.x; x = (x + i) * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
+                y = particleSource.y; y = (y + indexOfInterfaceStartInPIC + j - 0.5) * PIC2DConst::device_dy;
                 z = particleSource.z;
                 
                 vx = particleSource.vx; vx = u + vx * vth;
@@ -460,8 +461,9 @@ __global__ void reloadParticlesSpecies_kernel(
                 particleReload.gamma = gamma;
                 particleReload.isExist = true;
 
+                unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
                 particlesSpecies[loadIndex] = particleReload;
-            } 
+            //} 
         }
     }
 }
@@ -475,10 +477,6 @@ void Interface2D::reloadParticlesSpecies(
     int seed 
 )
 {
-    std::mt19937 genSpecies(seed);
-    std::uniform_int_distribution<unsigned long long> distSpecies(0, Interface2DConst::reloadParticlesTotalNum);
-    unsigned long long restartParticlesIndexSpecies = distSpecies(genSpecies);
-
     thrust::device_vector<unsigned long long> particlesNumCounter(1, 0);
     particlesNumCounter[0] = existNumSpeciesPerProcs;
 
@@ -490,9 +488,8 @@ void Interface2D::reloadParticlesSpecies(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataSpecies.data()), 
         thrust::raw_pointer_cast(reloadParticlesSourceSpecies.data()), 
-        Interface2DConst::reloadParticlesTotalNum,   
+        Interface2DConst::reloadParticlesTotalNum, 
         thrust::raw_pointer_cast(particlesSpecies.data()), 
-        restartParticlesIndexSpecies, 
         indexOfInterfaceStartInPIC, 
         thrust::raw_pointer_cast(particlesNumCounter.data()), 
         seed, 
@@ -503,12 +500,7 @@ void Interface2D::reloadParticlesSpecies(
     );
     cudaDeviceSynchronize();
 
-    auto partitionEnd = thrust::partition(
-        particlesSpecies.begin(), particlesSpecies.end(), 
-        [] __device__ (const Particle& p) { return p.isExist; }
-    );
-
-    existNumSpeciesPerProcs = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpeciesPerProcs = particlesNumCounter[0];
 }
 
 
@@ -520,7 +512,7 @@ void Interface2D::sendMHDtoPIC_particle(
 )
 {
     setMoments(particlesIon, particlesElectron); 
-
+    
     for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
         interfaceNoiseRemover2D.convolveMoments(
             zerothMomentIon, zerothMomentElectron, 
@@ -531,7 +523,12 @@ void Interface2D::sendMHDtoPIC_particle(
         PIC2DMPI::sendrecv_field_x(zerothMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_zerothMomentType);
         PIC2DMPI::sendrecv_field_x(firstMomentIon, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
         PIC2DMPI::sendrecv_field_x(firstMomentElectron, mPIInfoPIC, mPIInfoPIC.mpi_firstMomentType);
+        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon); 
+        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron); 
+        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon); 
+        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron); 
     }
+
 
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());

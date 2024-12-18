@@ -30,7 +30,7 @@ const int buffer = 3;
 
 const int IdealMHD2DConst::totalStep = 10000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 100;
+const int recordStep = 10;
 const bool isParticleRecord = true;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -74,16 +74,16 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy -
 const int Interface2DConst::convolutionCount = 3;
 
 const int Interface2DConst::interfaceLength = 20;
-const int indexOfInterfaceStartInPIC_lower = 0;
-const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInMHD_upper = 0;
+const int indexOfInterfaceStartInPIC_lower = 3;
+const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny + 2 * buffer - 4 - Interface2DConst::interfaceLength;
+const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - 4 - Interface2DConst::interfaceLength;
+const int indexOfInterfaceStartInMHD_upper = 3;
 
 const int convolutionSizeX = PIC2DConst::nx + 2 * buffer; 
 const int convolutionSizeY = Interface2DConst::interfaceLength + 10; 
 const int indexOfConvolutionStartInPIC_lowerInterface = 0;
-const int indexOfConvolutionStartInMHD_lowerInterface = IdealMHD2DConst::ny + 2 * buffer - convolutionSizeY; 
-const int indexOfConvolutionStartInPIC_upperInterface = PIC2DConst::ny + 2 * buffer - convolutionSizeY; 
+const int indexOfConvolutionStartInMHD_lowerInterface = IdealMHD2DConst::ny + 2 * buffer - 1 - convolutionSizeY; 
+const int indexOfConvolutionStartInPIC_upperInterface = PIC2DConst::ny + 2 * buffer - 1 - convolutionSizeY; 
 const int indexOfConvolutionStartInMHD_upperInterface = 0;
 
 const int Interface2DConst::nx = PIC2DConst::nx; 

@@ -296,21 +296,21 @@ int main(int argc, char** argv)
 
     for (int j = 0; j < Interface2DConst::ny; j++) {
         host_interlockingFunctionY_lower[j] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (j - 0.0) / (Interface2DConst::ny - 0.0))), 
+            pow(cos(Interface2DConst::PI / 2.0 * (j - 0.0) / (Interface2DConst::ny - 0.0)), 2), 
             Interface2DConst::EPS
         );
         host_interlockingFunctionY_upper[j] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (j - 0.0) / (Interface2DConst::ny - 0.0))), 
+            pow(sin(Interface2DConst::PI / 2.0 * (j - 0.0) / (Interface2DConst::ny - 0.0)), 2), 
             Interface2DConst::EPS
         );
     }
     for (int j = 0; j < Interface2DConst::ny; j++) {
         host_interlockingFunctionYHalf_lower[j] = max(
-            0.5 * (1.0 + cos(Interface2DConst::PI * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0))), 
+            pow(cos(Interface2DConst::PI / 2.0 * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0)), 2), 
             Interface2DConst::EPS
         );
         host_interlockingFunctionYHalf_upper[j] = max(
-            0.5 * (1.0 - cos(Interface2DConst::PI * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0))), 
+            pow(sin(Interface2DConst::PI / 2.0 * (j + 0.5 - 0.0) / (Interface2DConst::ny - 0.0)), 2), 
             Interface2DConst::EPS
         );
     }
@@ -469,18 +469,11 @@ int main(int argc, char** argv)
         thrust::device_vector<ConservationParameter>& UHalf_lower = interface2D_lower.getUHalfRef();
         thrust::device_vector<ConservationParameter>& UHalf_upper = interface2D_upper.getUHalfRef();
 
-        IdealMHD2DMPI::sendrecv_U(UHalf_lower, mPIInfoMHD);
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf_lower);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_lower);
-        IdealMHD2DMPI::sendrecv_U(UHalf_upper, mPIInfoMHD);
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf_upper);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf_upper);
-
         idealMHD2D_lower.oneStepRK2_periodicXSymmetricY_corrector(UHalf_lower);
         idealMHD2D_upper.oneStepRK2_periodicXSymmetricY_corrector(UHalf_upper);
 
-        U_lower = idealMHD2D_lower.getURef();
-        U_upper = idealMHD2D_upper.getURef();
+        thrust::device_vector<ConservationParameter>& U_lower = idealMHD2D_lower.getURef();
+        thrust::device_vector<ConservationParameter>& U_upper = idealMHD2D_upper.getURef();
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
             interfaceNoiseRemover2D_lower.convolveU(U_lower);
             interfaceNoiseRemover2D_upper.convolveU(U_upper);
