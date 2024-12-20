@@ -357,17 +357,17 @@ __global__ void deleteParticles_kernel(
         float y = particlesSpecies[i].y;
         float deleteXMin = xminForProcs - buffer * PIC2DConst::device_dx;
         float deleteXMax = xmaxForProcs + buffer * PIC2DConst::device_dx;
-        float deleteYMin = (indexOfInterfaceStartInPIC + 0.5) * PIC2DConst::device_dy;
-        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface - 0.5) * PIC2DConst::device_dy;
+        float deleteYMin = (indexOfInterfaceStartInPIC) * PIC2DConst::device_dy;
+        float deleteYMax = (indexOfInterfaceStartInPIC + localSizeYInterface) * PIC2DConst::device_dy;
 
         if (deleteXMin < x && x < deleteXMax && deleteYMin < y && y < deleteYMax) {
             int j = floorf(y - deleteYMin);
             curandState state; 
             curand_init(seed, i, 0, &state);
             float randomValue = curand_uniform(&state);
-            //if (randomValue < interlockingFunctionY[j]) {
+            if (randomValue < interlockingFunctionY[j]) {
                 particlesSpecies[i].isExist = false;
-            //}
+            }
         }
     }
 }
@@ -423,7 +423,7 @@ __global__ void reloadParticlesSpecies_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeXInterface && 0 < j && j < localSizeYInterface) {
+    if (i < localSizeXInterface && j < localSizeYInterface) {
         int index = j + i * localSizeYInterface; 
         float u = reloadParticlesDataSpecies[index].u;
         float v = reloadParticlesDataSpecies[index].v;
@@ -440,11 +440,11 @@ __global__ void reloadParticlesSpecies_kernel(
             curand_init(seed, k, 0, &stateReload);
             float randomValue = curand_uniform(&stateReload);
 
-            //if (randomValue < interlockingFunctionY[j]) {
+            if (randomValue < interlockingFunctionY[j]) {
                 particleSource = reloadParticlesSourceSpecies[(restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies];
 
                 x = particleSource.x; x = (x + i) * PIC2DConst::device_dx + (xminForProcs - buffer * PIC2DConst::device_dx);
-                y = particleSource.y; y = (y + indexOfInterfaceStartInPIC + j - 0.5) * PIC2DConst::device_dy;
+                y = particleSource.y; y = (y + indexOfInterfaceStartInPIC + j) * PIC2DConst::device_dy;
                 z = particleSource.z;
                 
                 vx = particleSource.vx; vx = u + vx * vth;
@@ -463,7 +463,7 @@ __global__ void reloadParticlesSpecies_kernel(
 
                 unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
                 particlesSpecies[loadIndex] = particleReload;
-            //} 
+            } 
         }
     }
 }
