@@ -29,8 +29,7 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_current_sheet
 const int buffer = 3; 
 
 
-const float betaUpstream = 0.5f * 0.5f;
-const float sheatThickness = 0.5f * PIC2DConst::ionInertialLength;
+const float betaUpstream = 0.2f * 0.2f;
 const float triggerRatio = 0.1f;
 __constant__ float device_betaUpstream;
 __constant__ float device_sheatThickness;
@@ -38,7 +37,7 @@ __constant__ float device_triggerRatio;
 
 const int IdealMHD2DConst::totalStep = 100000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 100;
+const int recordStep = 10;
 const bool isParticleRecord = true;
 const int particleRecordStep = recordStep;
 
@@ -51,26 +50,26 @@ const float PIC2DConst::EPS = 1.0e-10f;
 const double IdealMHD2DConst::EPS = 1.0e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const int PIC2DConst::nx = 20000;
+const int PIC2DConst::nx = 2000;
 const float PIC2DConst::dx = 1.0;
-const float PIC2DConst::xmin = 0.0 * dx; 
-const float PIC2DConst::xmax = nx * dx - 0.0 * dx;
+const float PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
+const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx - 0.0 * PIC2DConst::dx;
 
-const int PIC2DConst::ny = 100;
+const int PIC2DConst::ny = 200;
 const float PIC2DConst::dy = 1.0;
-const float PIC2DConst::ymin = 0.0 * dy; 
-const float PIC2DConst::ymax = ny * dy - 0.0 * dy;
+const float PIC2DConst::ymin = buffer * PIC2DConst::dy; 
+const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + buffer * IdealMHD2DConst::dy;
 
 
 const int IdealMHD2DConst::nx = PIC2DConst::nx;
 const double IdealMHD2DConst::dx = 1.0;
-const double IdealMHD2DConst::xmin = 0.0 * dx;
-const double IdealMHD2DConst::xmax = nx * dx - 0.0 * dx;
+const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
+const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx - 0.0 * IdealMHD2DConst::dx;
 
-const int IdealMHD2DConst::ny = 2000;
+const int IdealMHD2DConst::ny = 1000;
 const double IdealMHD2DConst::dy = 1.0;
-const double IdealMHD2DConst::ymin = 0.0 * dy;
-const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
+const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
+const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy - 0.0 * IdealMHD2DConst::dy;
 
 
 // Interface
@@ -107,10 +106,10 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 50;
-const int PIC2DConst::numberDensityElectron = 50;
+const int PIC2DConst::numberDensityIon = 100;
+const int PIC2DConst::numberDensityElectron = 100;
 
-const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0f;
+const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 2.0f;
 
 const float PIC2DConst::mRatio = 25.0f;
 const float PIC2DConst::mElectron = 1.0f;
@@ -124,13 +123,15 @@ const float PIC2DConst::qRatio = -1.0f;
 const float PIC2DConst::qElectron = -1.0f * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron));
 const float PIC2DConst::qIon = PIC2DConst::qRatio * PIC2DConst::qElectron;
 
-const float PIC2DConst::omegaPe = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron) * pow(PIC2DConst::qElectron, 2) / PIC2DConst::mElectron / PIC2DConst::epsilon0);
-const float PIC2DConst::omegaPi = sqrt(static_cast<double>(PIC2DConst::numberDensityIon) * pow(PIC2DConst::qIon, 2) / PIC2DConst::mIon / PIC2DConst::epsilon0);
+const float PIC2DConst::omegaPe = sqrt(static_cast<float>(PIC2DConst::numberDensityElectron) * pow(PIC2DConst::qElectron, 2) / PIC2DConst::mElectron / PIC2DConst::epsilon0);
+const float PIC2DConst::omegaPi = sqrt(static_cast<float>(PIC2DConst::numberDensityIon) * pow(PIC2DConst::qIon, 2) / PIC2DConst::mIon / PIC2DConst::epsilon0);
 const float PIC2DConst::omegaCe = abs(PIC2DConst::qElectron * PIC2DConst::B0 / PIC2DConst::mElectron);
 const float PIC2DConst::omegaCi = PIC2DConst::qIon * PIC2DConst::B0 / PIC2DConst::mIon;
 
 const float PIC2DConst::debyeLength = sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron) / pow(PIC2DConst::qElectron, 2));
 const float PIC2DConst::ionInertialLength = PIC2DConst::c / PIC2DConst::omegaPi;
+
+const float sheatThickness = 1.0f * PIC2DConst::ionInertialLength;
 
 float PIC2DConst::dt = 0.0f;
 

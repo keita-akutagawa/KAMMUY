@@ -55,26 +55,26 @@ const float PIC2DConst::EPS = 1.0e-10f;
 const double IdealMHD2DConst::EPS = 1.0e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const int PIC2DConst::nx = 20000;
+const int PIC2DConst::nx = 2000;
 const float PIC2DConst::dx = 1.0;
-const float PIC2DConst::xmin = 0.0 * dx; 
-const float PIC2DConst::xmax = nx * dx - 0.0 * dx;
+const float PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
+const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx - 0.0 * PIC2DConst::dx;
 
-const int PIC2DConst::ny = 100;
+const int PIC2DConst::ny = 200;
 const float PIC2DConst::dy = 1.0;
-const float PIC2DConst::ymin = 0.0 * dy; 
-const float PIC2DConst::ymax = ny * dy - 0.0 * dy;
+const float PIC2DConst::ymin = buffer * PIC2DConst::dy; 
+const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + buffer * IdealMHD2DConst::dy;
 
 
 const int IdealMHD2DConst::nx = PIC2DConst::nx;
 const double IdealMHD2DConst::dx = 1.0;
-const double IdealMHD2DConst::xmin = 0.0 * dx;
-const double IdealMHD2DConst::xmax = nx * dx - 0.0 * dx;
+const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
+const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx - 0.0 * IdealMHD2DConst::dx;
 
-const int IdealMHD2DConst::ny = 2000;
+const int IdealMHD2DConst::ny = 1000;
 const double IdealMHD2DConst::dy = 1.0;
-const double IdealMHD2DConst::ymin = 0.0 * dy;
-const double IdealMHD2DConst::ymax = ny * dy - 0.0 * dy;
+const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
+const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy - 0.0 * IdealMHD2DConst::dy;
 
 
 // Interface
