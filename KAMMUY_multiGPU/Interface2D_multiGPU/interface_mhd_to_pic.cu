@@ -451,8 +451,10 @@ __global__ void reloadParticlesSpecies_kernel(
                 vy = particleSource.vy; vy = v + vy * vth;
                 vz = particleSource.vz; vz = w + vz * vth;
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
-                    printf("particle exceeds light speed... \n");
-                    continue; //delete if particle speed exceeds light speed c. 
+                    float normalizedVelocity = vx * vx + vy * vy + vz * vz;
+                    vx = vx / normalizedVelocity * 0.9f * PIC2DConst::device_c;
+                    vy = vy / normalizedVelocity * 0.9f * PIC2DConst::device_c;
+                    vz = vz / normalizedVelocity * 0.9f * PIC2DConst::device_c;
                 };
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
