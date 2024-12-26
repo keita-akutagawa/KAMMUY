@@ -29,7 +29,7 @@ struct ConservationParameter
     
     __host__ __device__
     ConservationParameter(double rho, double rhoU, double rhoV, double rhoW, 
-                          double bX, double bY, double bZ, double e) :
+                          double bX, double bY, double bZ, double e, double psi) :
         rho(rho), 
         rhoU(rhoU),
         rhoV(rhoV), 
@@ -37,7 +37,8 @@ struct ConservationParameter
         bX(bX), 
         bY(bY), 
         bZ(bZ), 
-        e(e)
+        e(e), 
+        psi(psi)
     {}
     
     __host__ __device__
