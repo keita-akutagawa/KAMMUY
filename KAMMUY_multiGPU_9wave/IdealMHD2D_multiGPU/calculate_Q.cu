@@ -30,7 +30,7 @@ __global__ void getBasicParamter_kernel(
         bY  = U[index].bY;
         bZ  = U[index].bZ;
         e   = U[index].e;
-        p   = (device_gamma_mhd - 1.0)
+        p   = (IdealMHD2DConst::device_gamma - 1.0)
             * (e - 0.5 * (rho * (u * u + v * v + w * w))
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
         psi = U[index].psi; 

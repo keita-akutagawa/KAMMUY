@@ -26,8 +26,8 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
       boundaryMHD(mPIInfo)
 {
 
-    cudaMalloc(&device_mPIInfo, sizeof(MPIInfo));
-    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(MPIInfo), cudaMemcpyHostToDevice);
+    cudaMalloc(&device_mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo));
+    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     
 }
 
@@ -127,7 +127,7 @@ __global__ void oneStepSecond_kernel(
 }
 
 
-void IdealMHD2D::oneStepRK2_periodicXSymmetricY_perdictor()
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -157,9 +157,9 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_perdictor()
     );
     cudaDeviceSynchronize();
 
-    sendrecv_U(UBar, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(UBar);
-    boundary.symmetricBoundaryY2nd_U(UBar);
+    IdealMHD2DMPI::sendrecv_U(UBar, mPIInfo);
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
     fluxF = fluxSolver.getFluxF(UBar);
@@ -174,14 +174,14 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_perdictor()
     );
     cudaDeviceSynchronize();
 
-    sendrecv_U(U, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(U);
-    boundary.symmetricBoundaryY2nd_U(U);
+    IdealMHD2DMPI::sendrecv_U(U, mPIInfo);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
-void oneStepRK2_periodicXSymmetricY_corrector(
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     thrust::device_vector<ConservationParameter>& UHalf
 )
 {
@@ -204,9 +204,9 @@ void oneStepRK2_periodicXSymmetricY_corrector(
     );
     cudaDeviceSynchronize();
 
-    sendrecv_U(UBar, mPIInfo);
-    boundary.periodicBoundaryX2nd_U(UBar);
-    boundary.symmetricBoundaryY2nd_U(UBar);
+    IdealMHD2DMPI::sendrecv_U(UBar, mPIInfo);
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
 }
@@ -269,17 +269,17 @@ __global__ void calculateDtVector_kernel(
         bY  = U[indexForU].bY;
         bZ  = U[indexForU].bZ;
         e   = U[indexForU].e;
-        p   = (device_gamma_mhd - 1.0)
+        p   = (IdealMHD2DConst::device_gamma - 1.0)
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
         
-        cs = sqrt(device_gamma_mhd * p / rho);
+        cs = sqrt(IdealMHD2DConst::device_gamma * p / rho);
         ca = sqrt((bX * bX + bY * bY + bZ * bZ) / rho);
 
         maxSpeedX = std::abs(u) + sqrt(cs * cs + ca * ca);
         maxSpeedY = std::abs(v) + sqrt(cs * cs + ca * ca);
 
-        dtVector[indexForDt] = 1.0 / (maxSpeedX / device_dx + maxSpeedY / device_dy + device_EPS);
+        dtVector[indexForDt] = 1.0 / (maxSpeedX / IdealMHD2DConst::device_dx + maxSpeedY / IdealMHD2DConst::device_dy + IdealMHD2DConst::device_EPS);
     
     }
 }
@@ -300,16 +300,16 @@ void IdealMHD2D::calculateDt()
 
     thrust::device_vector<double>::iterator dtMin = thrust::min_element(dtVector.begin(), dtVector.end());
     
-    dt = (*dtMin) * CFL;
+    IdealMHD2DConst::dt = (*dtMin) * IdealMHD2DConst::CFL;
     
-    double dtLocal = dt;
+    double dtLocal = IdealMHD2DConst::dt;
     double dtCommon;
     
     MPI_Allreduce(&dtLocal, &dtCommon, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
-    dt = dtCommon;
+    IdealMHD2DConst::dt = dtCommon;
 
-    cudaMemcpyToSymbol(device_dt, &dt, sizeof(double));
+    cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
     cudaDeviceSynchronize();
 }
 
@@ -331,7 +331,7 @@ bool IdealMHD2D::checkCalculationIsCrashed()
     bool global_result;
     MPI_Allreduce(&result, &global_result, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
 
-    if (dt < 0) global_result = true;
+    if (IdealMHD2DConst::dt < 0) global_result = true;
 
     return global_result;
 }

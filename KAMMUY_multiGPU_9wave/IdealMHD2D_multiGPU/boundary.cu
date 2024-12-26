@@ -49,11 +49,11 @@ __global__
 void wallBoundaryY2nd_U_kernel(
     ConservationParameter* U, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -70,14 +70,14 @@ void wallBoundaryY2nd_U_kernel(
             bY  = U[index + mPIInfo.buffer].bY;
             bZ  = U[index + mPIInfo.buffer].bZ;
             e   = U[index + mPIInfo.buffer].e;
-            p   = (device_gamma_mhd - 1.0)
+            p   = (IdealMHD2DConst::device_gamma - 1.0)
                 * (e - 0.5 * rho * (u * u + v * v + w * w)
                 - 0.5 * (bX * bX + bY * bY + bZ * bZ));
             
             wallU.rho = rho;
             wallU.rhoU = rho * 0.0; wallU.rhoV = rho * 0.0; wallU.rhoW = rho * 0.0;
             wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-            e = p / (device_gamma_mhd - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
+            e = p / (IdealMHD2DConst::device_gamma - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
             + 0.5 * (bX * bX + 0.0 * 0.0 + bZ * bZ); 
             wallU.e = e;
 
@@ -100,14 +100,14 @@ void wallBoundaryY2nd_U_kernel(
             bY  = U[index - mPIInfo.buffer].bY;
             bZ  = U[index - mPIInfo.buffer].bZ;
             e   = U[index - mPIInfo.buffer].e;
-            p   = (device_gamma_mhd - 1.0)
+            p   = (IdealMHD2DConst::device_gamma - 1.0)
                 * (e - 0.5 * rho * (u * u + v * v + w * w)
                 - 0.5 * (bX * bX + bY * bY + bZ * bZ));
             
             wallU.rho = rho;
             wallU.rhoU = rho * 0.0; wallU.rhoV = rho * 0.0; wallU.rhoW = rho * 0.0;
             wallU.bX = bX; wallU.bY = 0.0; wallU.bZ = bZ;
-            e = p / (device_gamma_mhd - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
+            e = p / (IdealMHD2DConst::device_gamma - 1.0) + 0.5 * rho * (0.0 * 0.0 + 0.0 * 0.0 + 0.0 * 0.0)
             + 0.5 * (bX * bX + 0.0 * 0.0 + bZ * bZ); 
             wallU.e = e;
 
@@ -140,11 +140,11 @@ __global__
 void wallBoundaryY2nd_flux_kernel(
     Flux* fluxF, Flux* fluxG, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -196,11 +196,11 @@ __global__
 void symmetricBoundaryY2nd_U_kernel(
     ConservationParameter* U, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {
@@ -241,11 +241,11 @@ __global__
 void symmetricBoundaryY2nd_flux_kernel(
     Flux* fluxF, Flux* fluxG, 
     int localSizeX, int localSizeY, 
-    MPIInfo* device_mPIInfo
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    MPIInfo mPIInfo = *device_mPIInfo;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         if (mPIInfo.localGridY == 0) {

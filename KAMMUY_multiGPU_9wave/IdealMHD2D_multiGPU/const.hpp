@@ -6,6 +6,10 @@ namespace IdealMHD2DConst
     extern const double EPS;
     extern const double PI;
 
+    extern const double B0; 
+    extern const double rho0; 
+    extern const double p0; 
+
     extern const double dx;
     extern const double xmin;
     extern const double xmax;
@@ -17,7 +21,7 @@ namespace IdealMHD2DConst
     extern const int ny;
 
     extern const double CFL;
-    extern const double gamma_mhd;
+    extern const double gamma;
 
     extern double dt;
 
@@ -32,6 +36,10 @@ namespace IdealMHD2DConst
     extern __constant__ double device_EPS;
     extern __constant__ double device_PI;
 
+    extern __constant__ double device_B0; 
+    extern __constant__ double device_rho0; 
+    extern __constant__ double device_p0; 
+
     extern __constant__ double device_dx;
     extern __constant__ double device_xmin;
     extern __constant__ double device_xmax;
@@ -43,7 +51,7 @@ namespace IdealMHD2DConst
     extern __constant__ int device_ny;
 
     extern __constant__ double device_CFL;
-    extern __constant__ double device_gamma_mhd;
+    extern __constant__ double device_gamma;
 
     extern __device__ double device_dt;
 

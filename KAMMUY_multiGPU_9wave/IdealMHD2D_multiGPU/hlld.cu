@@ -99,8 +99,8 @@ __global__ void calculateFlux_kernel(
         double bXL = dQLeft[index].bX, bXR = dQRight[index].bX;
         double psiL = dQLeft[index].psi, psiR = dQRight[index].psi;
 
-        flux[index].f4 = 0.5 * (psiL + psiR - device_ch * (bXR - bXL));
-        flux[index].f8 = 0.5 * (device_ch * device_ch * (bXL + bXR) - device_ch * (psiR - psiL));
+        flux[index].f4 = 0.5 * (psiL + psiR - IdealMHD2DConst::device_ch * (bXR - bXL));
+        flux[index].f8 = 0.5 * (IdealMHD2DConst::device_ch * IdealMHD2DConst::device_ch * (bXL + bXR) - IdealMHD2DConst::device_ch * (psiR - psiL));
      }
 }
 
@@ -301,7 +301,7 @@ __global__ void calculateHLLDParameter_kernel(
         psiR = dQRight[index].psi;
 
         //以下のコードは使いまわしたいので、こうしておく
-        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / device_ch); 
+        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / IdealMHD2DConst::device_ch); 
         bXL = bXHalf; 
         bXR = bXHalf; 
 
@@ -312,7 +312,7 @@ __global__ void calculateHLLDParameter_kernel(
         bYL  = dQLeft[index].bY;
         bZL  = dQLeft[index].bZ;
         pL   = dQLeft[index].p;
-        eL   = pL / (device_gamma_mhd - 1.0)
+        eL   = pL / (IdealMHD2DConst::device_gamma - 1.0)
              + 0.5 * rhoL * (uL * uL + vL * vL + wL * wL)
              + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL); 
         pTL  = pL + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL);
@@ -325,20 +325,20 @@ __global__ void calculateHLLDParameter_kernel(
         bYR  = dQRight[index].bY;
         bZR  = dQRight[index].bZ;
         pR   = dQRight[index].p;
-        eR   = pR / (device_gamma_mhd - 1.0)
+        eR   = pR / (IdealMHD2DConst::device_gamma - 1.0)
              + 0.5 * rhoR * (uR * uR + vR * vR + wR * wR)
              + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR); 
         pTR  = pR + 0.5 * (bXR * bXR + bYR * bYR + bZR * bZR);
 
 
-        csL = sqrt(device_gamma_mhd * pL / rhoL);
+        csL = sqrt(IdealMHD2DConst::device_gamma * pL / rhoL);
         caL = sqrt((bXL * bXL + bYL * bYL + bZL * bZL) / rhoL);
         vaL = sqrt(bXL * bXL / rhoL);
         cfL = sqrt(0.5 * (csL * csL + caL * caL
             + sqrt((csL * csL + caL * caL) * (csL * csL + caL * caL)
             - 4.0 * csL * csL * vaL * vaL)));
         
-        csR = sqrt(device_gamma_mhd * pR / rhoR);
+        csR = sqrt(IdealMHD2DConst::device_gamma * pR / rhoR);
         caR = sqrt((bXR * bXR + bYR * bYR + bZR * bZR) / rhoR);
         vaR = sqrt(bXR * bXR / rhoR);
         cfR = sqrt(0.5 * (csR * csR + caR * caR
@@ -352,40 +352,40 @@ __global__ void calculateHLLDParameter_kernel(
         SR = thrust::max(SR, 0.0);
 
         SM = ((SR - uR) * rhoR * uR - (SL - uL) * rhoL * uL - pTR + pTL)
-           / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS);
+           / ((SR - uR) * rhoR - (SL - uL) * rhoL + IdealMHD2DConst::device_EPS);
 
         pT1  = ((SR - uR) * rhoR * pTL - (SL - uL) * rhoL * pTR
              + rhoL * rhoR * (SR - uR) * (SL - uL) * (uR - uL))
-             / ((SR - uR) * rhoR - (SL - uL) * rhoL + device_EPS);
+             / ((SR - uR) * rhoR - (SL - uL) * rhoL + IdealMHD2DConst::device_EPS);
         pT1L = pT1;
         pT1R = pT1;
 
 
-        rho1L = rhoL * (SL - uL) / (SL - SM + device_EPS);
+        rho1L = rhoL * (SL - uL) / (SL - SM + IdealMHD2DConst::device_EPS);
         u1L   = SM;
-        v1L   = vL - bXL * bYL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
-        w1L   = wL - bXL * bZL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+        v1L   = vL - bXL * bYL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + IdealMHD2DConst::device_EPS);
+        w1L   = wL - bXL * bZL * (SM - uL) / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + IdealMHD2DConst::device_EPS);
         bX1L  = bXL;
         bY1L  = bYL * (rhoL * (SL - uL) * (SL - uL) - bXL * bXL)
-              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + IdealMHD2DConst::device_EPS);
         bZ1L  = bZL * (rhoL * (SL - uL) * (SL - uL) - bXL * bXL)
-              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + device_EPS);
+              / (rhoL * (SL - uL) * (SL - SM) - bXL * bXL + IdealMHD2DConst::device_EPS);
         e1L   = ((SL - uL) * eL - pTL * uL + pT1 * SM
               + bXL * ((uL * bXL + vL * bYL + wL * bZL) - (u1L * bX1L + v1L * bY1L + w1L * bZ1L)))
-              / (SL - SM + device_EPS);
+              / (SL - SM + IdealMHD2DConst::device_EPS);
         
-        rho1R = rhoR * (SR - uR) / (SR - SM + device_EPS);
+        rho1R = rhoR * (SR - uR) / (SR - SM + IdealMHD2DConst::device_EPS);
         u1R   = SM;
-        v1R   = vR - bXR * bYR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
-        w1R   = wR - bXR * bZR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+        v1R   = vR - bXR * bYR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + IdealMHD2DConst::device_EPS);
+        w1R   = wR - bXR * bZR * (SM - uR) / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + IdealMHD2DConst::device_EPS);
         bX1R  = bXR;
         bY1R  = bYR * (rhoR * (SR - uR) * (SR - uR) - bXR * bXR)
-              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + IdealMHD2DConst::device_EPS);
         bZ1R  = bZR * (rhoR * (SR - uR) * (SR - uR) - bXR * bXR)
-              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + device_EPS);
+              / (rhoR * (SR - uR) * (SR - SM) - bXR * bXR + IdealMHD2DConst::device_EPS);
         e1R   = ((SR - uR) * eR - pTR * uR + pT1 * SM
               + bXR * ((uR * bXR + vR * bYR + wR * bZR) - (u1R * bX1R + v1R * bY1R + w1R * bZ1R)))
-              / (SR - SM + device_EPS);
+              / (SR - SM + IdealMHD2DConst::device_EPS);
         
         S1L = SM - sqrt(bX1L * bX1L / rho1L);
         S1R = SM + sqrt(bX1R * bX1R / rho1R);
@@ -395,13 +395,13 @@ __global__ void calculateHLLDParameter_kernel(
         rho2R = rho1R;
         u2 = SM;
         v2 = (sqrt(rho1L) * v1L + sqrt(rho1R) * v1R + (bY1R - bY1L) * sign(bX1L))
-            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+            / (sqrt(rho1L) + sqrt(rho1R) + IdealMHD2DConst::device_EPS);
         w2 = (sqrt(rho1L) * w1L + sqrt(rho1R) * w1R + (bZ1R - bZ1L) * sign(bX1L))
-            / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+            / (sqrt(rho1L) + sqrt(rho1R) + IdealMHD2DConst::device_EPS);
         bY2 = (sqrt(rho1L) * bY1R + sqrt(rho1R) * bY1L + sqrt(rho1L * rho1R) * (v1R - v1L) * sign(bX1L))
-             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+             / (sqrt(rho1L) + sqrt(rho1R) + IdealMHD2DConst::device_EPS);
         bZ2 = (sqrt(rho1L) * bZ1R + sqrt(rho1R) * bZ1L + sqrt(rho1L * rho1R) * (w1R - w1L) * sign(bX1L))
-             / (sqrt(rho1L) + sqrt(rho1R) + device_EPS);
+             / (sqrt(rho1L) + sqrt(rho1R) + IdealMHD2DConst::device_EPS);
         e2L = e1L - sqrt(rho1L)
             * ((u1L * bX1L + v1L * bY1L + w1L * bZ1L) - (u2 * bXL + v2 * bY2 + w2 * bZ2))
             * sign(bXL);
@@ -539,12 +539,12 @@ __global__ void setFlux_kernel(
         bXR  = dQRight[index].bX;
         bYR  = dQRight[index].bY;
         bZR  = dQRight[index].bZ;
-        eR   = hLLDParameter[index].eR;
-        pTR  = hLLDParameter[index].pTR;
+        eR   = hLLDParameter[index].eR; 
+        pTR  = hLLDParameter[index].pTR; 
         psiR = dQRight[index].psi; 
 
         //以下のコードは使いまわしたいので、こうしておく
-        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / device_ch); 
+        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / IdealMHD2DConst::device_ch); 
         bXL = bXHalf;
         bXR = bXHalf;
 

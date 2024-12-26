@@ -13,7 +13,7 @@ private:
     thrust::device_vector<Flux> flux;
 
 public:
-    FluxSolver(MPIInfo& mPIInfo);
+    FluxSolver(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     thrust::device_vector<Flux> getFluxF(
         const thrust::device_vector<ConservationParameter>& U

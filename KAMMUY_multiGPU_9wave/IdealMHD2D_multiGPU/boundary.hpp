@@ -1,3 +1,6 @@
+#ifndef BOUNDARY_MHD_H
+#define BOUNDARY_MHD_H
+
 #include <thrust/device_vector.h>
 #include "const.hpp"
 #include "conservation_parameter_struct.hpp"
@@ -65,5 +68,7 @@ public:
 private:
 
 };
+
+#endif
 
 

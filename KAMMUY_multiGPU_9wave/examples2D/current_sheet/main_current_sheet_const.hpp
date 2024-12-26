@@ -173,6 +173,11 @@ const double IdealMHD2DConst::gamma = 5.0 / 3.0;
 
 double IdealMHD2DConst::dt = 0.0;
 
+double IdealMHD2DConst::ch = 0.0; 
+double IdealMHD2DConst::cp = 0.0; 
+double IdealMHD2DConst::cr = 0.18; 
+
+
 ////////// device //////////
 
 // PIC
@@ -258,6 +263,9 @@ __constant__ double IdealMHD2DConst::device_gamma;
 
 __device__ double IdealMHD2DConst::device_dt;
 
+__device__ double IdealMHD2DConst::device_ch; 
+__device__ double IdealMHD2DConst::device_cp; 
+__device__ double IdealMHD2DConst::device_cr; 
 
 // Interface
 

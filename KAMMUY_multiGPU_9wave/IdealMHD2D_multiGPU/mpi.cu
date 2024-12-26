@@ -37,7 +37,7 @@ int IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 }
 
 
-void setupInfo(MPIInfo& mPIInfo, int buffer)
+void IdealMHD2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY)
 {
     int rank = 0, procs = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -47,12 +47,12 @@ void setupInfo(MPIInfo& mPIInfo, int buffer)
     MPI_Dims_create(procs, 2, d2);
     mPIInfo.rank = rank;
     mPIInfo.procs = procs;
-    mPIInfo.gridX = d2[0];
-    mPIInfo.gridY = d2[1];
+    mPIInfo.gridX = gridX;
+    mPIInfo.gridY = gridY;
     mPIInfo.localGridX = rank / mPIInfo.gridY;
     mPIInfo.localGridY = rank % mPIInfo.gridY;
-    mPIInfo.localNx = nx / mPIInfo.gridX;
-    mPIInfo.localNy = ny / mPIInfo.gridY;
+    mPIInfo.localNx = IdealMHD2DConst::nx / mPIInfo.gridX;
+    mPIInfo.localNy = IdealMHD2DConst::ny / mPIInfo.gridY;
     mPIInfo.buffer = buffer;
     mPIInfo.localSizeX = mPIInfo.localNx + 2 * mPIInfo.buffer;
     mPIInfo.localSizeY = mPIInfo.localNy + 2 * mPIInfo.buffer;
@@ -82,7 +82,7 @@ void setupInfo(MPIInfo& mPIInfo, int buffer)
 }
 
 
-void sendrecv_U_x(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
+void IdealMHD2DMPI::sendrecv_U_x(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
 {
     int localNx = mPIInfo.localNx;
     int localNy = mPIInfo.localNy;
@@ -119,7 +119,7 @@ void sendrecv_U_x(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPII
 }
 
 
-void sendrecv_U_y(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
+void IdealMHD2DMPI::sendrecv_U_y(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
 {
     //int localNx = mPIInfo.localNx;
     int localNy = mPIInfo.localNy;
@@ -156,7 +156,7 @@ void sendrecv_U_y(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPII
 }
 
 
-void sendrecv_U(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
+void IdealMHD2DMPI::sendrecv_U(thrust::device_vector<ConservationParameter>& U, MPIInfo& mPIInfo)
 {
     sendrecv_U_x(U, mPIInfo);
     sendrecv_U_y(U, mPIInfo);
