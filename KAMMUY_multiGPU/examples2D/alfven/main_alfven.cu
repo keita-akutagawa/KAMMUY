@@ -65,7 +65,7 @@ __global__ void initializeU_upper_kernel(
         if (mPIInfo.isInside(i, j)) {
             int index = mPIInfo.globalToLocal(i, j);
             double rho, u, v, w, bX, bY, bZ, e, p;
-            double y = j * PIC2DConst::device_dy + 1330 * IdealMHD2DConst::device_dy;
+            double y = j * PIC2DConst::device_dy + 9500 * IdealMHD2DConst::device_dy + 950 * PIC2DConst::device_dy;
             
             rho = IdealMHD2DConst::device_rho0;
             u   = waveAmp * VA * cos(waveNumber * y);
@@ -151,7 +151,7 @@ __global__ void initializePICField_kernel(
         if (mPIInfo.isInside(i, j)) {
             int index = mPIInfo.globalToLocal(i, j);
             double u, v, w, bX, bY, bZ, eX, eY, eZ;
-            double y = j * PIC2DConst::device_dy + 1150 * IdealMHD2DConst::device_dy;
+            double y = j * PIC2DConst::device_dy + 9500 * IdealMHD2DConst::device_dy;
 
             bX = -waveAmp * PIC2DConst::device_B0 * cos(waveNumber * y);
             bY = PIC2DConst::device_B0; 
@@ -181,7 +181,7 @@ void PIC2D::initialize()
         for (int j = 0; j < mPIInfo.localNy; j++) {
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
-            float y = j * PIC2DConst::dy + 1150 * IdealMHD2DConst::dy;
+            float y = j * PIC2DConst::dy + 9500 * IdealMHD2DConst::dy;
 
             xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs;
             xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs;
