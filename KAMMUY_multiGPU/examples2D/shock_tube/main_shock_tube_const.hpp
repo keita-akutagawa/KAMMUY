@@ -146,8 +146,8 @@ const int numberDensityElectronLeft = PIC2DConst::numberDensityElectron;
 const int numberDensityIonRight = static_cast<int>(0.125f * PIC2DConst::numberDensityIon);
 const int numberDensityElectronRight = static_cast<int>(0.125f * PIC2DConst::numberDensityElectron);
 
-const std::vector<float> bLeft = {0.75f * PIC2DConst::B0, 1.0f * PIC2DConst::B0, 0.0f}; 
-const std::vector<float> bRight = {0.75f * PIC2DConst::B0, -1.0f * PIC2DConst::B0, 0.0f}; 
+const std::vector<float> bLeft = {0.0f, 0.75f * PIC2DConst::B0, 1.0f * PIC2DConst::B0}; 
+const std::vector<float> bRight = {0.0f, 0.75f * PIC2DConst::B0, -1.0f * PIC2DConst::B0}; 
 
 const std::vector<float> bulkVLeft = {0.0f, 0.0f, 0.0f}; 
 const std::vector<float> bulkVRight = {0.0f, 0.0f, 0.0f}; 
