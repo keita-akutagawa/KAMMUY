@@ -50,6 +50,35 @@ __global__ void oneStepFirst_kernel(
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < localSizeY)) {
         int index = j + i * localSizeY;
 
+        if (isnan(fluxF[index].f0)) return; if (isnan(fluxG[index].f0)) return;
+        if (isnan(fluxF[index].f1)) return; if (isnan(fluxG[index].f1)) return;
+        if (isnan(fluxF[index].f2)) return; if (isnan(fluxG[index].f2)) return;
+        if (isnan(fluxF[index].f3)) return; if (isnan(fluxG[index].f3)) return;
+        if (isnan(fluxF[index].f4)) return; if (isnan(fluxG[index].f4)) return;
+        if (isnan(fluxF[index].f5)) return; if (isnan(fluxG[index].f5)) return;
+        if (isnan(fluxF[index].f6)) return; if (isnan(fluxG[index].f6)) return;
+        if (isnan(fluxF[index].f7)) return; if (isnan(fluxG[index].f7)) return;
+        if (isnan(fluxF[index].f8)) return; if (isnan(fluxG[index].f8)) return;
+        if (isnan(fluxF[index - localSizeY].f0)) return; if (isnan(fluxG[index - localSizeY].f0)) return;
+        if (isnan(fluxF[index - localSizeY].f1)) return; if (isnan(fluxG[index - localSizeY].f1)) return;
+        if (isnan(fluxF[index - localSizeY].f2)) return; if (isnan(fluxG[index - localSizeY].f2)) return;
+        if (isnan(fluxF[index - localSizeY].f3)) return; if (isnan(fluxG[index - localSizeY].f3)) return;
+        if (isnan(fluxF[index - localSizeY].f4)) return; if (isnan(fluxG[index - localSizeY].f4)) return;
+        if (isnan(fluxF[index - localSizeY].f5)) return; if (isnan(fluxG[index - localSizeY].f5)) return;
+        if (isnan(fluxF[index - localSizeY].f6)) return; if (isnan(fluxG[index - localSizeY].f6)) return;
+        if (isnan(fluxF[index - localSizeY].f7)) return; if (isnan(fluxG[index - localSizeY].f7)) return;
+        if (isnan(fluxF[index - localSizeY].f8)) return; if (isnan(fluxG[index - localSizeY].f8)) return;
+        if (isnan(fluxF[index - 1].f0)) return; if (isnan(fluxG[index - 1].f0)) return;
+        if (isnan(fluxF[index - 1].f1)) return; if (isnan(fluxG[index - 1].f1)) return;
+        if (isnan(fluxF[index - 1].f2)) return; if (isnan(fluxG[index - 1].f2)) return;
+        if (isnan(fluxF[index - 1].f3)) return; if (isnan(fluxG[index - 1].f3)) return;
+        if (isnan(fluxF[index - 1].f4)) return; if (isnan(fluxG[index - 1].f4)) return;
+        if (isnan(fluxF[index - 1].f5)) return; if (isnan(fluxG[index - 1].f5)) return;
+        if (isnan(fluxF[index - 1].f6)) return; if (isnan(fluxG[index - 1].f6)) return;
+        if (isnan(fluxF[index - 1].f7)) return; if (isnan(fluxG[index - 1].f7)) return;
+        if (isnan(fluxF[index - 1].f8)) return; if (isnan(fluxG[index - 1].f8)) return;
+
+
         UBar[index].rho  = U[index].rho  
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - localSizeY].f0)
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
@@ -94,6 +123,34 @@ __global__ void oneStepSecond_kernel(
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < localSizeY)) {
         int index = j + i * localSizeY;
+        
+        if (isnan(fluxF[index].f0)) return; if (isnan(fluxG[index].f0)) return;
+        if (isnan(fluxF[index].f1)) return; if (isnan(fluxG[index].f1)) return;
+        if (isnan(fluxF[index].f2)) return; if (isnan(fluxG[index].f2)) return;
+        if (isnan(fluxF[index].f3)) return; if (isnan(fluxG[index].f3)) return;
+        if (isnan(fluxF[index].f4)) return; if (isnan(fluxG[index].f4)) return;
+        if (isnan(fluxF[index].f5)) return; if (isnan(fluxG[index].f5)) return;
+        if (isnan(fluxF[index].f6)) return; if (isnan(fluxG[index].f6)) return;
+        if (isnan(fluxF[index].f7)) return; if (isnan(fluxG[index].f7)) return;
+        if (isnan(fluxF[index].f8)) return; if (isnan(fluxG[index].f8)) return;
+        if (isnan(fluxF[index - localSizeY].f0)) return; if (isnan(fluxG[index - localSizeY].f0)) return;
+        if (isnan(fluxF[index - localSizeY].f1)) return; if (isnan(fluxG[index - localSizeY].f1)) return;
+        if (isnan(fluxF[index - localSizeY].f2)) return; if (isnan(fluxG[index - localSizeY].f2)) return;
+        if (isnan(fluxF[index - localSizeY].f3)) return; if (isnan(fluxG[index - localSizeY].f3)) return;
+        if (isnan(fluxF[index - localSizeY].f4)) return; if (isnan(fluxG[index - localSizeY].f4)) return;
+        if (isnan(fluxF[index - localSizeY].f5)) return; if (isnan(fluxG[index - localSizeY].f5)) return;
+        if (isnan(fluxF[index - localSizeY].f6)) return; if (isnan(fluxG[index - localSizeY].f6)) return;
+        if (isnan(fluxF[index - localSizeY].f7)) return; if (isnan(fluxG[index - localSizeY].f7)) return;
+        if (isnan(fluxF[index - localSizeY].f8)) return; if (isnan(fluxG[index - localSizeY].f8)) return;
+        if (isnan(fluxF[index - 1].f0)) return; if (isnan(fluxG[index - 1].f0)) return;
+        if (isnan(fluxF[index - 1].f1)) return; if (isnan(fluxG[index - 1].f1)) return;
+        if (isnan(fluxF[index - 1].f2)) return; if (isnan(fluxG[index - 1].f2)) return;
+        if (isnan(fluxF[index - 1].f3)) return; if (isnan(fluxG[index - 1].f3)) return;
+        if (isnan(fluxF[index - 1].f4)) return; if (isnan(fluxG[index - 1].f4)) return;
+        if (isnan(fluxF[index - 1].f5)) return; if (isnan(fluxG[index - 1].f5)) return;
+        if (isnan(fluxF[index - 1].f6)) return; if (isnan(fluxG[index - 1].f6)) return;
+        if (isnan(fluxF[index - 1].f7)) return; if (isnan(fluxG[index - 1].f7)) return;
+        if (isnan(fluxF[index - 1].f8)) return; if (isnan(fluxG[index - 1].f8)) return;
 
         U[index].rho  = 0.5 * (U[index].rho + UBar[index].rho
                       - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - localSizeY].f0)
@@ -178,6 +235,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
     boundaryMHD.periodicBoundaryX2nd_U(U);
     boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
+
+    checkAndResetExtremeValues();
 }
 
 
@@ -209,6 +268,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
+    checkAndResetExtremeValues();
 }
 
 
@@ -229,8 +289,8 @@ void IdealMHD2D::save(
     std::ofstream ofs(filename, std::ios::binary);
     ofs << std::fixed << std::setprecision(6);
 
-    for (int i = mPIInfo.buffer; i < mPIInfo.localNx + mPIInfo.buffer; i++) {
-        for (int j = mPIInfo.buffer; j < mPIInfo.localNy + mPIInfo.buffer; j++) {
+    for (int i = 0; i < mPIInfo.localSizeX; i++) {
+        for (int j = 0; j < mPIInfo.localSizeY; j++) {
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rho),  sizeof(double));
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rhoU), sizeof(double));
             ofs.write(reinterpret_cast<const char*>(&hU[j + i * mPIInfo.localSizeY].rhoV), sizeof(double));
@@ -311,6 +371,73 @@ void IdealMHD2D::calculateDt()
 
     cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
     cudaDeviceSynchronize();
+}
+
+
+__global__ void checkAndResetExtremeValues_kernel(
+    ConservationParameter* U, 
+    int localSizeX, int localSizeY
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (i < localSizeX && j < localSizeY) {
+        int index = j + i * localSizeY;
+        double rho, u, v, w, bX, bY, bZ, e, p;
+
+        rho = U[index].rho;
+        u   = U[index].rhoU / rho;
+        v   = U[index].rhoV / rho;
+        w   = U[index].rhoW / rho;
+        bX  = U[index].bX;
+        bY  = U[index].bY;
+        bZ  = U[index].bZ;
+        e   = U[index].e;
+        p   = (IdealMHD2DConst::device_gamma - 1.0)
+            * (e - 0.5 * rho * (u * u + v * v + w * w)
+            - 0.5 * (bX * bX + bY * bY + bZ * bZ));
+
+        if (rho < IdealMHD2DConst::device_rho0 * 0.1) {
+            rho = IdealMHD2DConst::device_rho0 * 0.1; 
+        }
+        if (p < IdealMHD2DConst::device_p0 * 0.1) {
+            p = IdealMHD2DConst::device_p0 * 0.1; 
+        }
+
+        if (rho > IdealMHD2DConst::device_rho0 * 10.0) {
+            rho = IdealMHD2DConst::device_rho0 * 10.0; 
+        }
+        if (p > IdealMHD2DConst::device_p0 * 10.0) {
+            p = IdealMHD2DConst::device_p0 * 10.0; 
+        }
+
+        e = p / (IdealMHD2DConst::device_gamma - 1.0)
+          + 0.5 * rho * (u * u + v * v + w * w)
+          + 0.5 * (bX * bX + bY * bY + bZ * bZ);
+
+        U[index].rho  = rho;
+        U[index].rhoU = rho * u; 
+        U[index].rhoV = rho * v;
+        U[index].rhoW = rho * w; 
+        U[index].bX   = bX;
+        U[index].bY   = bY;
+        U[index].bZ   = bZ;
+        U[index].e    = e; 
+        
+    }
+}
+
+void IdealMHD2D::checkAndResetExtremeValues()
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (mPIInfo.localSizeY + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    checkAndResetExtremeValues_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U.data()), 
+        mPIInfo.localSizeX, mPIInfo.localSizeY
+    );
 }
 
 

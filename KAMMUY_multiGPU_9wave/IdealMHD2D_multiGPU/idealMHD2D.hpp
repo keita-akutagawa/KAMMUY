@@ -46,6 +46,8 @@ public:
 
     void calculateDt();
 
+    void checkAndResetExtremeValues();
+
     bool checkCalculationIsCrashed();
 
     thrust::host_vector<ConservationParameter>& getHostURef();
