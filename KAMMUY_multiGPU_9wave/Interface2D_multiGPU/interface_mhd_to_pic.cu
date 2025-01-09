@@ -89,7 +89,6 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
         double rho, u, v, w;
         double bXMHD, bYMHD, bZMHD;
         double eXInterface, eYInterface, eZInterface;
-        double mIon = PIC2DConst::device_mIon, mElectron = PIC2DConst::device_mElectron; 
 
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
@@ -99,7 +98,7 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
         eYPIC = E[indexPIC].eY;
         eZPIC = E[indexPIC].eZ;
 
-        rho = max(U[indexMHD].rho, mIon * 1 + mElectron * 1);
+        rho = max(U[indexMHD].rho, IdealMHD2DConst::device_rho0 * 0.1);
         u = U[indexMHD].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -110,7 +109,7 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
         eYMHD = -(w * bXMHD - u * bZMHD);
         eZMHD = -(u * bYMHD - v * bXMHD);
 
-        rho = max(U[indexMHD + localSizeYMHD].rho, mIon * 1 + mElectron * 1);
+        rho = max(U[indexMHD + localSizeYMHD].rho, IdealMHD2DConst::device_rho0 * 0.1);
         u = U[indexMHD + localSizeYMHD].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD + localSizeYMHD].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD + localSizeYMHD].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -119,7 +118,7 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
         bZMHD = U[indexMHD + localSizeYMHD].bZ;
         eXPlusX1MHD = -(v * bZMHD - w * bYMHD);
 
-        rho = max(U[indexMHD + 1].rho, mIon * 1 + mElectron * 1);
+        rho = max(U[indexMHD + 1].rho, IdealMHD2DConst::device_rho0 * 0.1);
         u = U[indexMHD + 1].rhoU / (rho + IdealMHD2DConst::device_EPS);
         v = U[indexMHD + 1].rhoV / (rho + IdealMHD2DConst::device_EPS);
         w = U[indexMHD + 1].rhoW / (rho + IdealMHD2DConst::device_EPS); 
@@ -269,10 +268,10 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         double qIon = PIC2DConst::device_qIon, qElectron = PIC2DConst::device_qElectron;
 
         //整数格子点上で計算する。リロードに使う。
-        rhoMHD = max(U[indexMHD].rho, mIon * 1 + mElectron * 1);
+        rhoMHD = max(U[indexMHD].rho, IdealMHD2DConst::device_rho0 * 0.1); 
         uMHD   = U[indexMHD].rhoU / (rhoMHD + IdealMHD2DConst::device_EPS);
         vMHD   = U[indexMHD].rhoV / (rhoMHD + IdealMHD2DConst::device_EPS);
-        wMHD   = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS);
+        wMHD   = U[indexMHD].rhoW / (rhoMHD + IdealMHD2DConst::device_EPS); 
         bXMHD  = 0.5 * (U[indexMHD].bX + U[indexMHD - localSizeYMHD].bX);
         bYMHD  = 0.5 * (U[indexMHD].bY + U[indexMHD - 1].bY);
         bZMHD  = U[indexMHD].bZ;
@@ -280,7 +279,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         pMHD   = (IdealMHD2DConst::device_gamma - 1.0)
                * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
                - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
-        pMHD   = max(pMHD, IdealMHD2DConst::device_EPS);
+        pMHD   = max(pMHD, IdealMHD2DConst::device_p0 * 0.1);
         jXMHD  = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ) / (2.0 * dy);
         jYMHD  = -(U[indexMHD + localSizeYMHD].bZ - U[indexMHD - localSizeYMHD].bZ) / (2.0 * dx);
         jZMHD  = 0.25 * (
@@ -294,7 +293,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
 
-        rhoPIC =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * zerothMomentElectron[indexPIC].n, mIon * 1 + mElectron * 1);
+        rhoPIC =  max(mIon * zerothMomentIon[indexPIC].n + mElectron * zerothMomentElectron[indexPIC].n, IdealMHD2DConst::device_rho0 * 0.1);
         uPIC   = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / (rhoPIC + PIC2DConst::device_EPS);
         vPIC   = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / (rhoPIC + PIC2DConst::device_EPS);
         wPIC   = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / (rhoPIC + PIC2DConst::device_EPS);
