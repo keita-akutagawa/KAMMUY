@@ -39,9 +39,9 @@ __global__ void correctE_kernel(
         int index = j + i * localSizeY;
 
         E[index].eX += PIC2DConst::device_dOfLangdonMarderTypeCorrection
-                     * (F[index + localSizeY].F - F[index].F) / PIC2DConst::device_dx * PIC2DConst::device_dt;
+                     * (F[index + localSizeY].F - F[index].F) / PIC2DConst::device_dx * dt;
         E[index].eY += PIC2DConst::device_dOfLangdonMarderTypeCorrection
-                     * (F[index + 1].F - F[index].F) / PIC2DConst::device_dy * PIC2DConst::device_dt;
+                     * (F[index + 1].F - F[index].F) / PIC2DConst::device_dy * dt;
     }
 }
 
