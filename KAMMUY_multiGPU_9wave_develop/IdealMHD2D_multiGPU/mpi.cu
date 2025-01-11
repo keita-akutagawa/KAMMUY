@@ -82,7 +82,7 @@ void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer, int g
 }
 
 
-void sendrecv_U_x(
+void IdealMHD2DMPI::sendrecv_U_x(
     thrust::device_vector<ConservationParameter>& U, 
     thrust::device_vector<ConservationParameter>& sendULeft, 
     thrust::device_vector<ConservationParameter>& sendURight, 
@@ -122,7 +122,7 @@ void sendrecv_U_x(
 }
 
 
-void sendrecv_U_y(
+void IdealMHD2DMPI::sendrecv_U_y(
     thrust::device_vector<ConservationParameter>& U, 
     thrust::device_vector<ConservationParameter>& sendUDown, 
     thrust::device_vector<ConservationParameter>& sendUUp, 

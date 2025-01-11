@@ -35,7 +35,7 @@ namespace IdealMHD2DMPI
     };
 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
+    void setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
 
 
     void sendrecv_U_x(
@@ -44,7 +44,7 @@ namespace IdealMHD2DMPI
         thrust::device_vector<ConservationParameter>& sendURight, 
         thrust::device_vector<ConservationParameter>& recvULeft, 
         thrust::device_vector<ConservationParameter>& recvURight, 
-        MPIInfo& mPIInfo
+        IdealMHD2DMPI::MPIInfo& mPIInfo
     );
 
     void sendrecv_U_y(
@@ -53,7 +53,7 @@ namespace IdealMHD2DMPI
         thrust::device_vector<ConservationParameter>& sendUUp, 
         thrust::device_vector<ConservationParameter>& recvUDown, 
         thrust::device_vector<ConservationParameter>& recvUUp, 
-        MPIInfo& mPIInfo
+        IdealMHD2DMPI::MPIInfo& mPIInfo
     );
 }
 
