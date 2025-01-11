@@ -193,6 +193,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
     boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
     boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
 
+    /*
     for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
         interfaceNoiseRemover2D.convolve_magneticField(B_timeAve); 
         interfaceNoiseRemover2D.convolveMoments(
@@ -211,6 +212,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
         boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
         boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
     }
+    */
 }
 
 

@@ -89,7 +89,6 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
         double rho, u, v, w;
         double bXMHD, bYMHD, bZMHD;
         double eXInterface, eYInterface, eZInterface;
-        double mIon = PIC2DConst::device_mIon, mElectron = PIC2DConst::device_mElectron; 
 
         int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
         int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
