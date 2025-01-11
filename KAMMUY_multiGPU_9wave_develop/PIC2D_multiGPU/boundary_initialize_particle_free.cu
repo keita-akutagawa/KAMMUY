@@ -15,26 +15,6 @@ void BoundaryPIC::freeBoundaryForInitializeParticle_y(
     thrust::device_vector<Particle>& particlesElectron
 )
 {
-    //periodic boundary function is used except for boundary
-    periodicBoundaryForInitializeParticleOfOneSpecies_y(
-        particlesIon, 
-        mPIInfo.existNumIonPerProcs, 
-        mPIInfo.numForSendParticlesIonDown, 
-        mPIInfo.numForSendParticlesIonUp, 
-        mPIInfo.numForRecvParticlesIonDown, 
-        mPIInfo.numForRecvParticlesIonUp
-    ); 
-    periodicBoundaryForInitializeParticleOfOneSpecies_y(
-        particlesElectron, 
-        mPIInfo.existNumElectronPerProcs,  
-        mPIInfo.numForSendParticlesElectronDown, 
-        mPIInfo.numForSendParticlesElectronUp, 
-        mPIInfo.numForRecvParticlesElectronDown, 
-        mPIInfo.numForRecvParticlesElectronUp
-    );
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    //for boundary 
     freeBoundaryForInitializeParticleOfOneSpecies_y(
         particlesIon, 
         mPIInfo.existNumIonPerProcs
