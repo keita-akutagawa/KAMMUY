@@ -398,7 +398,7 @@ __global__ void reloadParticlesSpecies_kernel(
         unsigned long long restartParticlesIndexSpecies = static_cast<unsigned long long>(curand_uniform(&stateReloadIndex) * reloadParticlesTotalNumSpecies);
 
         for (unsigned long long k = 0; k < reloadParticlesDataSpecies[index].numAndIndex; k++) {
-            curand_init(seed, k, 0, &stateReload);
+            curand_init(seed + i * j, k, 0, &stateReload);
             float randomValue = curand_uniform(&stateReload);
 
             if (randomValue < interlockingFunctionY[j]) {
