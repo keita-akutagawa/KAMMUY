@@ -229,7 +229,8 @@ __global__
 void pushPositionOfOneSpecies_kernel(
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
-    const float dt
+    const float dt, 
+    const float xminForProcs, const float xmaxForProcs
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -257,6 +258,29 @@ void pushPositionOfOneSpecies_kernel(
         particlesSpecies[i].x = x;
         particlesSpecies[i].y = y;
         particlesSpecies[i].z = z;
+        
+
+        float boundaryLeft  = xminForProcs + PIC2DConst::device_EPS; 
+        float boundaryRight = xmaxForProcs - PIC2DConst::device_EPS; 
+        float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
+        float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS; 
+        
+        if (x <= boundaryLeft) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+        if (x >= boundaryRight) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+        if (y <= boundaryDown) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+        if (y >= boundaryUp) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
     }
 }
 
@@ -273,9 +297,16 @@ void ParticlePush::pushPositionOfOneSpecies(
     pushPositionOfOneSpecies_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         existNumSpecies, 
-        dt
+        dt, 
+        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs
     );
     cudaDeviceSynchronize();
+
+    auto partitionEnd = thrust::partition(
+        particlesSpecies.begin(), particlesSpecies.end(), 
+        [] __device__ (const Particle& p) { return p.isExist; }
+    );
+    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 }
 
 

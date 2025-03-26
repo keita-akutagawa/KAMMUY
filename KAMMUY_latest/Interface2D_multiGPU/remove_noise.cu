@@ -41,7 +41,7 @@ __global__ void copyFieldsPIC_kernel(
     FieldType* tmpField, 
     int indexOfConvolutionStartInPIC, 
     int localSizeXConvolutionPIC, int localSizeYConvolutionPIC, 
-    int localSizeXPIC, int localSizeYPIC
+    int localSizeXPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -49,7 +49,7 @@ __global__ void copyFieldsPIC_kernel(
 
     if (i < localSizeXConvolutionPIC && j < localSizeYConvolutionPIC) {
         int indexForCopy = j + i * localSizeYConvolutionPIC;
-        int indexPIC = indexOfConvolutionStartInPIC + j + i * localSizeYPIC;
+        int indexPIC = indexOfConvolutionStartInPIC + j + i * PIC2DConst::device_ny;
 
         tmpField[indexForCopy] = field[indexPIC];
     }
@@ -62,7 +62,7 @@ __global__ void convolveFields_kernel(
     FieldType* field, 
     int indexOfConvolutionStartInPIC, 
     int localSizeXConvolutionPIC, int localSizeYConvolutionPIC, 
-    int localSizeXPIC, int localSizeYPIC
+    int localSizeXPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -70,7 +70,7 @@ __global__ void convolveFields_kernel(
 
     if (2 <= i && i <= localSizeXConvolutionPIC - 3 && 2 <= j && j <= localSizeYConvolutionPIC - 3) {
         int indexForCopy = j + i * localSizeYConvolutionPIC;
-        int indexPIC = indexOfConvolutionStartInPIC + j + i * localSizeYPIC;
+        int indexPIC = indexOfConvolutionStartInPIC + j + i * PIC2DConst::device_ny;
         
         FieldType convolvedField; 
 
@@ -101,7 +101,7 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
         thrust::raw_pointer_cast(tmpB.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
     
@@ -110,7 +110,7 @@ void InterfaceNoiseRemover2D::convolve_magneticField(
         thrust::raw_pointer_cast(B.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -130,7 +130,7 @@ void InterfaceNoiseRemover2D::convolve_electricField(
         thrust::raw_pointer_cast(tmpE.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -139,7 +139,7 @@ void InterfaceNoiseRemover2D::convolve_electricField(
         thrust::raw_pointer_cast(E.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -159,7 +159,7 @@ void InterfaceNoiseRemover2D::convolve_currentField(
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
     
@@ -168,7 +168,7 @@ void InterfaceNoiseRemover2D::convolve_currentField(
         thrust::raw_pointer_cast(current.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -189,7 +189,7 @@ void InterfaceNoiseRemover2D::convolveMomentsOfOneSpecies(
         thrust::raw_pointer_cast(tmpZerothMoment.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -198,7 +198,7 @@ void InterfaceNoiseRemover2D::convolveMomentsOfOneSpecies(
         thrust::raw_pointer_cast(zerothMomentOfOneSpecies.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -207,7 +207,7 @@ void InterfaceNoiseRemover2D::convolveMomentsOfOneSpecies(
         thrust::raw_pointer_cast(tmpFirstMoment.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -216,7 +216,7 @@ void InterfaceNoiseRemover2D::convolveMomentsOfOneSpecies(
         thrust::raw_pointer_cast(firstMomentOfOneSpecies.data()), 
         indexOfConvolutionStartInPIC, 
         localSizeXConvolutionPIC, localSizeYConvolutionPIC, 
-        mPIInfoPIC.localSizeX, mPIInfoPIC.localSizeY
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -245,7 +245,7 @@ __global__ void copyU_kernel(
     ConservationParameter* tmpU, 
     int indexOfConvolutionStartInMHD, 
     int localSizeXConvolutionMHD, int localSizeYConvolutionMHD, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -253,7 +253,7 @@ __global__ void copyU_kernel(
 
     if (i < localSizeXConvolutionMHD && j < localSizeYConvolutionMHD) {
         int indexForCopy = j + i * localSizeYConvolutionMHD;
-        int indexMHD = indexOfConvolutionStartInMHD + j + i * localSizeYMHD;
+        int indexMHD = indexOfConvolutionStartInMHD + j + i * IdealMHD2DConst::device_ny;
 
         tmpU[indexForCopy] = U[indexMHD];
     }
@@ -265,7 +265,7 @@ __global__ void convolveU_kernel(
     ConservationParameter* U, 
     int indexOfConvolutionStartInMHD, 
     int localSizeXConvolutionMHD, int localSizeYConvolutionMHD, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -273,102 +273,7 @@ __global__ void convolveU_kernel(
 
     if (2 <= i && i <= localSizeXConvolutionMHD - 3 && 2 <= j && j <= localSizeYConvolutionMHD - 3) {
         int indexForCopy = j + i * localSizeYConvolutionMHD;
-        int indexMHD = indexOfConvolutionStartInMHD + j + i * localSizeYMHD;
-
-        /*
-        double window_rho[9], window_rhoU[9], window_rhoV[9], window_rhoW[9]; 
-        double window_bX[9], window_bY[9], window_bZ[9], window_e[9], window_psi[9]; 
-        int count = 0;
-
-        for (int di = -1; di <= 1; ++di) {
-            for (int dj = -1; dj <= 1; ++dj) {
-                int neighborIndex = indexForCopy + dj + di * localSizeYConvolutionMHD;
-
-                window_rho[count]  = tmpU[neighborIndex].rho;
-                window_rhoU[count] = tmpU[neighborIndex].rhoU;
-                window_rhoV[count] = tmpU[neighborIndex].rhoV;
-                window_rhoW[count] = tmpU[neighborIndex].rhoW;
-                window_bX[count]   = tmpU[neighborIndex].bX;
-                window_bY[count]   = tmpU[neighborIndex].bY;
-                window_bZ[count]   = tmpU[neighborIndex].bZ;
-                window_e[count]    = tmpU[neighborIndex].e;
-                window_psi[count]  = tmpU[neighborIndex].psi; 
-
-                count += 1;
-            }
-        }
-
-        for (int m = 0; m < 9; ++m) {
-            for (int n = m + 1; n < 9; ++n) {
-                if (window_rho[m] > window_rho[n]) {
-                    double tmp;
-                    tmp = window_rho[m];
-                    window_rho[m] = window_rho[n];
-                    window_rho[n] = tmp;
-                }
-                if (window_rhoU[m] > window_rhoU[n]) {
-                    double tmp;
-                    tmp = window_rhoU[m];
-                    window_rhoU[m] = window_rhoU[n];
-                    window_rhoU[n] = tmp;
-                }
-                if (window_rhoV[m] > window_rhoV[n]) {
-                    double tmp;
-                    tmp = window_rhoV[m];
-                    window_rhoV[m] = window_rhoV[n];
-                    window_rhoV[n] = tmp;
-                }
-                if (window_rhoW[m] > window_rhoW[n]) {
-                    double tmp;
-                    tmp = window_rhoW[m];
-                    window_rhoW[m] = window_rhoW[n];
-                    window_rhoW[n] = tmp;
-                }
-                if (window_bX[m] > window_bX[n]) {
-                    double tmp;
-                    tmp = window_bX[m];
-                    window_bX[m] = window_bX[n];
-                    window_bX[n] = tmp;
-                }
-                if (window_bY[m] > window_bY[n]) {
-                    double tmp;
-                    tmp = window_bY[m];
-                    window_bY[m] = window_bY[n];
-                    window_bY[n] = tmp;
-                }
-                if (window_bZ[m] > window_bZ[n]) {
-                    double tmp;
-                    tmp = window_bZ[m];
-                    window_bZ[m] = window_bZ[n];
-                    window_bZ[n] = tmp;
-                }
-                if (window_e[m] > window_e[n]) {
-                    double tmp;
-                    tmp = window_e[m];
-                    window_e[m] = window_e[n];
-                    window_e[n] = tmp;
-                }
-                if (window_psi[m] > window_psi[n]) {
-                    double tmp;
-                    tmp = window_psi[m];
-                    window_psi[m] = window_psi[n];
-                    window_psi[n] = tmp;
-                }
-            }
-        }
-
-        ConservationParameter convolvedU;
-
-        convolvedU.rho  = window_rho[4]; 
-        convolvedU.rhoU = window_rhoU[4]; 
-        convolvedU.rhoV = window_rhoV[4]; 
-        convolvedU.rhoW = window_rhoW[4]; 
-        convolvedU.bX   = window_bX[4]; 
-        convolvedU.bY   = window_bY[4]; 
-        convolvedU.bZ   = window_bZ[4]; 
-        convolvedU.e    = window_e[4]; 
-        convolvedU.psi  = window_psi[4]; 
-        */
+        int indexMHD = indexOfConvolutionStartInMHD + j + i * IdealMHD2DConst::device_ny;
 
         ConservationParameter convolvedU; 
 
@@ -399,7 +304,7 @@ void InterfaceNoiseRemover2D::convolveU(
         thrust::raw_pointer_cast(tmpU.data()),
         indexOfConvolutionStartInMHD, 
         localSizeXConvolutionMHD, localSizeYConvolutionMHD, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        mPIInfoMHD.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -408,7 +313,7 @@ void InterfaceNoiseRemover2D::convolveU(
         thrust::raw_pointer_cast(U.data()), 
         indexOfConvolutionStartInMHD, 
         localSizeXConvolutionMHD, localSizeYConvolutionMHD, 
-        mPIInfoMHD.localSizeX, mPIInfoMHD.localSizeY
+        mPIInfoMHD.localSizeX
     );
     cudaDeviceSynchronize();
 }

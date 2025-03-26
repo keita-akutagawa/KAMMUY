@@ -77,8 +77,8 @@ __global__ void rightParameter_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeX - 2 && j < IdealMHD2DConst::ny - 2) {
-        int index = j + i * IdealMHD2DConst::ny;
+    if (i < localSizeX - 2 && j < IdealMHD2DConst::device_ny - 2) {
+        int index = j + i * IdealMHD2DConst::device_ny;
 
         dQRight[index].rho = dQ[index + shiftForNeighbor].rho - 0.5 * minmod(dQ[index + shiftForNeighbor].rho - dQ[index].rho, dQ[index + 2 * shiftForNeighbor].rho - dQ[index + shiftForNeighbor].rho);
         dQRight[index].u   = dQ[index + shiftForNeighbor].u   - 0.5 * minmod(dQ[index + shiftForNeighbor].u   - dQ[index].u  , dQ[index + 2 * shiftForNeighbor].u   - dQ[index + shiftForNeighbor].u  );

@@ -27,19 +27,17 @@ void freeBoundaryZerothMoment_x(
 __global__ void freeBoundaryZerothMoment_y_kernel(
     ZerothMoment* zerothMoment,  
     int localSizeX, 
-    int buffer, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
+    int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         for (int j = 0; j < buffer; j++) {
-            zerothMoment[j + localSizeY * i] = zerothMoment[buffer + localSizeY * i];
+            zerothMoment[j + PIC2DConst::device_ny * i] = zerothMoment[buffer + PIC2DConst::device_ny * i];
         }
         for (int j = 0; j < buffer; j++) {
-            zerothMoment[localSizeY - 1 - j + localSizeY * i] = zerothMoment[localSizeY - 1 - buffer + localSizeY * i];
+            zerothMoment[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
         }
     }
 }
@@ -54,8 +52,7 @@ void BoundaryPIC::freeBoundaryZerothMoment_y(
     freeBoundaryZerothMoment_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(zerothMoment.data()), 
         mPIInfo.localSizeX,
-        mPIInfo.buffer, 
-        device_mPIInfo
+        mPIInfo.buffer
     );
     cudaDeviceSynchronize();
 }
@@ -90,19 +87,17 @@ void freeBoundaryFirstMoment_x(
 __global__ void freeBoundaryFirstMoment_y_kernel(
     FirstMoment* firstMoment,  
     int localSizeX,
-    int buffer, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
+    int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         for (int j = 0; j < buffer; j++) {
-            firstMoment[j + localSizeY * i] = firstMoment[buffer + localSizeY * i];
+            firstMoment[j + PIC2DConst::device_ny * i] = firstMoment[buffer + PIC2DConst::device_ny * i];
         }
         for (int j = 0; j < buffer; j++) {
-            firstMoment[localSizeY - 1 - j + localSizeY * i] = firstMoment[localSizeY - 1 - buffer + localSizeY * i];
+            firstMoment[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
         }
     }
 }
@@ -119,8 +114,7 @@ void BoundaryPIC::freeBoundaryFirstMoment_y(
     freeBoundaryFirstMoment_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(firstMoment.data()), 
         mPIInfo.localSizeX, 
-        mPIInfo.buffer, 
-        device_mPIInfo
+        mPIInfo.buffer
     );
     cudaDeviceSynchronize();
 }

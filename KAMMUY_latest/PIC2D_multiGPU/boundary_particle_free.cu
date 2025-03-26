@@ -29,18 +29,12 @@ __global__ void freeBoundaryParticle_y_kernel(
     unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
+        float y = particlesSpecies[i].y; 
         
         float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
-        float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS;
+        float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS; 
         
-        if (x <= boundaryLeft) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
-        if (x >= boundaryRight) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
+        
     }
 }
 
@@ -50,6 +44,9 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
     unsigned long long& existNumSpecies
 )
 {   
+    std::cout << "not written yet!" << std::endl; 
+    return; 
+
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((existNumSpecies + threadsPerBlock.x - 1) / threadsPerBlock.x);
 

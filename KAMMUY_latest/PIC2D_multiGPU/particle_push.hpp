@@ -41,8 +41,6 @@ public:
     void pushPositionOfOneSpecies(
         thrust::device_vector<Particle>& particlesSpecies, 
         unsigned long long& existNumSpecies, 
-        unsigned int& numForSendParticlesSpeciesLeft, 
-        unsigned int& numForSendParticlesSpeciesRight, 
         const float dt
     );
 

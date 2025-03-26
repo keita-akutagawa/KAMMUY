@@ -30,12 +30,12 @@ namespace IdealMHD2DMPI
         __host__ __device__
         bool isInside(int globalX);
 
-        __host__ __device__
+        __device__
         int globalToLocal(int globalX, int globalY);
     };
 
 
-    void setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer, int gridX);
+    void setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer);
 
 
     void sendrecv_U_x(

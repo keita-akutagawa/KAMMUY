@@ -54,12 +54,12 @@ namespace PIC2DMPI
         __host__ __device__
         bool isInside(int globalX);
 
-        __host__ __device__
+        __device__
         int globalToLocal(int globalX, int globalY);
     };
 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int mpiBufNumParticles);
+    void setupInfo(MPIInfo& mPIInfo, int buffer, int mpiBufNumParticles);
 
 
     template <typename FieldType>

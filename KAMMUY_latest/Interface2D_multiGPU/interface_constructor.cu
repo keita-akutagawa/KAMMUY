@@ -60,19 +60,16 @@ Interface2D::Interface2D(
       indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
       indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC),
 
-      localSizeXPIC(mPIInfoPIC.localSizeX), 
-      localSizeYPIC(mPIInfoPIC.localSizeY), 
-      localSizeXMHD(mPIInfoMHD.localSizeX), 
-      localSizeYMHD(mPIInfoMHD.localSizeY), 
-      localSizeXInterface(mPIInfoInterface.localSizeX), 
-      localSizeYInterface(mPIInfoInterface.localSizeY), 
+      localSizeXPIC(mPIInfoPIC.localSizeX),
+      localSizeXMHD(mPIInfoMHD.localSizeX),
+      localSizeXInterface(mPIInfoInterface.localSizeX),
 
       interlockingFunctionY    (localSizeYInterface, 0.0), 
 
-      zerothMomentIon     (localSizeXPIC * localSizeYPIC), 
-      zerothMomentElectron(localSizeXPIC * localSizeYPIC), 
-      firstMomentIon      (localSizeXPIC * localSizeYPIC), 
-      firstMomentElectron (localSizeXPIC * localSizeYPIC),
+      zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentIon      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentElectron (mPIInfoPIC.localSizeX * PIC2DConst::ny),
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -80,17 +77,17 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon     (localSizeXInterface * localSizeYInterface), 
-      reloadParticlesDataElectron(localSizeXInterface * localSizeYInterface), 
+      reloadParticlesDataIon     (mPIInfoInterface.localSizeX * Interface2DConst::interfaceLength), 
+      reloadParticlesDataElectron(mPIInfoInterface.localSizeX * Interface2DConst::interfaceLength), 
       
-      B_timeAve                   (localSizeXPIC * localSizeYPIC), 
-      zerothMomentIon_timeAve     (localSizeXPIC * localSizeYPIC), 
-      zerothMomentElectron_timeAve(localSizeXPIC * localSizeYPIC), 
-      firstMomentIon_timeAve      (localSizeXPIC * localSizeYPIC), 
-      firstMomentElectron_timeAve (localSizeXPIC * localSizeYPIC), 
+      B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
 
-      USub (localSizeXMHD * localSizeYMHD), 
-      UHalf(localSizeXMHD * localSizeYMHD), 
+      USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
+      UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
 
       momentCalculater(mPIInfoPIC), 
       boundaryPIC(mPIInfoPIC), 

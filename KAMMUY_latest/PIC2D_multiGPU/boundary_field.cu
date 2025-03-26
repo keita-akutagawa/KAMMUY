@@ -30,12 +30,10 @@ void freeBoundaryB_x(
 __global__ void freeBoundaryB_y_kernel(
     MagneticField* B, 
     int localSizeX, 
-    int buffer, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
+    int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         for (int j = 0; j < buffer; j++) {
@@ -59,8 +57,7 @@ void BoundaryPIC::freeBoundaryB_y(
     freeBoundaryB_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data()), 
         mPIInfo.localSizeX, 
-        mPIInfo.buffer, 
-        device_mPIInfo
+        mPIInfo.buffer
     );
     cudaDeviceSynchronize();
 }
@@ -93,12 +90,10 @@ void freeBoundaryE_x(
 __global__ void freeBoundaryE_y_kernel(
     ElectricField* E, 
     int localSizeX, 
-    int buffer, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
+    int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         for (int j = 0; j < buffer; j++) {
@@ -122,8 +117,7 @@ void BoundaryPIC::freeBoundaryE_y(
     freeBoundaryE_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), 
         mPIInfo.localSizeX, 
-        mPIInfo.buffer, 
-        device_mPIInfo
+        mPIInfo.buffer
     );
     cudaDeviceSynchronize();
 }
@@ -156,12 +150,10 @@ void freeBoundaryCurrent_x(
 __global__ void freeBoundaryCurrent_y_kernel(
     CurrentField* current,  
     int localSizeX, 
-    int buffer, 
-    PIC2DMPI::MPIInfo* device_mPIInfo
+    int buffer
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    PIC2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
 
     if (i < localSizeX) {
         for (int j = 0; j < buffer; j++) {
@@ -185,8 +177,7 @@ void BoundaryPIC::freeBoundaryCurrent_y(
     freeBoundaryCurrent_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
         mPIInfo.localSizeX,  
-        mPIInfo.buffer, 
-        device_mPIInfo
+        mPIInfo.buffer
     );
     cudaDeviceSynchronize();
 }

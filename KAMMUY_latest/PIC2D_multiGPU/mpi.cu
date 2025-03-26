@@ -20,6 +20,7 @@ bool PIC2DMPI::MPIInfo::isInside(int globalX)
 }
 
 
+__device__
 int PIC2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 {
     int startX = localNx * localGridX;
@@ -27,11 +28,11 @@ int PIC2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 
     int y = globalY;
 
-    return y + (x + buffer) * PIC2DConst::ny;
+    return y + (x + buffer) * PIC2DConst::device_ny;
 }
 
 
-void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int mpiBufNumParticles)
+void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int mpiBufNumParticles)
 {
     int rank = 0, procs = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);

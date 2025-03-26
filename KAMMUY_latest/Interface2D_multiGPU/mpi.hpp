@@ -13,25 +13,19 @@ namespace Interface2DMPI
     {
         int rank = 0;
         int procs = 0;
-        int gridX, gridY = 0;
-        int localGridX, localGridY = 0;
-        int localNx = 0, localNy = 0; 
+        int gridX = 0;
+        int localGridX = 0;
+        int localNx = 0; 
         int buffer = 0;
-        int localSizeX = 0, localSizeY = 0;
+        int localSizeX = 0;
 
         MPI_Datatype mpi_reloadParticlesDataType;
 
         __host__ __device__
-        int getRank(int dx, int dy);
-
-        __host__ __device__
-        bool isInside(int globalX, int globalY);
-
-        __host__ __device__
-        int globalToLocal(int globalX, int globalY);
+        int getRank(int dx);
     }; 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer, int gridX, int gridY);
+    void setupInfo(MPIInfo& mPIInfo, int buffer);
 
     void sendrecv_reloadParticlesData_x(
         thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 

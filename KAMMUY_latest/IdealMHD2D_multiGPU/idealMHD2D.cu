@@ -21,7 +21,7 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
       tmpVector(mPIInfo.localSizeX * IdealMHD2DConst::ny),
       hU       (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
 
-      dtVector(mPIInfo.localNx * mPIInfo.localNy), 
+      dtVector(mPIInfo.localNx * IdealMHD2DConst::ny), 
 
       boundaryMHD(mPIInfo)
 {
@@ -310,9 +310,9 @@ __global__ void calculateDtVector_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localNx && j < IdealMHD2DConst::ny) {
-        int indexForU  = j + (i + buffer) * IdealMHD2DConst::ny;
-        int indexForDt = j + i            * IdealMHD2DConst::ny;
+    if (i < localNx && j < IdealMHD2DConst::device_ny) {
+        int indexForU  = j + (i + buffer) * IdealMHD2DConst::device_ny;
+        int indexForDt = j + i            * IdealMHD2DConst::device_ny;
 
         double rho, u, v, w, bX, bY, bZ, e, p, cs, ca;
         double maxSpeedX, maxSpeedY;
@@ -378,8 +378,8 @@ __global__ void checkAndResetExtremeValues_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeX && j < IdealMHD2DConst::ny) {
-        int index = j + i * IdealMHD2DConst::ny;
+    if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
+        int index = j + i * IdealMHD2DConst::device_ny;
         double rho, u, v, w, bX, bY, bZ, e, p;
 
         rho = U[index].rho;

@@ -6,14 +6,14 @@ __global__ void calculateSubU_kernel(
     const ConservationParameter* UNext, 
     ConservationParameter* USub, 
     double mixingRatio, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeXMHD && j < localSizeYMHD) {
-        int index = j + i * localSizeYMHD;
+    if (i < localSizeXMHD && j < IdealMHD2DConst::device_ny) {
+        int index = j + i * IdealMHD2DConst::device_ny;
 
         USub[index] = mixingRatio * UPast[index] + (1.0 - mixingRatio) * UNext[index];
     }
@@ -27,14 +27,14 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((localSizeXMHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (localSizeYMHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(UNext.data()), 
         thrust::raw_pointer_cast(USub.data()), 
         mixingRatio, 
-        localSizeXMHD, localSizeYMHD
+        localSizeXMHD
     );
     cudaDeviceSynchronize();
 
@@ -158,14 +158,14 @@ __global__ void calculateTimeAveParameters_kernel(
     FirstMoment* firstMomentIon_timeAve, 
     FirstMoment* firstMomentElectron_timeAve, 
     int substeps, 
-    int localSizeXPIC, int localSizeYPIC
+    int localSizeXPIC
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeXPIC && j < localSizeYPIC) {
-        int index = j + i * localSizeYPIC;
+    if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
+        int index = j + i * PIC2DConst::device_ny;
 
         B_timeAve[index].bX                   /= static_cast<float>(substeps);
         B_timeAve[index].bY                   /= static_cast<float>(substeps);
@@ -186,7 +186,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((localSizeXPIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (localSizeYPIC + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                       (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateTimeAveParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B_timeAve.data()), 
@@ -195,7 +195,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
         thrust::raw_pointer_cast(firstMomentIon_timeAve.data()), 
         thrust::raw_pointer_cast(firstMomentElectron_timeAve.data()), 
         substeps, 
-        localSizeXPIC, localSizeYPIC
+        localSizeXPIC
     );
     cudaDeviceSynchronize();
 

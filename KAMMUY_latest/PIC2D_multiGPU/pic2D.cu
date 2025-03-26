@@ -55,14 +55,14 @@ __global__ void getCenterBE_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX) && (0 < j) && (j < PIC2DConst::ny)) {
-        int index = j + PIC2DConst::ny * i; 
+    if ((0 < i) && (i < localSizeX) && (0 < j) && (j < PIC2DConst::device_ny)) {
+        int index = j + PIC2DConst::device_ny * i; 
 
         tmpB[index].bX = 0.5f * (B[index].bX + B[index - 1].bX);
-        tmpB[index].bY = 0.5f * (B[index].bY + B[index - PIC2DConst::ny].bY);
-        tmpB[index].bZ = 0.25f * (B[index].bZ + B[index - PIC2DConst::ny].bZ
-                                + B[index - 1].bZ + B[index - 1 - PIC2DConst::ny].bZ);
-        tmpE[index].eX = 0.5f * (E[index].eX + E[index - PIC2DConst::ny].eX);
+        tmpB[index].bY = 0.5f * (B[index].bY + B[index - PIC2DConst::device_ny].bY);
+        tmpB[index].bZ = 0.25f * (B[index].bZ + B[index - PIC2DConst::device_ny].bZ
+                                + B[index - 1].bZ + B[index - 1 - PIC2DConst::device_ny].bZ);
+        tmpE[index].eX = 0.5f * (E[index].eX + E[index - PIC2DConst::device_ny].eX);
         tmpE[index].eY = 0.5f * (E[index].eY + E[index - 1].eY);
         tmpE[index].eZ = E[index].eZ;
     }
@@ -76,10 +76,10 @@ __global__ void getHalfCurrent_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeX - 1 && j < PIC2DConst::ny - 1) {
-        int index = j + PIC2DConst::ny * i; 
+    if (i < localSizeX - 1 && j < PIC2DConst::device_ny - 1) {
+        int index = j + PIC2DConst::device_ny * i; 
 
-        current[index].jX = 0.5f * (tmpCurrent[index].jX + tmpCurrent[index + PIC2DConst::ny].jX);
+        current[index].jX = 0.5f * (tmpCurrent[index].jX + tmpCurrent[index + PIC2DConst::device_ny].jX);
         current[index].jY = 0.5f * (tmpCurrent[index].jY + tmpCurrent[index + 1].jY);
         current[index].jZ = tmpCurrent[index].jZ;
     }

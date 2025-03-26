@@ -5,14 +5,14 @@ __global__ void setUHalf_kernel(
     const ConservationParameter* UPast, 
     const ConservationParameter* UNext, 
     ConservationParameter* UHalf, 
-    int localSizeXMHD, int localSizeYMHD
+    int localSizeXMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeXMHD && j < localSizeYMHD) {
-        int index = j + i * localSizeYMHD;
+    if (i < localSizeXMHD && j < IdealMHD2DConst::device_ny) {
+        int index = j + i * IdealMHD2DConst::device_ny;
 
         UHalf[index] = 0.5 * (UPast[index] + UNext[index]);
     }
@@ -30,17 +30,17 @@ __global__ void sendPICtoMHD_kernel(
     int indexOfInterfaceStartInMHD, 
     int indexOfInterfaceStartInPIC, 
     int buffer, 
-    int localSizeXPIC, int localSizeYPIC, 
-    int localSizeXMHD, int localSizeYMHD, 
-    int interfaceSizeX, int interfaceSizeY
+    int localSizeXPIC, 
+    int localSizeXMHD, 
+    int interfaceSizeX
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < interfaceSizeY - 1) {
-        int indexPIC = indexOfInterfaceStartInPIC + j + i * localSizeYPIC;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * localSizeYMHD;
+    if (0 < i && i < interfaceSizeX - 1 && 0 < j && j < Interface2DConst::device_interfaceLength - 1) {
+        int indexPIC = indexOfInterfaceStartInPIC + j + i * PIC2DConst::device_ny;
+        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
         double rhoPIC, uPIC, vPIC, wPIC, bXPIC, bYPIC, bZPIC;
         double niMHD, neMHD, tiMHD, teMHD;
@@ -110,7 +110,7 @@ void Interface2D::sendPICtoMHD(
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((localSizeXInterface + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (localSizeYInterface + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                       (Interface2DConst::interfaceLength + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
@@ -123,9 +123,9 @@ void Interface2D::sendPICtoMHD(
         indexOfInterfaceStartInMHD, 
         indexOfInterfaceStartInPIC, 
         mPIInfoMHD.buffer, 
-        localSizeXPIC, localSizeYPIC, 
-        localSizeXMHD, localSizeYMHD, 
-        localSizeXInterface, localSizeYInterface 
+        localSizeXPIC, 
+        localSizeXMHD, 
+        localSizeXInterface
     );
 }
 

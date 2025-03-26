@@ -20,6 +20,7 @@ bool IdealMHD2DMPI::MPIInfo::isInside(int globalX)
 }
 
 
+__device__
 int IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 {
     int startX = localNx * localGridX;
@@ -27,11 +28,11 @@ int IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 
     int y = globalY;
 
-    return y + (x + buffer) * IdealMHD2DConst::ny;
+    return y + (x + buffer) * IdealMHD2DConst::device_ny;
 }
 
 
-void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer, int gridX)
+void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer)
 {
     int rank = 0, procs = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -39,7 +40,7 @@ void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer, int g
 
     mPIInfo.rank = rank;
     mPIInfo.procs = procs;
-    mPIInfo.gridX = gridX;
+    mPIInfo.gridX = procs;
     mPIInfo.localGridX = rank; 
     mPIInfo.localNx = IdealMHD2DConst::nx / mPIInfo.gridX;
     mPIInfo.buffer = buffer;
@@ -86,8 +87,8 @@ void IdealMHD2DMPI::sendrecv_U_x(
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
-            sendULeft[ j + i * IdealMHD2DConst::ny] = U[j + (mPIInfo.buffer + i) * localSizeY];
-            sendURight[j + i * IdealMHD2DConst::ny] = U[j + (localNx + i)        * localSizeY];
+            sendULeft[ j + i * IdealMHD2DConst::ny] = U[j + (mPIInfo.buffer + i) * IdealMHD2DConst::ny];
+            sendURight[j + i * IdealMHD2DConst::ny] = U[j + (localNx + i)        * IdealMHD2DConst::ny];
         }
     }
 
@@ -100,8 +101,8 @@ void IdealMHD2DMPI::sendrecv_U_x(
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
-            U[j + i                              * localSizeY] = recvULeft[ j + i * IdealMHD2DConst::ny];
-            U[j + (localNx + mPIInfo.buffer + i) * localSizeY] = recvURight[j + i * IdealMHD2DConst::ny];
+            U[j + i                              * IdealMHD2DConst::ny] = recvULeft[ j + i * IdealMHD2DConst::ny];
+            U[j + (localNx + mPIInfo.buffer + i) * IdealMHD2DConst::ny] = recvURight[j + i * IdealMHD2DConst::ny];
         }
     }
 }
