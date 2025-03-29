@@ -70,7 +70,8 @@ namespace PIC2DMPI
         thrust::device_vector<FieldType>& recvFieldLeft, 
         thrust::device_vector<FieldType>& recvFieldRight, 
         MPIInfo& mPIInfo, 
-        MPI_Datatype mpi_dataType)
+        MPI_Datatype mpi_dataType
+    )
     {
         int localNx = mPIInfo.localNx;
 
@@ -78,46 +79,25 @@ namespace PIC2DMPI
         int right = mPIInfo.getRank(1);
         MPI_Status st;
 
-        FieldType* d_field = thrust::raw_pointer_cast(field.data());
-        FieldType* d_sendFieldLeft = thrust::raw_pointer_cast(sendFieldLeft.data());
-        FieldType* d_sendFieldRight = thrust::raw_pointer_cast(sendFieldRight.data());
         for (int i = 0; i < mPIInfo.buffer; i++) {
-            cudaMemcpy(
-                d_sendFieldLeft + i * PIC2DConst::ny, 
-                d_field + (mPIInfo.buffer + i) * PIC2DConst::ny + mPIInfo.buffer,
-                PIC2DConst::ny * sizeof(FieldType),
-                cudaMemcpyDeviceToDevice
-            );
-            cudaMemcpy(
-                d_sendFieldRight + i * PIC2DConst::ny,
-                d_field + (localNx + i) * PIC2DConst::ny + mPIInfo.buffer,
-                PIC2DConst::ny * sizeof(FieldType),
-                cudaMemcpyDeviceToDevice
-            );
+            for (int j = 0; j < PIC2DConst::ny; j++) {
+                sendFieldLeft[ j + i * PIC2DConst::ny] = field[j + (mPIInfo.buffer + i) * PIC2DConst::ny];
+                sendFieldRight[j + i * PIC2DConst::ny] = field[j + (localNx + i)        * PIC2DConst::ny];
+            }
         }
-
+    
         MPI_Sendrecv(thrust::raw_pointer_cast(sendFieldLeft.data()),  sendFieldLeft.size(),  mpi_dataType, left,  0, 
-                    thrust::raw_pointer_cast(recvFieldRight.data()), recvFieldRight.size(), mpi_dataType, right, 0, 
-                    MPI_COMM_WORLD, &st);
+                     thrust::raw_pointer_cast(recvFieldRight.data()), recvFieldRight.size(), mpi_dataType, right, 0, 
+                     MPI_COMM_WORLD, &st);
         MPI_Sendrecv(thrust::raw_pointer_cast(sendFieldRight.data()), sendFieldRight.size(), mpi_dataType, right, 0, 
-                    thrust::raw_pointer_cast(recvFieldLeft.data()),  recvFieldLeft.size(),  mpi_dataType, left,  0, 
-                    MPI_COMM_WORLD, &st);
-
-        FieldType* d_recvFieldLeft = thrust::raw_pointer_cast(recvFieldLeft.data());
-        FieldType* d_recvFieldRight = thrust::raw_pointer_cast(recvFieldRight.data());
+                     thrust::raw_pointer_cast(recvFieldLeft.data()),  recvFieldLeft.size(),  mpi_dataType, left,  0, 
+                     MPI_COMM_WORLD, &st);
+    
         for (int i = 0; i < mPIInfo.buffer; i++) {
-            cudaMemcpy(
-                d_field + i * PIC2DConst::ny + mPIInfo.buffer,
-                d_recvFieldLeft + i * PIC2DConst::ny,
-                PIC2DConst::ny * sizeof(FieldType),
-                cudaMemcpyDeviceToDevice
-            ); 
-            cudaMemcpy(
-                d_field + (localNx + mPIInfo.buffer + i) * PIC2DConst::ny + mPIInfo.buffer,
-                d_recvFieldRight + i * PIC2DConst::ny,
-                PIC2DConst::ny * sizeof(FieldType),
-                cudaMemcpyDeviceToDevice
-            ); 
+            for (int j = 0; j < PIC2DConst::ny; j++) {
+                field[j + i                              * PIC2DConst::ny] = recvFieldLeft[ j + i * PIC2DConst::ny];
+                field[j + (localNx + mPIInfo.buffer + i) * PIC2DConst::ny] = recvFieldRight[j + i * PIC2DConst::ny];
+            }
         }
     }
 
