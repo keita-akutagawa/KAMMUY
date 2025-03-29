@@ -18,7 +18,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest2/results_stay";
+std::string directoryName = "results_stay";
 std::string filenameWithoutStep = "stay";
 std::ofstream logfile(    directoryName + "/log_stay.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_stay.txt");
