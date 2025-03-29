@@ -36,12 +36,8 @@ __global__ void freeBoundaryB_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
-        for (int j = 0; j < buffer; j++) {
-            B[j + PIC2DConst::device_ny * i] = B[buffer + PIC2DConst::device_ny * i];
-        }
-        for (int j = 0; j < buffer; j++) {
-            B[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = B[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
-        }
+        B[0 + PIC2DConst::device_ny * i] = B[1 + PIC2DConst::device_ny * i];
+        B[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = B[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -96,12 +92,8 @@ __global__ void freeBoundaryE_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
-        for (int j = 0; j < buffer; j++) {
-            E[j + PIC2DConst::device_ny * i] = E[buffer + PIC2DConst::device_ny * i];
-        }
-        for (int j = 0; j < buffer; j++) {
-            E[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
-        }
+        E[0 + PIC2DConst::device_ny * i] = E[1 + PIC2DConst::device_ny * i];
+        E[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -156,12 +148,8 @@ __global__ void freeBoundaryCurrent_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
-        for (int j = 0; j < buffer; j++) {
-            current[j + PIC2DConst::device_ny * i] = current[buffer + PIC2DConst::device_ny * i];
-        }
-        for (int j = 0; j < buffer; j++) {
-            current[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
-        }
+        current[0 + PIC2DConst::device_ny * i] = current[1 + PIC2DConst::device_ny * i];
+        current[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 

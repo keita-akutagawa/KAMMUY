@@ -33,12 +33,8 @@ __global__ void freeBoundaryZerothMoment_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
-        for (int j = 0; j < buffer; j++) {
-            zerothMoment[j + PIC2DConst::device_ny * i] = zerothMoment[buffer + PIC2DConst::device_ny * i];
-        }
-        for (int j = 0; j < buffer; j++) {
-            zerothMoment[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
-        }
+        zerothMoment[0 + PIC2DConst::device_ny * i] = zerothMoment[1 + PIC2DConst::device_ny * i];
+        zerothMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -93,12 +89,8 @@ __global__ void freeBoundaryFirstMoment_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
-        for (int j = 0; j < buffer; j++) {
-            firstMoment[j + PIC2DConst::device_ny * i] = firstMoment[buffer + PIC2DConst::device_ny * i];
-        }
-        for (int j = 0; j < buffer; j++) {
-            firstMoment[PIC2DConst::device_ny - 1 - j + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 1 - buffer + PIC2DConst::device_ny * i];
-        }
+        firstMoment[0 + PIC2DConst::device_ny * i] = firstMoment[1 + PIC2DConst::device_ny * i];
+        firstMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
