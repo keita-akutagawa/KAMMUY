@@ -40,24 +40,24 @@ __global__ void freeBoundaryParticle_y_kernel(
         float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
         float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS;
         
-        if (y > boundaryDown && y < boundaryDown + buffer * PIC2DConst::device_dy) {
+        if (y > boundaryDown && y < boundaryDown + PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
-        if (y < boundaryUp && y > boundaryUp - buffer * PIC2DConst::device_dy) {
+        if (y < boundaryUp && y > boundaryUp - PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
         
-        if (y > boundaryDown + buffer * PIC2DConst::device_dy && y < boundaryDown + 2 * buffer * PIC2DConst::device_dy) {
+        if (y > boundaryDown + PIC2DConst::device_dy && y < boundaryDown + 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y - buffer * PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y - PIC2DConst::device_dy; 
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
-        if (y < boundaryUp - buffer * PIC2DConst::device_dy && y > boundaryUp - 2 * buffer * PIC2DConst::device_dy) {
+        if (y < boundaryUp - PIC2DConst::device_dy && y > boundaryUp - 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y + buffer * PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y + PIC2DConst::device_dy; 
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
         }
     }
