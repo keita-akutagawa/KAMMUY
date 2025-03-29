@@ -125,6 +125,8 @@ public:
 
     thrust::device_vector<Particle>& getParticlesElectronRef();
 
+    BoundaryPIC& getBoundaryPICRef(); 
+
 private:
 
     void calculateFullMoments();

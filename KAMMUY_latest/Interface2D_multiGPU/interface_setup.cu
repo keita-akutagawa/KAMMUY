@@ -26,7 +26,7 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((localSizeXMHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -34,7 +34,7 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
         thrust::raw_pointer_cast(UNext.data()), 
         thrust::raw_pointer_cast(USub.data()), 
         mixingRatio, 
-        localSizeXMHD
+        mPIInfoMHD.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -116,22 +116,6 @@ void Interface2D::sumUpTimeAveParameters(
     boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron); 
     boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron); 
 
-    for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-        interfaceNoiseRemover2D.convolveMoments(
-            zerothMomentIon, zerothMomentElectron, 
-            firstMomentIon, firstMomentElectron
-        );
-
-        boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon); 
-        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon); 
-        boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron); 
-        boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron); 
-        boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon); 
-        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon); 
-        boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron); 
-        boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron); 
-    }
-
     thrust::transform(
         zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
         zerothMomentIon_timeAve.begin(), thrust::plus<ZerothMoment>()
@@ -151,6 +135,7 @@ void Interface2D::sumUpTimeAveParameters(
 }
 
 
+/*
 __global__ void calculateTimeAveParameters_kernel(
     MagneticField* B_timeAve, 
     ZerothMoment* zerothMomentIon_timeAve, 
@@ -210,6 +195,7 @@ void Interface2D::calculateTimeAveParameters(int substeps)
     boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
     boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
 }
+*/
 
 
 thrust::device_vector<ConservationParameter>& Interface2D::getUHalfRef()

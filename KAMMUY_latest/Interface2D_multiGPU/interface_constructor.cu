@@ -49,7 +49,6 @@ Interface2D::Interface2D(
     PIC2DMPI::MPIInfo& mPIInfoPIC, 
     Interface2DMPI::MPIInfo& mPIInfoInterface, 
     int indexOfInterfaceStartMHD, 
-    int indexOfInterfaceStartPIC, 
     thrust::host_vector<double>& host_interlockingFunctionY, 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D
 )
@@ -58,13 +57,8 @@ Interface2D::Interface2D(
       mPIInfoInterface(mPIInfoInterface), 
 
       indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
-      indexOfInterfaceStartInPIC(indexOfInterfaceStartPIC),
 
-      localSizeXPIC(mPIInfoPIC.localSizeX),
-      localSizeXMHD(mPIInfoMHD.localSizeX),
-      localSizeXInterface(mPIInfoInterface.localSizeX),
-
-      interlockingFunctionY    (localSizeYInterface, 0.0), 
+      interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0), 
 
       zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
       zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
@@ -77,8 +71,8 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon     (mPIInfoInterface.localSizeX * Interface2DConst::interfaceLength), 
-      reloadParticlesDataElectron(mPIInfoInterface.localSizeX * Interface2DConst::interfaceLength), 
+      reloadParticlesDataIon     (mPIInfoInterface.localSizeX * PIC2DConst::ny), 
+      reloadParticlesDataElectron(mPIInfoInterface.localSizeX * PIC2DConst::ny), 
       
       B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
       zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 

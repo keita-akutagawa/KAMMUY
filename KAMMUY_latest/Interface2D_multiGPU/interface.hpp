@@ -39,14 +39,6 @@ private:
     Interface2DMPI::MPIInfo* device_mPIInfoInterface; 
 
     int indexOfInterfaceStartInMHD;
-    int indexOfInterfaceStartInPIC;
-
-    int localSizeXPIC; 
-    int localSizeYPIC; 
-    int localSizeXMHD; 
-    int localSizeYMHD; 
-    int localSizeXInterface; 
-    int localSizeYInterface; 
 
     thrust::device_vector<double> interlockingFunctionY;
 
@@ -84,7 +76,6 @@ public:
         PIC2DMPI::MPIInfo& mPIInfoPIC, 
         Interface2DMPI::MPIInfo& mPIInfoInterface, 
         int indexOfInterfaceStartMHD, 
-        int indexOfInterfaceStartPIC, 
         thrust::host_vector<double>& host_interlockingFunctionY, 
         InterfaceNoiseRemover2D& interfaceNoiseRemover2D
     );
@@ -147,7 +138,7 @@ public:
         const thrust::device_vector<Particle>& particlesElectron
     );
 
-    void calculateTimeAveParameters(int substeps);
+    //void calculateTimeAveParameters(int substeps);
 
     thrust::device_vector<ConservationParameter>& getUHalfRef();
 

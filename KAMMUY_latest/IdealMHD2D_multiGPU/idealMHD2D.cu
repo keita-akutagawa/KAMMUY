@@ -517,3 +517,9 @@ thrust::device_vector<ConservationParameter>& IdealMHD2D::getUPastRef()
     return UPast;
 }
 
+BoundaryMHD& IdealMHD2D::getBoundaryMHDRef()
+{
+    return boundaryMHD; 
+}
+
+

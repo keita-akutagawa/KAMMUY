@@ -21,33 +21,21 @@ private:
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
-    int indexOfConvolutionStartInMHD;
-    int indexOfConvolutionStartInPIC;
-    int localSizeXConvolutionMHD; 
-    int localSizeYConvolutionMHD; 
-    int localSizeXConvolutionPIC; 
-    int localSizeYConvolutionPIC; 
-
-    thrust::device_vector<MagneticField> tmpB;
-    thrust::device_vector<ElectricField> tmpE;
-    thrust::device_vector<CurrentField> tmpCurrent;
-    thrust::device_vector<ZerothMoment> tmpZerothMoment;
-    thrust::device_vector<FirstMoment> tmpFirstMoment;
+    //thrust::device_vector<MagneticField> tmpB;
+    //thrust::device_vector<ElectricField> tmpE;
+    //thrust::device_vector<CurrentField> tmpCurrent;
+    //thrust::device_vector<ZerothMoment> tmpZerothMoment;
+    //thrust::device_vector<FirstMoment> tmpFirstMoment;
     thrust::device_vector<ConservationParameter> tmpU;
 
 public:
     InterfaceNoiseRemover2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
-        PIC2DMPI::MPIInfo& mPIInfoPIC, 
-        int indexOfConvolutionStartInMHD, 
-        int indexOfConvolutionStartInPIC, 
-        int localSizeXConvolutionMHD, 
-        int localSizeYConvolutionMHD, 
-        int localSizeXConvolutionPIC, 
-        int localSizeYConvolutionPIC
+        PIC2DMPI::MPIInfo& mPIInfoPIC
     );
 
 
+    /*
     void convolve_magneticField(
         thrust::device_vector<MagneticField>& B
     );
@@ -66,16 +54,20 @@ public:
         thrust::device_vector<FirstMoment>& firstMomentIon, 
         thrust::device_vector<FirstMoment>& firstMomentElectron
     );
+    */
 
     void convolveU(
         thrust::device_vector<ConservationParameter>& U
     );
 
 private:
+
+    /*
     void convolveMomentsOfOneSpecies(
         thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
         thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies
     );
+    */
 
 };
 

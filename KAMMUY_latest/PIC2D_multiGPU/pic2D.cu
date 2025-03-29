@@ -121,6 +121,9 @@ void PIC2D::oneStep_periodicXFreeY()
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
     );
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
 
     currentCalculator.resetCurrent(tmpCurrent);
     currentCalculator.calculateCurrent(
@@ -153,7 +156,9 @@ void PIC2D::oneStep_periodicXFreeY()
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
     );
-    
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
 }   
 
 
@@ -645,5 +650,10 @@ thrust::host_vector<Particle>& PIC2D::getHostParticlesElectronRef()
 thrust::device_vector<Particle>& PIC2D::getParticlesElectronRef()
 {
     return particlesElectron;
+}
+
+BoundaryPIC& PIC2D::getBoundaryPICRef()
+{
+    return boundaryPIC; 
 }
 

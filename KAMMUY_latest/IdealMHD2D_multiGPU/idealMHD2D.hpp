@@ -56,6 +56,8 @@ public:
 
     thrust::device_vector<ConservationParameter>& getUPastRef();
 
+    BoundaryMHD& getBoundaryMHDRef(); 
+
 private:
 
 };

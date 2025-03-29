@@ -3,28 +3,17 @@
 
 InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
-    PIC2DMPI::MPIInfo& mPIInfoPIC, 
-    int indexOfConvolutionStartInMHD, 
-    int indexOfConvolutionStartInPIC, 
-    int localSizeXConvolutionMHD, int localSizeYConvolutionMHD, 
-    int localSizeXConvolutionPIC, int localSizeYConvolutionPIC
+    PIC2DMPI::MPIInfo& mPIInfoPIC
 )
     : mPIInfoMHD(mPIInfoMHD), 
       mPIInfoPIC(mPIInfoPIC), 
 
-      indexOfConvolutionStartInMHD(indexOfConvolutionStartInMHD), 
-      indexOfConvolutionStartInPIC(indexOfConvolutionStartInPIC), 
-      localSizeXConvolutionMHD(localSizeXConvolutionMHD), 
-      localSizeYConvolutionMHD(localSizeYConvolutionMHD), 
-      localSizeXConvolutionPIC(localSizeXConvolutionPIC), 
-      localSizeYConvolutionPIC(localSizeYConvolutionPIC), 
-
-      tmpB(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
-      tmpE(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
-      tmpCurrent(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
-      tmpZerothMoment(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
-      tmpFirstMoment(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
-      tmpU(localSizeXConvolutionMHD * localSizeYConvolutionMHD)
+      //tmpB(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
+      //tmpE(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
+      //tmpCurrent(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
+      //tmpZerothMoment(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
+      //tmpFirstMoment(localSizeXConvolutionPIC * localSizeYConvolutionPIC), 
+      tmpU(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny)
 {
 
     cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
@@ -35,6 +24,7 @@ InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
 }
 
 
+/*
 template <typename FieldType>
 __global__ void copyFieldsPIC_kernel(
     const FieldType* field, 
@@ -237,9 +227,10 @@ void InterfaceNoiseRemover2D::convolveMoments(
         zerothMomentElectron, firstMomentElectron
     );
 }
+*/
 
 
-
+/*
 __global__ void copyU_kernel(
     const ConservationParameter* U, 
     ConservationParameter* tmpU, 
@@ -289,6 +280,33 @@ __global__ void convolveU_kernel(
         U[indexMHD] = convolvedU;
     }
 }
+*/
+
+__global__ void convolveU_kernel(
+    const ConservationParameter* tmpU, 
+    ConservationParameter* U, 
+    int localSizeXMHD
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (0 < i && i < localSizeXMHD - 1 && 0 < j && j < IdealMHD2DConst::device_ny - 1) {
+        int indexMHD = j + i * IdealMHD2DConst::device_ny;
+
+        ConservationParameter convolvedU; 
+
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
+                convolvedU = convolvedU + tmpU[localIndex];
+            }
+        }
+        convolvedU = 1.0 / 9.0 * convolvedU; 
+
+        U[indexMHD] = convolvedU;
+    }
+}
 
 
 void InterfaceNoiseRemover2D::convolveU(
@@ -296,23 +314,23 @@ void InterfaceNoiseRemover2D::convolveU(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((localSizeXConvolutionMHD + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (localSizeYConvolutionMHD + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(U.data()), 
-        thrust::raw_pointer_cast(tmpU.data()),
-        indexOfConvolutionStartInMHD, 
-        localSizeXConvolutionMHD, localSizeYConvolutionMHD, 
-        mPIInfoMHD.localSizeX
-    );
-    cudaDeviceSynchronize();
+    //copyU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    //    thrust::raw_pointer_cast(U.data()), 
+    //    thrust::raw_pointer_cast(tmpU.data()),
+    //    indexOfConvolutionStartInMHD, 
+    //    localSizeXConvolutionMHD, localSizeYConvolutionMHD, 
+    //    mPIInfoMHD.localSizeX
+    //);
+    //cudaDeviceSynchronize();
+
+    thrust::copy(U.begin(), U.end(), tmpU.begin());
 
     convolveU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(tmpU.data()), 
         thrust::raw_pointer_cast(U.data()), 
-        indexOfConvolutionStartInMHD, 
-        localSizeXConvolutionMHD, localSizeYConvolutionMHD, 
         mPIInfoMHD.localSizeX
     );
     cudaDeviceSynchronize();
