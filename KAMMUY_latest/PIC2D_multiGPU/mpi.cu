@@ -259,11 +259,11 @@ void PIC2DMPI::sendrecv_particle_x(
 
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendParticlesSpeciesLeft.data()), 
-        numForSendParticlesSpeciesLeft, 
+        maxNumSendLeftRecvRight, 
         mPIInfo.mpi_particleType, 
         left, 0, 
         thrust::raw_pointer_cast(recvParticlesSpeciesRight.data()), 
-        numForRecvParticlesSpeciesRight, 
+        maxNumSendLeftRecvRight, 
         mPIInfo.mpi_particleType, 
         right, 0, 
         MPI_COMM_WORLD, &st
@@ -271,11 +271,11 @@ void PIC2DMPI::sendrecv_particle_x(
 
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendParticlesSpeciesRight.data()), 
-        numForSendParticlesSpeciesRight, 
+        maxNumSendRightRecvLeft, 
         mPIInfo.mpi_particleType, 
         right, 0, 
         thrust::raw_pointer_cast(recvParticlesSpeciesLeft.data()),
-        numForRecvParticlesSpeciesLeft, 
+        maxNumSendRightRecvLeft, 
         mPIInfo.mpi_particleType, 
         left, 0, 
         MPI_COMM_WORLD, &st

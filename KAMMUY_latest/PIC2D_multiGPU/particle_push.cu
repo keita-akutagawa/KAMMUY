@@ -258,29 +258,6 @@ void pushPositionOfOneSpecies_kernel(
         particlesSpecies[i].x = x;
         particlesSpecies[i].y = y;
         particlesSpecies[i].z = z;
-        
-
-        float boundaryLeft  = xminForProcs + PIC2DConst::device_EPS; 
-        float boundaryRight = xmaxForProcs - PIC2DConst::device_EPS; 
-        float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
-        float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS; 
-        
-        if (x <= boundaryLeft) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
-        if (x >= boundaryRight) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
-        if (y <= boundaryDown) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
-        if (y >= boundaryUp) {
-            particlesSpecies[i].isExist = false;
-            return;
-        }
     }
 }
 
@@ -301,12 +278,6 @@ void ParticlePush::pushPositionOfOneSpecies(
         mPIInfo.xminForProcs, mPIInfo.xmaxForProcs
     );
     cudaDeviceSynchronize();
-
-    auto partitionEnd = thrust::partition(
-        particlesSpecies.begin(), particlesSpecies.end(), 
-        [] __device__ (const Particle& p) { return p.isExist; }
-    );
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 }
 
 

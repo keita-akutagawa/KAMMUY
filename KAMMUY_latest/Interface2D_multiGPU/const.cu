@@ -7,6 +7,7 @@ void Interface2DConst::initializeDeviceConstants()
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(double));
 
     cudaMemcpyToSymbol(device_interfaceLength, &interfaceLength, sizeof(int));
+    cudaMemcpyToSymbol(device_deltaForInterlockingFunction, &deltaForInterlockingFunction, sizeof(double));
 
     cudaMemcpyToSymbol(device_nx, &nx, sizeof(int));
     cudaMemcpyToSymbol(device_ny, &ny, sizeof(int));

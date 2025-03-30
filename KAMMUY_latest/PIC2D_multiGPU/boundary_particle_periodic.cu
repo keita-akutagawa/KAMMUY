@@ -47,7 +47,16 @@ __global__ void periodicBoundaryParticle_x_kernel(
         float boundaryLeft  = xminForProcs + PIC2DConst::device_EPS; 
         float boundaryRight = xmaxForProcs - PIC2DConst::device_EPS; 
 
-        if (x > boundaryLeft && x < boundaryLeft + buffer * PIC2DConst::device_dx) {
+        if (x <= boundaryLeft) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+        if (x >= boundaryRight) {
+            particlesSpecies[i].isExist = false;
+            return;
+        }
+
+        if (x > boundaryLeft && x <= boundaryLeft + buffer * PIC2DConst::device_dx) {
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
             if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx) {
@@ -56,7 +65,7 @@ __global__ void periodicBoundaryParticle_x_kernel(
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
-        if (x < boundaryRight && x > boundaryRight - buffer * PIC2DConst::device_dx) {
+        if (x < boundaryRight && x >= boundaryRight - buffer * PIC2DConst::device_dx) {
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
             if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx) {
@@ -93,6 +102,12 @@ void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
         mPIInfo.buffer
     );
     cudaDeviceSynchronize();
+    
+    auto partitionEnd = thrust::partition(
+        particlesSpecies.begin(), particlesSpecies.end(), 
+        [] __device__ (const Particle& p) { return p.isExist; }
+    );
+    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
 
     numForSendParticlesSpeciesLeft  = countForSendParticlesSpeciesLeft[0];
     numForSendParticlesSpeciesRight = countForSendParticlesSpeciesRight[0];

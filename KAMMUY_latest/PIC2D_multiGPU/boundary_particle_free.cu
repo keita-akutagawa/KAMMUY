@@ -40,10 +40,10 @@ __global__ void freeBoundaryParticle_y_kernel(
         float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
         float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS;
         
-        if (y > boundaryDown && y < boundaryDown + PIC2DConst::device_dy) {
+        if (y < boundaryDown + PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
-        if (y < boundaryUp && y > boundaryUp - PIC2DConst::device_dy) {
+        if (y > boundaryUp - PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
         

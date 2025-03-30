@@ -401,7 +401,6 @@ __global__ void reloadParticlesSpecies_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
-        //TODO
         int indexPIC = j + i * PIC2DConst::device_ny; 
         float u = reloadParticlesDataSpecies[indexPIC].u;
         float v = reloadParticlesDataSpecies[indexPIC].v;
