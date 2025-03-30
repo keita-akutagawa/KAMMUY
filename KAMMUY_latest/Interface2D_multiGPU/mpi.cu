@@ -47,13 +47,13 @@ void Interface2DMPI::sendrecv_reloadParticlesData_x(
     int right = mPIInfo.getRank(1);
     MPI_Status st;
 
-    thrust::device_vector<ReloadParticlesData> sendDataLeft(mPIInfo.buffer * Interface2DConst::interfaceLength), sendDataRight(mPIInfo.buffer * Interface2DConst::interfaceLength);
-    thrust::device_vector<ReloadParticlesData> recvDataLeft(mPIInfo.buffer * Interface2DConst::interfaceLength), recvDataRight(mPIInfo.buffer * Interface2DConst::interfaceLength);
+    thrust::device_vector<ReloadParticlesData> sendDataLeft(mPIInfo.buffer * PIC2DConst::ny), sendDataRight(mPIInfo.buffer * PIC2DConst::ny);
+    thrust::device_vector<ReloadParticlesData> recvDataLeft(mPIInfo.buffer * PIC2DConst::ny), recvDataRight(mPIInfo.buffer * PIC2DConst::ny);
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
-        for (int j = 0; j < Interface2DConst::interfaceLength; j++) {
-            sendDataLeft[ j + i * Interface2DConst::interfaceLength] = reloadParticlesDataSpecies[j + (mPIInfo.buffer + i) * Interface2DConst::interfaceLength];
-            sendDataRight[j + i * Interface2DConst::interfaceLength] = reloadParticlesDataSpecies[j + (localNx + i)        * Interface2DConst::interfaceLength];
+        for (int j = 0; j < PIC2DConst::ny; j++) {
+            sendDataLeft[ j + i * PIC2DConst::ny] = reloadParticlesDataSpecies[j + (mPIInfo.buffer + i) * PIC2DConst::ny];
+            sendDataRight[j + i * PIC2DConst::ny] = reloadParticlesDataSpecies[j + (localNx + i)        * PIC2DConst::ny];
         }
     }
 
@@ -65,9 +65,9 @@ void Interface2DMPI::sendrecv_reloadParticlesData_x(
                  MPI_COMM_WORLD, &st);
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
-        for (int j = 0; j < Interface2DConst::interfaceLength; j++) {
-            reloadParticlesDataSpecies[j + i                              * Interface2DConst::interfaceLength] = recvDataLeft[ j + i * Interface2DConst::interfaceLength];
-            reloadParticlesDataSpecies[j + (localNx + mPIInfo.buffer + i) * Interface2DConst::interfaceLength] = recvDataRight[j + i * Interface2DConst::interfaceLength];
+        for (int j = 0; j < PIC2DConst::ny; j++) {
+            reloadParticlesDataSpecies[j + i                              * PIC2DConst::ny] = recvDataLeft[ j + i * PIC2DConst::ny];
+            reloadParticlesDataSpecies[j + (localNx + mPIInfo.buffer + i) * PIC2DConst::ny] = recvDataRight[j + i * PIC2DConst::ny];
         }
     }
 }

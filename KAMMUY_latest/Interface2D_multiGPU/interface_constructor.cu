@@ -60,10 +60,11 @@ Interface2D::Interface2D(
 
       interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0), 
 
-      zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentIon      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentElectron (mPIInfoPIC.localSizeX * PIC2DConst::ny),
+      tmp_B                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      tmp_zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      tmp_zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      tmp_firstMomentIon      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      tmp_firstMomentElectron (mPIInfoPIC.localSizeX * PIC2DConst::ny),
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -71,14 +72,14 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon     (mPIInfoInterface.localSizeX * PIC2DConst::ny), 
-      reloadParticlesDataElectron(mPIInfoInterface.localSizeX * PIC2DConst::ny), 
+      reloadParticlesDataIon     (mPIInfoPIC.localNx * PIC2DConst::ny), 
+      reloadParticlesDataElectron(mPIInfoPIC.localNx * PIC2DConst::ny), 
       
-      B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      B_PICtoMHD                   (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentIon_PICtoMHD     (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentIon_PICtoMHD      (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentElectron_PICtoMHD (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
 
       USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
       UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 

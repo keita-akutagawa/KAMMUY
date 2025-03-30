@@ -1,59 +1,42 @@
 #include "interface.hpp"
 
 
-__global__ void setUHalf_kernel(
-    const ConservationParameter* UPast, 
-    const ConservationParameter* UNext, 
-    ConservationParameter* UHalf, 
-    int localSizeXMHD
-)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (i < localSizeXMHD && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
-
-        UHalf[index] = 0.5 * (UPast[index] + UNext[index]);
-    }
-}
-
-
 __global__ void sendPICtoMHD_kernel(
     const double* interlockingFunctionY, 
-    const ZerothMoment* zerothMomentIon, 
-    const ZerothMoment* ZerothMomentElectron, 
-    const FirstMoment* firstMomentIon, 
-    const FirstMoment* firstMomentElectron, 
-    const MagneticField* B, 
+    const MagneticField* B_PICtoMHD, 
+    const ZerothMoment* zerothMomentIon_PICtoMHD, 
+    const ZerothMoment* ZerothMomentElectron_PICtoMHD, 
+    const FirstMoment* firstMomentIon_PICtoMHD, 
+    const FirstMoment* firstMomentElectron_PICtoMHD, 
     ConservationParameter* U, 
-    int indexOfInterfaceStartInMHD, 
-    int localSizeXPIC
+    const int indexOfInterfaceStartInMHD, 
+    const int localNxMHD, const int bufferPIC, const int bufferMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < PIC2DConst::device_ny - 1) {
-        int indexPIC = j + i * PIC2DConst::device_ny;
-        int indexMHD = indexOfInterfaceStartInMHD + j + i * IdealMHD2DConst::device_ny;
+    if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
+        int indexPIC = j * Interface2DConst::device_gridSizeRatio
+                     + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny; 
+        int indexMHD = indexOfInterfaceStartInMHD + j  + (i + bufferMHD) * IdealMHD2DConst::device_ny;
+        int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
-        double rhoPIC, uPIC, vPIC, wPIC, bXPIC, bYPIC, bZPIC;
+        double rhoPICtoMHD, uPICtoMHD, vPICtoMHD, wPICtoMHD, bXPICtoMHD, bYPICtoMHD, bZPICtoMHD;
         double niMHD, neMHD, tiMHD, teMHD;
         double mIon = PIC2DConst::device_mIon, mElectron = PIC2DConst::device_mElectron;
 
-        //MHDのグリッドにPICを合わせる
-        rhoMHD      = U[indexMHD].rho;
-        uMHD        = U[indexMHD].rhoU / rhoMHD;
-        vMHD        = U[indexMHD].rhoV / rhoMHD;
-        wMHD        = U[indexMHD].rhoW / rhoMHD;
-        bXMHD       = U[indexMHD].bX;
-        bYMHD       = U[indexMHD].bY;
-        bZMHD       = U[indexMHD].bZ;
-        eMHD        = U[indexMHD].e;
-        pMHD        = (IdealMHD2DConst::device_gamma - 1.0)
-                    * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
-                    - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
+        rhoMHD = U[indexMHD].rho;
+        uMHD   = U[indexMHD].rhoU / rhoMHD;
+        vMHD   = U[indexMHD].rhoV / rhoMHD;
+        wMHD   = U[indexMHD].rhoW / rhoMHD;
+        bXMHD  = U[indexMHD].bX;
+        bYMHD  = U[indexMHD].bY;
+        bZMHD  = U[indexMHD].bZ;
+        eMHD   = U[indexMHD].e;
+        pMHD   = (IdealMHD2DConst::device_gamma - 1.0)
+               * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
+               - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
 
         //tiMHD, teMHDはMHDの情報のままにするために、この計算が必要。
         niMHD = rhoMHD / (mIon + mElectron);
@@ -61,21 +44,21 @@ __global__ void sendPICtoMHD_kernel(
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
         
-        rhoPIC =  mIon * zerothMomentIon[indexPIC].n + mElectron * ZerothMomentElectron[indexPIC].n;
-        uPIC   = (mIon * firstMomentIon[indexPIC].x  + mElectron * firstMomentElectron[indexPIC].x) / rhoPIC;
-        vPIC   = (mIon * firstMomentIon[indexPIC].y  + mElectron * firstMomentElectron[indexPIC].y) / rhoPIC;
-        wPIC   = (mIon * firstMomentIon[indexPIC].z  + mElectron * firstMomentElectron[indexPIC].z) / rhoPIC;
-        bXPIC  = 0.5f * (B[indexPIC].bX + B[indexPIC - PIC2DConst::device_ny].bX); 
-        bYPIC  = 0.5f * (B[indexPIC].bY + B[indexPIC - 1].bY); 
-        bZPIC  = B[indexPIC].bZ; 
+        rhoPICtoMHD =  mIon * zerothMomentIon_PICtoMHD[indexPICtoMHD].n + mElectron * ZerothMomentElectron_PICtoMHD[indexPICtoMHD].n;
+        uPICtoMHD   = (mIon * firstMomentIon_PICtoMHD[indexPICtoMHD].x  + mElectron * firstMomentElectron_PICtoMHD[indexPICtoMHD].x) / rhoPICtoMHD;
+        vPICtoMHD   = (mIon * firstMomentIon_PICtoMHD[indexPICtoMHD].y  + mElectron * firstMomentElectron_PICtoMHD[indexPICtoMHD].y) / rhoPICtoMHD;
+        wPICtoMHD   = (mIon * firstMomentIon_PICtoMHD[indexPICtoMHD].z  + mElectron * firstMomentElectron_PICtoMHD[indexPICtoMHD].z) / rhoPICtoMHD;
+        bXPICtoMHD  = B_PICtoMHD[indexPICtoMHD].bX; 
+        bYPICtoMHD  = B_PICtoMHD[indexPICtoMHD].bY; 
+        bZPICtoMHD  = B_PICtoMHD[indexPICtoMHD].bZ; 
 
-        rhoMHD = interlockingFunctionY[indexPIC] * rhoMHD + (1.0 - interlockingFunctionY[indexPIC]) * rhoPIC;
-        uMHD   = interlockingFunctionY[indexPIC] * uMHD   + (1.0 - interlockingFunctionY[indexPIC]) * uPIC;
-        vMHD   = interlockingFunctionY[indexPIC] * vMHD   + (1.0 - interlockingFunctionY[indexPIC]) * vPIC;
-        wMHD   = interlockingFunctionY[indexPIC] * wMHD   + (1.0 - interlockingFunctionY[indexPIC]) * wPIC;
-        bXMHD  = interlockingFunctionY[indexPIC] * bXMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bXPIC;
-        bYMHD  = interlockingFunctionY[indexPIC] * bYMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bYPIC;
-        bZMHD  = interlockingFunctionY[indexPIC] * bZMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bZPIC;
+        rhoMHD = interlockingFunctionY[indexPIC] * rhoMHD + (1.0 - interlockingFunctionY[indexPIC]) * rhoPICtoMHD;
+        uMHD   = interlockingFunctionY[indexPIC] * uMHD   + (1.0 - interlockingFunctionY[indexPIC]) * uPICtoMHD;
+        vMHD   = interlockingFunctionY[indexPIC] * vMHD   + (1.0 - interlockingFunctionY[indexPIC]) * vPICtoMHD;
+        wMHD   = interlockingFunctionY[indexPIC] * wMHD   + (1.0 - interlockingFunctionY[indexPIC]) * wPICtoMHD;
+        bXMHD  = interlockingFunctionY[indexPIC] * bXMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bXPICtoMHD;
+        bYMHD  = interlockingFunctionY[indexPIC] * bYMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bYPICtoMHD;
+        bZMHD  = interlockingFunctionY[indexPIC] * bZMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bZPICtoMHD;
 
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;
@@ -102,19 +85,19 @@ void Interface2D::sendPICtoMHD(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
-                       (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((mPIInfoMHD.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (PIC2DConst::ny / Interface2DConst::gridSizeRatio + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
-        thrust::raw_pointer_cast(zerothMomentIon_timeAve.data()), 
-        thrust::raw_pointer_cast(zerothMomentElectron_timeAve.data()), 
-        thrust::raw_pointer_cast(firstMomentIon_timeAve.data()), 
-        thrust::raw_pointer_cast(firstMomentElectron_timeAve.data()), 
-        thrust::raw_pointer_cast(B_timeAve.data()), 
+        thrust::raw_pointer_cast(B_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(zerothMomentIon_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(zerothMomentElectron_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(firstMomentIon_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(firstMomentElectron_PICtoMHD.data()), 
         thrust::raw_pointer_cast(U.data()), 
         indexOfInterfaceStartInMHD, 
-        mPIInfoPIC.localSizeX
+        mPIInfoMHD.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
     );
 }
 

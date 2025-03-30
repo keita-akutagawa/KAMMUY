@@ -18,7 +18,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "results_stay";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest2/results_stay";
 std::string filenameWithoutStep = "stay";
 std::ofstream logfile(    directoryName + "/log_stay.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_stay.txt");
@@ -37,29 +37,31 @@ const int particleRecordStep = PIC2DConst::totalStep;
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
+const int Interface2DConst::gridSizeRatio = 5; 
+
 const double Interface2DConst::EPS = 1.0e-20;
 const double Interface2DConst::PI = 3.14159265358979;
 const float PIC2DConst::EPS = 1.0e-10f;
 const double IdealMHD2DConst::EPS = 1.0e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const int PIC2DConst::nx = 10;
+const int PIC2DConst::nx = 50;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 50;
+const int PIC2DConst::ny = 100;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
 
 
-const int IdealMHD2DConst::nx = PIC2DConst::nx;
+const int IdealMHD2DConst::nx = PIC2DConst::nx / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dx = 1.0;
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = PIC2DConst::ny * 4;
+const int IdealMHD2DConst::ny = PIC2DConst::ny * 4 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = 1.0;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
@@ -67,10 +69,11 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 0;
 
-const int Interface2DConst::interfaceLength = PIC2DConst::ny;
-const int indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2;
+const int Interface2DConst::interfaceLength = -1; //使わないこと
+const double Interface2DConst::deltaForInterlockingFunction = Interface2DConst::gridSizeRatio; 
+const int indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
@@ -236,7 +239,10 @@ __device__ double IdealMHD2DConst::device_cr;
 __constant__ double Interface2DConst::device_EPS;
 __constant__ double Interface2DConst::device_PI;
 
+__constant__ int Interface2DConst::device_gridSizeRatio;
+
 __constant__ int Interface2DConst::device_interfaceLength;
+__constant__ double Interface2DConst::device_deltaForInterlockingFunction;
 
 __constant__ int Interface2DConst::device_nx; 
 __constant__ int Interface2DConst::device_ny;  

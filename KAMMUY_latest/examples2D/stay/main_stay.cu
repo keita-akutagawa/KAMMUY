@@ -76,7 +76,7 @@ __global__ void initializePICField_kernel(
             float bX, bY, bZ, eX, eY, eZ;
 
             bX = 0.0f; 
-            bY = 0.0f; 
+            bY = 0.0f;
             bZ = 0.0f; 
             eX = 0.0f; 
             eY = 0.0f; 
@@ -198,12 +198,10 @@ int main(int argc, char** argv)
     
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            double delta = 3.0; 
-
             host_interlockingFunctionY[j + i * PIC2DConst::ny]
                 = 1.0
-                - (1.0 - exp(-pow((j - 0) / delta, 2)))
-                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / delta, 2))); 
+                - (1.0 - exp(-pow((j - 0) / Interface2DConst::deltaForInterlockingFunction, 2)))
+                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / Interface2DConst::deltaForInterlockingFunction, 2))); 
         }
     }
     
@@ -235,6 +233,13 @@ int main(int argc, char** argv)
                   << std::endl;
         std::cout << "exist number of partices + buffer particles is " 
                   << mPIInfoPIC.procs * (mPIInfoPIC.totalNumIonPerProcs + mPIInfoPIC.totalNumElectronPerProcs) 
+                  << std::endl;
+        
+        std::cout << "PIC grid size is " 
+                  << mPIInfoPIC.localSizeX << " X " << PIC2DConst::ny 
+                  << std::endl;
+        std::cout << "MHD grid size is " 
+                  << mPIInfoMHD.localSizeX << " X " << IdealMHD2DConst::ny
                   << std::endl;
     }
 
@@ -318,8 +323,6 @@ int main(int argc, char** argv)
 
         // STEP3 : PIC step
 
-        interface2D.resetTimeAveParameters();
-
         int getDataSubstep = totalSubstep / 2 + 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
             pIC2D.oneStep_periodicXFreeY();
@@ -331,7 +334,7 @@ int main(int argc, char** argv)
                 thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
                 thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
                 
-                interface2D.sumUpTimeAveParameters(tmpB, particlesIon, particlesElectron);
+                interface2D.setParametersForPICtoMHD(tmpB, particlesIon, particlesElectron);
             }
         }
 
@@ -344,12 +347,14 @@ int main(int argc, char** argv)
         boundaryMHD.periodicBoundaryX2nd_U(U);
         boundaryMHD.symmetricBoundaryY2nd_U(U);
         
+        /*
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
             interfaceNoiseRemover2D.convolveU(U);
 
             boundaryMHD.periodicBoundaryX2nd_U(U);
             boundaryMHD.symmetricBoundaryY2nd_U(U);
         }
+        */
 
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {

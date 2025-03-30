@@ -3,6 +3,8 @@
 
 void Interface2DConst::initializeDeviceConstants()
 {
+    cudaMemcpyToSymbol(device_gridSizeRatio, &gridSizeRatio, sizeof(int));
+
     cudaMemcpyToSymbol(device_EPS, &EPS, sizeof(double));
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(double));
 
