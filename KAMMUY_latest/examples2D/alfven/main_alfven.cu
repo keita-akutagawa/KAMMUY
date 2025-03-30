@@ -1,7 +1,9 @@
-#include "main_stay_const.hpp"
+#include "main_alfven_const.hpp"
+
 
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
+    double VA, double waveAmp, double waveNumber, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -15,14 +17,15 @@ __global__ void initializeU_kernel(
             int index = mPIInfo.globalToLocal(i, j);
 
             double rho, u, v, w, bX, bY, bZ, e, p;
+            double y = j * IdealMHD2DConst::device_dy + IdealMHD2DConst::device_ymin;
             
             rho = IdealMHD2DConst::device_rho0;
-            u   = 0.0;
+            u   = waveAmp * VA * cos(waveNumber * y);
             v   = 0.0;
-            w   = 0.0;
-            bX  = 0.0;
-            bY  = 0.0;
-            bZ  = 0.0;
+            w   = -waveAmp * VA * sin(waveNumber * y);
+            bX  = -waveAmp * IdealMHD2DConst::device_B0 * cos(waveNumber * y);
+            bY  = IdealMHD2DConst::device_B0;
+            bZ  = waveAmp * IdealMHD2DConst::device_B0 * sin(waveNumber * y);
             p   = IdealMHD2DConst::device_p0;
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
                 + 0.5 * rho * (u * u + v * v + w * w)
@@ -42,12 +45,15 @@ __global__ void initializeU_kernel(
 
 void IdealMHD2D::initializeU()
 {
+    double VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     initializeU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
+        VA, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -62,6 +68,7 @@ void IdealMHD2D::initializeU()
 
 __global__ void initializePICField_kernel(
     ElectricField* E, MagneticField* B, 
+    double VA, double waveAmp, double waveNumber, 
     PIC2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -73,14 +80,18 @@ __global__ void initializePICField_kernel(
 
         if (mPIInfo.isInside(i)) {
             int index = mPIInfo.globalToLocal(i, j);
-            float bX, bY, bZ, eX, eY, eZ;
+            double u, v, w, bX, bY, bZ, eX, eY, eZ;
+            double y = j * PIC2DConst::device_dy + 2450 * IdealMHD2DConst::device_dy + PIC2DConst::device_ymin;
 
-            bX = 0.0f; 
-            bY = 0.0f;
-            bZ = 0.0f; 
-            eX = 0.0f; 
-            eY = 0.0f; 
-            eZ = 0.0f; 
+            bX = -waveAmp * PIC2DConst::device_B0 * cos(waveNumber * y);
+            bY = PIC2DConst::device_B0; 
+            bZ = waveAmp * PIC2DConst::device_B0 * sin(waveNumber * y);
+            u  = waveAmp * VA * cos(waveNumber * y);
+            v  = 0.0;
+            w  = -waveAmp * VA * sin(waveNumber * y);
+            eX = -(v * bZ - w * bY);
+            eY = -(w * bX - u * bZ);
+            eZ = -(u * bY - v * bX);
 
             E[index].eX = eX;
             E[index].eY = eY;
@@ -94,18 +105,21 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
+    float VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
+
     for (int i = 0; i < mPIInfo.localNx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
+            float y = j * PIC2DConst::dy + 2450 * IdealMHD2DConst::dy;
 
             xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs;
             xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs;
             yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin;
             ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin;
-            bulkVx = 0.0f;
-            bulkVy = 0.0f;
-            bulkVz = 0.0f;
+            bulkVx = waveAmp * VA * cos(waveNumber * y);
+            bulkVy = 0.0;
+            bulkVz = -waveAmp * VA * sin(waveNumber * y);
 
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
@@ -133,6 +147,7 @@ void PIC2D::initialize()
 
     initializePICField_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), thrust::raw_pointer_cast(B.data()), 
+        VA, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -198,10 +213,12 @@ int main(int argc, char** argv)
     
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
+            double delta = 3.0; 
+
             host_interlockingFunctionY[j + i * PIC2DConst::ny]
                 = 1.0
-                - (1.0 - exp(-pow((j - 0) / Interface2DConst::deltaForInterlockingFunction, 2)))
-                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / Interface2DConst::deltaForInterlockingFunction, 2))); 
+                - (1.0 - exp(-pow((j - 0) / delta, 2)))
+                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / delta, 2))); 
         }
     }
     
