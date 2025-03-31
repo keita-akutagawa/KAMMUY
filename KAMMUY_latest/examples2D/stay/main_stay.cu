@@ -22,7 +22,7 @@ __global__ void initializeU_kernel(
             w   = 0.0;
             bX  = 0.0;
             bY  = 0.0;
-            bZ  = 0.0;
+            bZ  = 0.0f;
             p   = IdealMHD2DConst::device_p0;
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
                 + 0.5 * rho * (u * u + v * v + w * w)
@@ -296,23 +296,23 @@ int main(int argc, char** argv)
 
         // STEP2 : send MHD to PIC
 
-        float mixingRatio = 0.5f;
-        thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
+        //float mixingRatio = 0.5f;
+        //thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
         
-        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-        interface2D.sendMHDtoPIC_magneticField_y(USub, B);
-        boundaryPIC.periodicBoundaryB_x(B);
-        boundaryPIC.freeBoundaryB_y(B);
+        //thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        //interface2D.sendMHDtoPIC_magneticField_y(USub, B);
+        //boundaryPIC.periodicBoundaryB_x(B);
+        //boundaryPIC.freeBoundaryB_y(B);
         
-        thrust::device_vector<ElectricField>& E = pIC2D.getERef();
-        interface2D.sendMHDtoPIC_electricField_y(USub, E);
-        boundaryPIC.periodicBoundaryE_x(E);
-        boundaryPIC.freeBoundaryE_y(E);    
+        //thrust::device_vector<ElectricField>& E = pIC2D.getERef();
+        //interface2D.sendMHDtoPIC_electricField_y(USub, E);
+        //boundaryPIC.periodicBoundaryE_x(E);
+        //boundaryPIC.freeBoundaryE_y(E);    
 
         thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
         thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
         interface2D.sendMHDtoPIC_particle(
-            USub, particlesIon, particlesElectron, step * totalSubstep
+            UPast, particlesIon, particlesElectron, step * totalSubstep
         );
         boundaryPIC.periodicBoundaryParticle_x(
             particlesIon, particlesElectron
@@ -322,10 +322,18 @@ int main(int argc, char** argv)
         );
 
         // STEP3 : PIC step
-
+        
         int getDataSubstep = totalSubstep / 2 + 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
-            pIC2D.oneStep_periodicXFreeY();
+
+            float mixingRatio = 1.0 - substep / totalSubstep;
+            thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
+        
+            pIC2D.oneStep_periodicXFreeY(
+                interface2D, 
+                USub, 
+                step, totalSubstep
+            );
 
             if (substep == getDataSubstep) {
                 thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
@@ -347,14 +355,12 @@ int main(int argc, char** argv)
         boundaryMHD.periodicBoundaryX2nd_U(U);
         boundaryMHD.symmetricBoundaryY2nd_U(U);
         
-        /*
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
             interfaceNoiseRemover2D.convolveU(U);
 
             boundaryMHD.periodicBoundaryX2nd_U(U);
             boundaryMHD.symmetricBoundaryY2nd_U(U);
         }
-        */
 
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {
