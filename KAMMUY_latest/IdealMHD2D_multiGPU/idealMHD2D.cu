@@ -261,8 +261,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     );
     cudaDeviceSynchronize();
 
-    boundaryMHD.periodicBoundaryX2nd_U(UBar);
-    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     checkAndResetExtremeValues();
