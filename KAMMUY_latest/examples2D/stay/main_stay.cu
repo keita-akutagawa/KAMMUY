@@ -293,37 +293,25 @@ int main(int argc, char** argv)
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
+        // STEP2 : PIC step & send MHD to PIC
 
-        // STEP2 : send MHD to PIC
+        interface2D.resetTimeAveragedPICParameters();
+        int sumUpCount; 
+        sumUpCount = 0; 
 
-        //float mixingRatio = 0.5f;
-        //thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
-        
-        //thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-        //interface2D.sendMHDtoPIC_magneticField_y(USub, B);
-        //boundaryPIC.periodicBoundaryB_x(B);
-        //boundaryPIC.freeBoundaryB_y(B);
-        
-        //thrust::device_vector<ElectricField>& E = pIC2D.getERef();
-        //interface2D.sendMHDtoPIC_electricField_y(USub, E);
-        //boundaryPIC.periodicBoundaryE_x(E);
-        //boundaryPIC.freeBoundaryE_y(E);    
-
-        thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
-        thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
-        interface2D.sendMHDtoPIC_particle(
-            UPast, particlesIon, particlesElectron, step * totalSubstep
+        thrust::device_vector<MagneticField>& B_start = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon_start = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron_start = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon_start = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron_start = pIC2D.getFirstMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B_start, 
+            zerothMomentIon_start, zerothMomentElectron_start, 
+            firstMomentIon_start, firstMomentElectron_start
         );
-        boundaryPIC.periodicBoundaryParticle_x(
-            particlesIon, particlesElectron
-        );
-        boundaryPIC.freeBoundaryParticle_y(
-            particlesIon, particlesElectron
-        );
-
-        // STEP3 : PIC step
+        sumUpCount += 1; 
         
-        int getDataSubstep = totalSubstep / 2 + 1; 
+        //int getDataSubstep = totalSubstep / 2 + 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - substep / totalSubstep;
@@ -334,19 +322,25 @@ int main(int argc, char** argv)
                 USub, 
                 step, totalSubstep
             );
-
-            if (substep == getDataSubstep) {
-                thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-                thrust::device_vector<MagneticField>& tmpB = pIC2D.getTmpBRef();
-                thrust::copy(B.begin(), B.end(), tmpB.begin());
-                thrust::device_vector<Particle>& particlesIon = pIC2D.getParticlesIonRef();
-                thrust::device_vector<Particle>& particlesElectron = pIC2D.getParticlesElectronRef();
-                
-                interface2D.setParametersForPICtoMHD(tmpB, particlesIon, particlesElectron);
-            }
         }
 
-        // STEP4 : send PIC to MHD
+        thrust::device_vector<MagneticField>& B_end = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon_end = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron_end = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon_end = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron_end = pIC2D.getFirstMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B_end, 
+            zerothMomentIon_end, zerothMomentElectron_end, 
+            firstMomentIon_end, firstMomentElectron_end
+        );
+        sumUpCount += 1; 
+
+        interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
+
+        interface2D.setParametersForPICtoMHD();
+
+        // STEP3 : send PIC to MHD
         
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
 

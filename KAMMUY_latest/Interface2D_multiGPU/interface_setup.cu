@@ -63,7 +63,39 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 //}
 
 
-void Interface2D::sumUpParametersForPICtoMHD(
+void Interface2D::resetTimeAveragedPICParameters()
+{
+    thrust::fill(
+        B_timeAve.begin(), 
+        B_timeAve.end(), 
+        MagneticField()
+    );
+
+    thrust::fill(
+        zerothMomentIon_timeAve.begin(), 
+        zerothMomentIon_timeAve.end(), 
+        ZerothMoment()
+    );
+    thrust::fill(
+        zerothMomentElectron_timeAve.begin(), 
+        zerothMomentElectron_timeAve.end(), 
+        ZerothMoment()
+    );
+
+    thrust::fill(
+        firstMomentIon_timeAve.begin(), 
+        firstMomentIon_timeAve.end(), 
+        FirstMoment()
+    );
+    thrust::fill(
+        firstMomentElectron_timeAve.begin(), 
+        firstMomentElectron_timeAve.end(), 
+        FirstMoment()
+    );
+}
+
+
+void Interface2D::sumUpTimeAveragedPICParameters(
     const thrust::device_vector<MagneticField>& B, 
     const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
     const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
@@ -72,25 +104,35 @@ void Interface2D::sumUpParametersForPICtoMHD(
 )
 {
     thrust::transform(
-        B_timeAve.begin(), B_timeAve.end(), B.begin(), 
-        B_timeAve.begin(), thrust::plus<MagneticField>()
+        B_timeAve.begin(), B_timeAve.end(), 
+        B.begin(), 
+        B_timeAve.begin(), 
+        thrust::plus<MagneticField>()
     );
 
     thrust::transform(
-        zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
-        zerothMomentIon_timeAve.begin(), thrust::plus<ZerothMoment>()
+        zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), 
+        zerothMomentIon.begin(), 
+        zerothMomentIon_timeAve.begin(), 
+        thrust::plus<ZerothMoment>()
     );
     thrust::transform(
-        zerothMomentElectron_timeAve.begin(), zerothMomentElectron_timeAve.end(), zerothMomentElectron.begin(), 
-        zerothMomentElectron_timeAve.begin(), thrust::plus<ZerothMoment>()
+        zerothMomentElectron_timeAve.begin(), zerothMomentElectron_timeAve.end(), 
+        zerothMomentElectron.begin(), 
+        zerothMomentElectron_timeAve.begin(), 
+        thrust::plus<ZerothMoment>()
     );
     thrust::transform(
-        firstMomentIon_timeAve.begin(), firstMomentIon_timeAve.end(), firstMomentIon.begin(), 
-        firstMomentIon_timeAve.begin(), thrust::plus<FirstMoment>()
+        firstMomentIon_timeAve.begin(), firstMomentIon_timeAve.end(), 
+        firstMomentIon.begin(), 
+        firstMomentIon_timeAve.begin(), 
+        thrust::plus<FirstMoment>()
     );
     thrust::transform(
-        firstMomentElectron_timeAve.begin(), firstMomentElectron_timeAve.end(), firstMomentElectron.begin(), 
-        firstMomentElectron_timeAve.begin(), thrust::plus<FirstMoment>()
+        firstMomentElectron_timeAve.begin(), firstMomentElectron_timeAve.end(), 
+        firstMomentElectron.begin(), 
+        firstMomentElectron_timeAve.begin(), 
+        thrust::plus<FirstMoment>()
     );
 }
 

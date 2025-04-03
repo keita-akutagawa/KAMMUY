@@ -135,8 +135,9 @@ public:
         double mixingRatio
     );
 
+    void resetTimeAveragedPICParameters();
 
-    void sumUpParametersForPICtoMHD(
+    void sumUpTimeAveragedPICParameters(
         const thrust::device_vector<MagneticField>& B, 
         const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
@@ -148,9 +149,7 @@ public:
         int count
     );
 
-    
     void setParametersForPICtoMHD();
-
 
     thrust::device_vector<ConservationParameter>& getUHalfRef();
 
