@@ -341,21 +341,24 @@ int main(int argc, char** argv)
         interface2D.setParametersForPICtoMHD();
 
         // STEP3 : send PIC to MHD
-        
-        thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
 
-        interface2D.sendPICtoMHD(U);
+        interface2D.calculateUHalf(UPast, UNext); 
+        thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
-        boundaryMHD.periodicBoundaryX2nd_U(U);
-        boundaryMHD.symmetricBoundaryY2nd_U(U);
-        
+        interface2D.sendPICtoMHD(UHalf);
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(U);
+            interfaceNoiseRemover2D.convolveU(UHalf);
 
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
+            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
         }
 
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+
+        
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;

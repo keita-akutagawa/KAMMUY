@@ -256,6 +256,26 @@ void Interface2D::setParametersForPICtoMHD()
 }
 
 
+void Interface2D::calculateUHalf(
+    const thrust::device_vector<ConservationParameter>& UPast, 
+    const thrust::device_vector<ConservationParameter>& UNext 
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(UPast.data()), 
+        thrust::raw_pointer_cast(UNext.data()), 
+        thrust::raw_pointer_cast(UHalf.data()), 
+        0.5, 
+        mPIInfoMHD.localSizeX
+    );
+    cudaDeviceSynchronize();
+}
+
+
 thrust::device_vector<ConservationParameter>& Interface2D::getUHalfRef()
 {
     return UHalf;

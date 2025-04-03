@@ -151,14 +151,15 @@ public:
 
     void setParametersForPICtoMHD();
 
+    void calculateUHalf(
+        const thrust::device_vector<ConservationParameter>& UPast, 
+        const thrust::device_vector<ConservationParameter>& UNext 
+    ); 
+
     thrust::device_vector<ConservationParameter>& getUHalfRef();
 
 private:
 
-    //void setMoments(
-    //    const thrust::device_vector<Particle>& particlesIon, 
-    //    const thrust::device_vector<Particle>& particlesElectron
-    //);
 };
 
 #endif
