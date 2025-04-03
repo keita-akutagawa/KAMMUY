@@ -36,7 +36,7 @@ PIC2D::PIC2D(PIC2DMPI::MPIInfo& mPIInfo)
       fieldSolver       (mPIInfo), 
       currentCalculator (mPIInfo), 
       boundaryPIC       (mPIInfo), 
-      momentCalculater  (mPIInfo), 
+      momentCalculator  (mPIInfo), 
       filter            (mPIInfo)
 {
 
@@ -86,7 +86,11 @@ __global__ void getHalfCurrent_kernel(
 }
 
 
-void PIC2D::oneStep_periodicXFreeY()
+void PIC2D::oneStep_periodicXFreeY(
+    Interface2D& interface2D, 
+    thrust::device_vector<ConservationParameter>& U, 
+    int step, int totalSubstep
+)
 {
     MPI_Barrier(MPI_COMM_WORLD);
     
@@ -125,9 +129,10 @@ void PIC2D::oneStep_periodicXFreeY()
         particlesIon, particlesElectron
     );
 
-    currentCalculator.resetCurrent(tmpCurrent);
+    //currentCalculator.resetCurrent(tmpCurrent);
     currentCalculator.calculateCurrent(
-        tmpCurrent, particlesIon, particlesElectron
+        tmpCurrent, firstMomentIon, firstMomentElectron,
+        particlesIon, particlesElectron
     );
     boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
     boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
@@ -139,6 +144,10 @@ void PIC2D::oneStep_periodicXFreeY()
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
 
+    interface2D.sendMHDtoPIC_currentField_y(U, current);
+    boundaryPIC.periodicBoundaryCurrent_x(current);
+    boundaryPIC.freeBoundaryCurrent_y(current);
+
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
@@ -146,12 +155,35 @@ void PIC2D::oneStep_periodicXFreeY()
     fieldSolver.timeEvolutionE(E, B, current, PIC2DConst::dt);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
-    filter.langdonMarderTypeCorrection(E, particlesIon, particlesElectron, PIC2DConst::dt);
+
+    filter.calculateRho(
+        zerothMomentIon, zerothMomentElectron, 
+        particlesIon, particlesElectron
+    ); 
+    filter.langdonMarderTypeCorrection(E, PIC2DConst::dt);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+
+    interface2D.sendMHDtoPIC_electricField_y(U, E);
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
 
     particlePush.pushPosition(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+    );
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
+
+    interface2D.sendMHDtoPIC_particle(
+        U, 
+        zerothMomentIon, zerothMomentElectron, 
+        firstMomentIon, firstMomentElectron, 
+        particlesIon, particlesElectron, 
+        step * totalSubstep
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -261,10 +293,10 @@ void PIC2D::calculateFullMoments()
 
 void PIC2D::calculateZerothMoments()
 {
-    momentCalculater.calculateZerothMomentOfOneSpecies(
+    momentCalculator.calculateZerothMomentOfOneSpecies(
         zerothMomentIon, particlesIon, mPIInfo.existNumIonPerProcs
     );
-    momentCalculater.calculateZerothMomentOfOneSpecies(
+    momentCalculator.calculateZerothMomentOfOneSpecies(
         zerothMomentElectron, particlesElectron, mPIInfo.existNumElectronPerProcs
     );
 }
@@ -272,10 +304,10 @@ void PIC2D::calculateZerothMoments()
 
 void PIC2D::calculateFirstMoments()
 {
-    momentCalculater.calculateFirstMomentOfOneSpecies(
+    momentCalculator.calculateFirstMomentOfOneSpecies(
         firstMomentIon, particlesIon, mPIInfo.existNumIonPerProcs
     );
-    momentCalculater.calculateFirstMomentOfOneSpecies(
+    momentCalculator.calculateFirstMomentOfOneSpecies(
         firstMomentElectron, particlesElectron, mPIInfo.existNumElectronPerProcs
     );
 }
@@ -283,10 +315,10 @@ void PIC2D::calculateFirstMoments()
 
 void PIC2D::calculateSecondMoments()
 {
-    momentCalculater.calculateSecondMomentOfOneSpecies(
+    momentCalculator.calculateSecondMomentOfOneSpecies(
         secondMomentIon, particlesIon, mPIInfo.existNumIonPerProcs
     );
-    momentCalculater.calculateSecondMomentOfOneSpecies(
+    momentCalculator.calculateSecondMomentOfOneSpecies(
         secondMomentElectron, particlesElectron, mPIInfo.existNumElectronPerProcs
     );
 }
@@ -651,6 +683,31 @@ thrust::device_vector<Particle>& PIC2D::getParticlesElectronRef()
 {
     return particlesElectron;
 }
+
+
+thrust::device_vector<ZerothMoment>& PIC2D::getZerothMomentIonRef()
+{
+    return zerothMomentIon; 
+}
+
+
+thrust::device_vector<ZerothMoment>& PIC2D::getZerothMomentElectronRef()
+{
+    return zerothMomentElectron;
+}
+
+
+thrust::device_vector<FirstMoment>& PIC2D::getFirstMomentIonRef()
+{
+    return firstMomentIon; 
+}
+
+
+thrust::device_vector<FirstMoment>& PIC2D::getFirstMomentElectronRef()
+{
+    return firstMomentElectron; 
+}
+
 
 BoundaryPIC& PIC2D::getBoundaryPICRef()
 {

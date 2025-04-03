@@ -1,13 +1,13 @@
-#include "moment_calculater.hpp"
+#include "moment_calculator.hpp"
 
 
-MomentCalculater::MomentCalculater(PIC2DMPI::MPIInfo& mPIInfo)
+MomentCalculator::MomentCalculator(PIC2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo)
 {
 }
 
 
-void MomentCalculater::resetZerothMomentOfOneSpecies(
+void MomentCalculator::resetZerothMomentOfOneSpecies(
     thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies
 )
 {
@@ -19,7 +19,7 @@ void MomentCalculater::resetZerothMomentOfOneSpecies(
     cudaDeviceSynchronize();
 }
 
-void MomentCalculater::resetFirstMomentOfOneSpecies(
+void MomentCalculator::resetFirstMomentOfOneSpecies(
     thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies
 )
 {
@@ -31,7 +31,7 @@ void MomentCalculater::resetFirstMomentOfOneSpecies(
     cudaDeviceSynchronize();
 }
 
-void MomentCalculater::resetSecondMomentOfOneSpecies(
+void MomentCalculator::resetSecondMomentOfOneSpecies(
     thrust::device_vector<SecondMoment>& secondMomentOfOneSpecies
 )
 {
@@ -91,7 +91,7 @@ __global__ void calculateZerothMomentOfOneSpecies_kernel(
 };
 
 
-void MomentCalculater::calculateZerothMomentOfOneSpecies(
+void MomentCalculator::calculateZerothMomentOfOneSpecies(
     thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long existNumSpecies
@@ -175,7 +175,7 @@ __global__ void calculateFirstMomentOfOneSpecies_kernel(
 };
 
 
-void MomentCalculater::calculateFirstMomentOfOneSpecies(
+void MomentCalculator::calculateFirstMomentOfOneSpecies(
     thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long existNumSpecies
@@ -273,7 +273,7 @@ __global__ void calculateSecondMomentOfOneSpecies_kernel(
 };
 
 
-void MomentCalculater::calculateSecondMomentOfOneSpecies(
+void MomentCalculator::calculateSecondMomentOfOneSpecies(
     thrust::device_vector<SecondMoment>& secondMomentOfOneSpecies, 
     const thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long existNumSpecies

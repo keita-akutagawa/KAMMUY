@@ -2,6 +2,7 @@
 #include "const.hpp"
 #include "field_parameter_struct.hpp"
 #include "particle_struct.hpp"
+#include "moment_calculator.hpp"
 #include "mpi.hpp"
 
 
@@ -13,28 +14,25 @@ private:
     thrust::device_vector<RhoField> rho;
     thrust::device_vector<FilterField> F;
 
+    MomentCalculator momentCalculator; 
+
 public:
     Filter(PIC2DMPI::MPIInfo& mPIInfo);
 
-    void langdonMarderTypeCorrection(
-        thrust::device_vector<ElectricField>& E, 
-        const thrust::device_vector<Particle>& particlesIon, 
-        const thrust::device_vector<Particle>& particlesElectron, 
-        const float dt
-    );
-
-private:
-    void resetRho();
-
     void calculateRho(
+        thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         const thrust::device_vector<Particle>& particlesIon, 
         const thrust::device_vector<Particle>& particlesElectron
     );
 
-    void calculateRhoOfOneSpecies(
-        const thrust::device_vector<Particle>& particlesSpecies, 
-        float q, unsigned long long existNumSpecies
+    void langdonMarderTypeCorrection(
+        thrust::device_vector<ElectricField>& E, 
+        const float dt
     );
+
+private:
+
 };
 
 

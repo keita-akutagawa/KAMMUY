@@ -41,6 +41,7 @@ __global__ void freeBoundaryB_y_kernel(
     }
 }
 
+
 void BoundaryPIC::freeBoundaryB_y(
     thrust::device_vector<MagneticField>& B
 )

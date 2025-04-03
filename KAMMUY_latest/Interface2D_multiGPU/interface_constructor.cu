@@ -60,11 +60,11 @@ Interface2D::Interface2D(
 
       interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0), 
 
-      tmp_B                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      tmp_zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      tmp_zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      tmp_firstMomentIon      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      tmp_firstMomentElectron (mPIInfoPIC.localSizeX * PIC2DConst::ny),
+      B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny),
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -84,7 +84,7 @@ Interface2D::Interface2D(
       USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
       UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
 
-      momentCalculater(mPIInfoPIC), 
+      momentCalculator(mPIInfoPIC), 
       boundaryPIC(mPIInfoPIC), 
       interfaceNoiseRemover2D(interfaceNoiseRemover2D)
 {

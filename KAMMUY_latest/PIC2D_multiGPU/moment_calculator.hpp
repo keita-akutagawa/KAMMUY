@@ -9,13 +9,13 @@
 #include "mpi.hpp"
 
 
-class MomentCalculater
+class MomentCalculator
 {
 private:
     PIC2DMPI::MPIInfo& mPIInfo;
 
 public:
-    MomentCalculater(PIC2DMPI::MPIInfo& mPIInfo);
+    MomentCalculator(PIC2DMPI::MPIInfo& mPIInfo);
 
     void calculateZerothMomentOfOneSpecies(
         thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 

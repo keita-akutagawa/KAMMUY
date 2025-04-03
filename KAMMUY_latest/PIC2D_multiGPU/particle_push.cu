@@ -78,8 +78,8 @@ ParticleField getParticleFields(
     yIndex2 = yIndex1 + 1;
     yIndex2 = (yIndex2 == PIC2DConst::device_ny) ? 0 : yIndex2;
 
-    if (xIndex1 < 0 || xIndex1 >= localSizeX) return; 
-    if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) return; 
+    if (xIndex1 < 0 || xIndex1 >= localSizeX); 
+    if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny); 
 
     cx1 = xOverDx - xIndex1;
     cx2 = 1.0f - cx1;
@@ -229,8 +229,7 @@ __global__
 void pushPositionOfOneSpecies_kernel(
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
-    const float dt, 
-    const float xminForProcs, const float xmaxForProcs
+    const float dt
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -274,8 +273,7 @@ void ParticlePush::pushPositionOfOneSpecies(
     pushPositionOfOneSpecies_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         existNumSpecies, 
-        dt, 
-        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs
+        dt
     );
     cudaDeviceSynchronize();
 }

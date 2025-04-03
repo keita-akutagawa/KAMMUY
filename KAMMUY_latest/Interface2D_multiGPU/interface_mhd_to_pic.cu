@@ -112,7 +112,7 @@ void Interface2D::sendMHDtoPIC_electricField_y(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_electricField_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -126,28 +126,27 @@ void Interface2D::sendMHDtoPIC_electricField_y(
 }
 
 
-/*
+
 __global__ void sendMHDtoPIC_currentField_y_kernel(
     const double* interlockingFunctionY, 
     const ConservationParameter* U, 
     CurrentField* current, 
-    int indexOfInterfaceStartInMHD, 
-    int localSizeXPIC
+    const int indexOfInterfaceStartInMHD, 
+    const int localNxPIC, const int bufferPIC, const int bufferMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localSizeXPIC - 1 && 0 < j && j < PIC2DConst::device_ny - 1) {
+    if (0 < i && i < localNxPIC - 1 && 0 < j && j < PIC2DConst::device_ny - 1) {
         double jXPIC, jYPIC, jZPIC;
         double jXMHD, jYMHD, jZMHD;
-        double jZMHD_x1, jZMHD_y1, jZMHD_x1y1; 
         double jXInterface, jYInterface, jZInterface;
         double dx = IdealMHD2DConst::device_dx, dy = IdealMHD2DConst::device_dy;
 
-        int indexPIC = j + i * PIC2DConst::device_ny;
+        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
-                     + static_cast<int>(i / Interface2DConst::device_gridSizeRatio) * IdealMHD2DConst::device_ny;
+                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
 
         jXPIC = current[indexPIC].jX;
         jYPIC = current[indexPIC].jY;
@@ -157,13 +156,6 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
         jYMHD      = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD].bZ) / dx;
         jZMHD      = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY) / (2.0 * dx)
                    - (U[indexMHD + 1].bX - U[indexMHD - 1].bX) / (2.0 * dy);
-        jZMHD_x1   = (U[indexMHD + 2 * IdealMHD2DConst::device_ny].bY - U[indexMHD].bY) / (2.0 * dx)
-                   - (U[indexMHD + IdealMHD2DConst::device_ny + 1].bX - U[indexMHD + IdealMHD2DConst::device_ny - 1].bX) / (2.0 * dy);
-        jZMHD_y1   = (U[indexMHD + IdealMHD2DConst::device_ny + 1].bY - U[indexMHD - IdealMHD2DConst::device_ny + 1].bY) / (2.0 * dx)
-                   - (U[indexMHD + 2].bX - U[indexMHD].bX) / (2.0 * dy);
-        jZMHD_x1y1 = (U[indexMHD + 2 * IdealMHD2DConst::device_ny + 1].bY - U[indexMHD + 1].bY) / (2.0 * dx)
-                   - (U[indexMHD + IdealMHD2DConst::device_ny + 2].bX - U[indexMHD + IdealMHD2DConst::device_ny].bX) / (2.0 * dy);
-        jZMHD      = 0.25 * (jZMHD + jZMHD_x1 + jZMHD_y1 + jZMHD_x1y1);
         
         jXInterface = interlockingFunctionY[indexPIC] * jXMHD + (1.0 - interlockingFunctionY[indexPIC]) * jXPIC;
         jYInterface = interlockingFunctionY[indexPIC] * jYMHD + (1.0 - interlockingFunctionY[indexPIC]) * jYPIC;
@@ -182,7 +174,7 @@ void Interface2D::sendMHDtoPIC_currentField_y(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     sendMHDtoPIC_currentField_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -190,11 +182,10 @@ void Interface2D::sendMHDtoPIC_currentField_y(
         thrust::raw_pointer_cast(U.data()), 
         thrust::raw_pointer_cast(current.data()), 
         indexOfInterfaceStartInMHD, 
-        mPIInfoPIC.localSizeX
+        mPIInfoPIC.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
     );
     cudaDeviceSynchronize();
 }
-*/
 
 
 __global__ void deleteParticles_kernel(
@@ -460,21 +451,15 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
 
 void Interface2D::sendMHDtoPIC_particle(
     const thrust::device_vector<ConservationParameter>& U, 
+    const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+    const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
+    const thrust::device_vector<FirstMoment>& firstMomentIon, 
+    const thrust::device_vector<FirstMoment>& firstMomentElectron, 
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron, 
     int seed
 )
 {
-    setMoments(particlesIon, particlesElectron); 
-    boundaryPIC.periodicBoundaryZerothMoment_x(tmp_zerothMomentIon); 
-    boundaryPIC.freeBoundaryZerothMoment_y(tmp_zerothMomentIon); 
-    boundaryPIC.periodicBoundaryZerothMoment_x(tmp_zerothMomentElectron); 
-    boundaryPIC.freeBoundaryZerothMoment_y(tmp_zerothMomentElectron); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(tmp_firstMomentIon); 
-    boundaryPIC.freeBoundaryFirstMoment_y(tmp_firstMomentIon); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(tmp_firstMomentElectron); 
-    boundaryPIC.freeBoundaryFirstMoment_y(tmp_firstMomentElectron); 
-
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
     thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
 
@@ -484,10 +469,10 @@ void Interface2D::sendMHDtoPIC_particle(
 
     sendMHDtoPIC_particle_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(interlockingFunctionY.data()), 
-        thrust::raw_pointer_cast(tmp_zerothMomentIon.data()), 
-        thrust::raw_pointer_cast(tmp_zerothMomentElectron.data()), 
-        thrust::raw_pointer_cast(tmp_firstMomentIon.data()), 
-        thrust::raw_pointer_cast(tmp_firstMomentElectron.data()), 
+        thrust::raw_pointer_cast(zerothMomentIon.data()), 
+        thrust::raw_pointer_cast(zerothMomentElectron.data()), 
+        thrust::raw_pointer_cast(firstMomentIon.data()), 
+        thrust::raw_pointer_cast(firstMomentElectron.data()), 
         thrust::raw_pointer_cast(U.data()),  
         thrust::raw_pointer_cast(reloadParticlesDataIon.data()), 
         thrust::raw_pointer_cast(reloadParticlesDataElectron.data()), 
