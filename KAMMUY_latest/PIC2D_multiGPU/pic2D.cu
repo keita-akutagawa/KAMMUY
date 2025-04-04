@@ -89,7 +89,7 @@ __global__ void getHalfCurrent_kernel(
 void PIC2D::oneStep_periodicXFreeY(
     Interface2D& interface2D, 
     thrust::device_vector<ConservationParameter>& U, 
-    int step, int totalSubstep
+    unsigned long long seedForReload
 )
 {
     MPI_Barrier(MPI_COMM_WORLD);
@@ -164,10 +164,6 @@ void PIC2D::oneStep_periodicXFreeY(
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
 
-    interface2D.sendMHDtoPIC_electricField_y(U, E);
-    boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.freeBoundaryE_y(E);
-
     particlePush.pushPosition(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
     );
@@ -178,12 +174,28 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
+    interface2D.sendMHDtoPIC_magneticField_y(U, B);
+    boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
+    
+    interface2D.sendMHDtoPIC_electricField_y(U, E);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+
+    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon);
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon);
+    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron);
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron);
+    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon);
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon);
+    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron);
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron);
     interface2D.sendMHDtoPIC_particle(
         U, 
         zerothMomentIon, zerothMomentElectron, 
         firstMomentIon, firstMomentElectron, 
         particlesIon, particlesElectron, 
-        step * totalSubstep
+        seedForReload
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron

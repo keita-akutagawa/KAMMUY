@@ -100,7 +100,7 @@ public:
     void deleteParticlesSpecies(
         thrust::device_vector<Particle>& particlesSpecies, 
         unsigned long long& existNumSpeciesPerProcs, 
-        int seed
+        unsigned long long seed
     );
 
     //CUDAのラムダ制限のためpublicに移動
@@ -109,7 +109,7 @@ public:
         thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
         thrust::device_vector<Particle>& reloadParticlesSourceSpecies, 
         unsigned long long& existNumSpeciesPerProcs, 
-        int seed 
+        unsigned long long seed 
     );
 
     void sendMHDtoPIC_particle(
@@ -120,7 +120,7 @@ public:
         const thrust::device_vector<FirstMoment>& firstMomentElectron, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron, 
-        int seed
+        unsigned long long seed
     );
 
 

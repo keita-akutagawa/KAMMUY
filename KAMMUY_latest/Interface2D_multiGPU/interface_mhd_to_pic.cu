@@ -192,7 +192,7 @@ __global__ void deleteParticles_kernel(
     const double* interlockingFunctionY, 
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
-    const int seed, 
+    const unsigned long long seed, 
     const float xminForProcs, const float xmaxForProcs, 
     const int bufferPIC
 )
@@ -207,7 +207,7 @@ __global__ void deleteParticles_kernel(
 
         int i = floorf(x - xmin); 
         int j = floorf(y - ymin);
-        if (i < bufferPIC || i > PIC2DConst::device_nx + bufferPIC) {
+        if (i < bufferPIC || i >= PIC2DConst::device_nx + bufferPIC) {
             particlesSpecies[k].isExist = false; 
             return; 
         }
@@ -215,7 +215,9 @@ __global__ void deleteParticles_kernel(
         curandState state; 
         curand_init(seed, k, 0, &state);
         float randomValue = curand_uniform(&state);
-        if (randomValue < interlockingFunctionY[j + i * PIC2DConst::device_ny]) {
+        //if (randomValue < interlockingFunctionY[j + i * PIC2DConst::device_ny]) {
+        if (j < Interface2DConst::device_deltaForInterlockingFunction * 3 || 
+            j >= PIC2DConst::device_ny - Interface2DConst::device_deltaForInterlockingFunction * 3) {
             particlesSpecies[k].isExist = false;
         }
     }
@@ -225,7 +227,7 @@ __global__ void deleteParticles_kernel(
 void Interface2D::deleteParticlesSpecies(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpeciesPerProcs, 
-    int seed
+    unsigned long long seed
 )
 {
 
@@ -259,7 +261,7 @@ __global__ void reloadParticlesSpecies_kernel(
     unsigned long long reloadParticlesTotalNumSpecies, 
     Particle* particlesSpecies, 
     unsigned long long* particlesNumCounter, 
-    const int seed, 
+    const unsigned long long seed, 
     const float xminForProcs, const float xmaxForProcs, 
     const int localNxPIC, const int bufferPIC
 )
@@ -268,6 +270,9 @@ __global__ void reloadParticlesSpecies_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
+        if (j >= Interface2DConst::device_deltaForInterlockingFunction * 3 && 
+            j < PIC2DConst::device_ny - Interface2DConst::device_deltaForInterlockingFunction * 3) return; 
+
         int indexForReload = j + i * PIC2DConst::device_ny; 
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         float u = reloadParticlesDataSpecies[indexForReload].u;
@@ -279,16 +284,16 @@ __global__ void reloadParticlesSpecies_kernel(
         float x, y, z, vx, vy, vz, gamma;
 
         curandState stateReloadIndex, stateReload; 
-        curand_init(seed, i * j, 0, &stateReloadIndex);
+        curand_init(seed, (i + 1) * (j + 1), 0, &stateReloadIndex);
         unsigned long long restartParticlesIndexSpecies = static_cast<unsigned long long>(
             curand_uniform(&stateReloadIndex) * reloadParticlesTotalNumSpecies
         );
 
+        curand_init(seed, (i + 1) * (j + 1), 0, &stateReload);
         for (unsigned long long k = 0; k < reloadParticlesDataSpecies[indexForReload].numAndIndex; k++) {
-            curand_init(seed + i * j, k, 0, &stateReload);
             float randomValue = curand_uniform(&stateReload);
 
-            if (randomValue < interlockingFunctionY[indexPIC]) {
+            //if (randomValue < interlockingFunctionY[indexPIC]) {
                 particleSource = reloadParticlesSourceSpecies[
                     (restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies
                 ];
@@ -317,7 +322,7 @@ __global__ void reloadParticlesSpecies_kernel(
 
                 unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
                 particlesSpecies[loadIndex] = particleReload;
-            } 
+            //} 
         }
     }
 }
@@ -328,7 +333,7 @@ void Interface2D::reloadParticlesSpecies(
     thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
     thrust::device_vector<Particle>& reloadParticlesSourceSpecies, 
     unsigned long long& existNumSpeciesPerProcs, 
-    int seed 
+    unsigned long long seed 
 )
 {
     thrust::device_vector<unsigned long long> particlesNumCounter(1, 0);
@@ -371,7 +376,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localNxPIC && 0 < j && j < PIC2DConst::device_ny - 1) {
+    if (i < localNxPIC && j < PIC2DConst::device_ny) {
         int indexForReload = j + i * PIC2DConst::device_ny;
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
@@ -436,15 +441,6 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         reloadParticlesDataElectron[indexForReload].w           = wPIC - jZPIC / round(nePIC) / abs(qElectron); //niPIC = nePIC
         reloadParticlesDataIon     [indexForReload].vth         = vThiPIC;
         reloadParticlesDataElectron[indexForReload].vth         = vThePIC;
-
-        if (j == 1) {
-            reloadParticlesDataIon[indexForReload - 1]      = reloadParticlesDataIon[indexForReload];
-            reloadParticlesDataElectron[indexForReload - 1] = reloadParticlesDataElectron[indexForReload];
-        }
-        if (j == PIC2DConst::device_ny - 2) {
-            reloadParticlesDataIon[indexForReload + 1]      = reloadParticlesDataIon[indexForReload];
-            reloadParticlesDataElectron[indexForReload + 1] = reloadParticlesDataElectron[indexForReload];
-        }
     }
 }
 
@@ -457,7 +453,7 @@ void Interface2D::sendMHDtoPIC_particle(
     const thrust::device_vector<FirstMoment>& firstMomentElectron, 
     thrust::device_vector<Particle>& particlesIon, 
     thrust::device_vector<Particle>& particlesElectron, 
-    int seed
+    unsigned long long seed
 )
 {
     thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());

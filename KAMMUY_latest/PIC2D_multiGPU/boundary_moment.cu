@@ -34,7 +34,8 @@ __global__ void freeBoundaryZerothMoment_y_kernel(
 
     if (i < localSizeX) {
         zerothMoment[0 + PIC2DConst::device_ny * i] = zerothMoment[1 + PIC2DConst::device_ny * i];
-        zerothMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+        zerothMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
+        zerothMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -90,7 +91,8 @@ __global__ void freeBoundaryFirstMoment_y_kernel(
 
     if (i < localSizeX) {
         firstMoment[0 + PIC2DConst::device_ny * i] = firstMoment[1 + PIC2DConst::device_ny * i];
-        firstMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+        firstMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
+        firstMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
     }
 }
 

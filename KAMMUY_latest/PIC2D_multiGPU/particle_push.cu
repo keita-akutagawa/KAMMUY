@@ -78,8 +78,8 @@ ParticleField getParticleFields(
     yIndex2 = yIndex1 + 1;
     yIndex2 = (yIndex2 == PIC2DConst::device_ny) ? 0 : yIndex2;
 
-    if (xIndex1 < 0 || xIndex1 >= localSizeX); 
-    if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny); 
+    if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("ERROR"); 
+    if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("ERROR"); 
 
     cx1 = xOverDx - xIndex1;
     cx2 = 1.0f - cx1;

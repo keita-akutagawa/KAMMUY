@@ -199,9 +199,10 @@ int main(int argc, char** argv)
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
             host_interlockingFunctionY[j + i * PIC2DConst::ny]
-                = 1.0
+                = max(1.0
                 - (1.0 - exp(-pow((j - 0) / Interface2DConst::deltaForInterlockingFunction, 2)))
-                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / Interface2DConst::deltaForInterlockingFunction, 2))); 
+                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / Interface2DConst::deltaForInterlockingFunction, 2))), 
+                Interface2DConst::EPS); 
         }
     }
     
@@ -296,45 +297,34 @@ int main(int argc, char** argv)
         // STEP2 : PIC step & send MHD to PIC
 
         interface2D.resetTimeAveragedPICParameters();
+
         int sumUpCount; 
         sumUpCount = 0; 
-
-        thrust::device_vector<MagneticField>& B_start = pIC2D.getBRef();
-        thrust::device_vector<ZerothMoment>& zerothMomentIon_start = pIC2D.getZerothMomentIonRef(); 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron_start = pIC2D.getZerothMomentElectronRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentIon_start = pIC2D.getFirstMomentIonRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentElectron_start = pIC2D.getFirstMomentElectronRef(); 
-        interface2D.sumUpTimeAveragedPICParameters(
-            B_start, 
-            zerothMomentIon_start, zerothMomentElectron_start, 
-            firstMomentIon_start, firstMomentElectron_start
-        );
-        sumUpCount += 1; 
-        
-        //int getDataSubstep = totalSubstep / 2 + 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - substep / totalSubstep;
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
-        
+            
+            unsigned long long seedForReload; 
+            seedForReload = substep + step * totalSubstep;
             pIC2D.oneStep_periodicXFreeY(
                 interface2D, 
                 USub, 
-                step, totalSubstep
+                seedForReload
             );
-        }
 
-        thrust::device_vector<MagneticField>& B_end = pIC2D.getBRef();
-        thrust::device_vector<ZerothMoment>& zerothMomentIon_end = pIC2D.getZerothMomentIonRef(); 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron_end = pIC2D.getZerothMomentElectronRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentIon_end = pIC2D.getFirstMomentIonRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentElectron_end = pIC2D.getFirstMomentElectronRef(); 
-        interface2D.sumUpTimeAveragedPICParameters(
-            B_end, 
-            zerothMomentIon_end, zerothMomentElectron_end, 
-            firstMomentIon_end, firstMomentElectron_end
-        );
-        sumUpCount += 1; 
+            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+            thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+            thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+            thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+            thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+            interface2D.sumUpTimeAveragedPICParameters(
+                B, 
+                zerothMomentIon, zerothMomentElectron, 
+                firstMomentIon, firstMomentElectron
+            );
+            sumUpCount += 1; 
+        }
 
         interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
 
@@ -345,7 +335,7 @@ int main(int argc, char** argv)
         interface2D.calculateUHalf(UPast, UNext); 
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
-        interface2D.sendPICtoMHD(UHalf);
+        //interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
@@ -358,7 +348,7 @@ int main(int argc, char** argv)
 
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
-        
+
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;

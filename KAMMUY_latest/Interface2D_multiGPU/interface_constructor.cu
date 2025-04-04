@@ -15,18 +15,18 @@ __global__ void initializeReloadParticlesSource_kernel(
         curandState stateVx; 
         curandState stateVy; 
         curandState stateVz;  
-        curand_init(seed + 0, 100 * i, 0, &stateX);
-        curand_init(seed + 1, 100 * i, 0, &stateY);
-        curand_init(seed + 2, 100 * i, 0, &stateVx);
-        curand_init(seed + 3, 100 * i, 0, &stateVy);
-        curand_init(seed + 4, 100 * i, 0, &stateVz);
+        curand_init(seed + 0, i, 0, &stateX);
+        curand_init(seed + 1, i, 0, &stateY);
+        curand_init(seed + 2, i, 0, &stateVx);
+        curand_init(seed + 3, i, 0, &stateVy);
+        curand_init(seed + 4, i, 0, &stateVz);
 
         float x, y, z, vx, vy, vz;
         float EPS = 0.001f;
         while (true) {
-            x  = curand_uniform(&stateX);
-            y  = curand_uniform(&stateY);
-            z  = 0.0f;
+            x = curand_uniform(&stateX);
+            y = curand_uniform(&stateY);
+            z = 0.0f;
 
             if (EPS < x && x < 1.0f - EPS && EPS < y && y < 1.0f - EPS) break;
         }
@@ -43,6 +43,7 @@ __global__ void initializeReloadParticlesSource_kernel(
         reloadParticlesSourceSpecies[i].vz = vz;
     }
 }
+
 
 Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 

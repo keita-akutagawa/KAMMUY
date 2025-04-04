@@ -72,7 +72,7 @@ public:
     void oneStep_periodicXFreeY(
         Interface2D& interface2D, 
         thrust::device_vector<ConservationParameter>& U, 
-        int step, int totalSubstep
+        unsigned long long seedForReload
     );
 
     void saveFields(
