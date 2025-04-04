@@ -243,27 +243,13 @@ void PIC2DMPI::sendrecv_particle_x(
     int right = mPIInfo.getRank(1);
     MPI_Status st;
 
-
-    unsigned int maxNumSendLeftRecvRightForProcs = max(
-        numForSendParticlesSpeciesLeft, 
-        numForRecvParticlesSpeciesRight 
-    );
-    unsigned int maxNumSendRightRecvLeftForProcs = max(
-        numForSendParticlesSpeciesRight, 
-        numForRecvParticlesSpeciesLeft
-    );
-
-    unsigned int maxNumSendLeftRecvRight = 0, maxNumSendRightRecvLeft = 0;
-    MPI_Allreduce(&maxNumSendLeftRecvRightForProcs, &maxNumSendLeftRecvRight, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
-    MPI_Allreduce(&maxNumSendRightRecvLeftForProcs, &maxNumSendRightRecvLeft, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
-
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendParticlesSpeciesLeft.data()), 
-        maxNumSendLeftRecvRight, 
+        numForSendParticlesSpeciesLeft, 
         mPIInfo.mpi_particleType, 
         left, 0, 
         thrust::raw_pointer_cast(recvParticlesSpeciesRight.data()), 
-        maxNumSendLeftRecvRight, 
+        numForRecvParticlesSpeciesRight, 
         mPIInfo.mpi_particleType, 
         right, 0, 
         MPI_COMM_WORLD, &st
@@ -271,11 +257,11 @@ void PIC2DMPI::sendrecv_particle_x(
 
     MPI_Sendrecv(
         thrust::raw_pointer_cast(sendParticlesSpeciesRight.data()), 
-        maxNumSendRightRecvLeft, 
+        numForSendParticlesSpeciesRight, 
         mPIInfo.mpi_particleType, 
         right, 0, 
         thrust::raw_pointer_cast(recvParticlesSpeciesLeft.data()),
-        maxNumSendRightRecvLeft, 
+        numForRecvParticlesSpeciesLeft, 
         mPIInfo.mpi_particleType, 
         left, 0, 
         MPI_COMM_WORLD, &st

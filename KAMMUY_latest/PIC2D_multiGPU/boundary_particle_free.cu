@@ -17,6 +17,9 @@ void BoundaryPIC::freeBoundaryParticle_y(
         mPIInfo.existNumElectronPerProcs
     );
     MPI_Barrier(MPI_COMM_WORLD);
+
+    if (mPIInfo.existNumIonPerProcs > mPIInfo.totalNumIonPerProcs) std::cout << "BROKEN" << std::endl;
+    if (mPIInfo.existNumElectronPerProcs > mPIInfo.totalNumElectronPerProcs) std::cout << "BROKEN" << std::endl;
 }
 
 
@@ -92,7 +95,7 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpecies = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
 
     //sendはしないので注意。再利用しているだけ。
 

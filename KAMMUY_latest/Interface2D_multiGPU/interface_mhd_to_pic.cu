@@ -250,7 +250,7 @@ void Interface2D::deleteParticlesSpecies(
     );
     cudaDeviceSynchronize();
 
-    existNumSpeciesPerProcs = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpeciesPerProcs = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
 }
 
 
@@ -495,6 +495,9 @@ void Interface2D::sendMHDtoPIC_particle(
         particlesElectron, reloadParticlesDataElectron, reloadParticlesSourceElectron, 
         mPIInfoPIC.existNumElectronPerProcs, seed + 400
     ); 
+
+    if (mPIInfoPIC.existNumIonPerProcs > mPIInfoPIC.totalNumIonPerProcs) std::cout << "BROKEN" << std::endl;
+    if (mPIInfoPIC.existNumElectronPerProcs > mPIInfoPIC.totalNumElectronPerProcs) std::cout << "BROKEN" << std::endl;
 }
 
 

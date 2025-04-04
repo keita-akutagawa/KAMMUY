@@ -136,15 +136,16 @@ void PIC2D::oneStep_periodicXFreeY(
     );
     boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
     boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
+
+    interface2D.sendMHDtoPIC_currentField_y(U, tmpCurrent);
+    boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
+    boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
+    
     getHalfCurrent_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data()), 
         thrust::raw_pointer_cast(tmpCurrent.data()), 
         mPIInfo.localSizeX
     );
-    boundaryPIC.periodicBoundaryCurrent_x(current);
-    boundaryPIC.freeBoundaryCurrent_y(current);
-
-    interface2D.sendMHDtoPIC_currentField_y(U, current);
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
 

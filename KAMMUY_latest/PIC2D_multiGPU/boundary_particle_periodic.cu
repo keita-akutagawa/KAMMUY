@@ -25,6 +25,9 @@ void BoundaryPIC::periodicBoundaryParticle_x(
         mPIInfo.numForRecvParticlesElectronRight
     );
     MPI_Barrier(MPI_COMM_WORLD);
+
+    if (mPIInfo.existNumIonPerProcs > mPIInfo.totalNumIonPerProcs) std::cout << "BROKEN" << std::endl;
+    if (mPIInfo.existNumElectronPerProcs > mPIInfo.totalNumElectronPerProcs) std::cout << "BROKEN" << std::endl;
 }
 
 
@@ -107,7 +110,7 @@ void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpecies = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
 
     numForSendParticlesSpeciesLeft  = countForSendParticlesSpeciesLeft[0];
     numForSendParticlesSpeciesRight = countForSendParticlesSpeciesRight[0];
@@ -144,7 +147,6 @@ void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
         particlesSpecies.begin() + existNumSpecies
     );
     existNumSpecies += numForRecvParticlesSpeciesRight;
-
 }
 
 
