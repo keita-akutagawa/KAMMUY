@@ -211,13 +211,11 @@ __global__ void deleteParticles_kernel(
             particlesSpecies[k].isExist = false; 
             return; 
         }
-
+        
         curandState state; 
         curand_init(seed, k, 0, &state);
         float randomValue = curand_uniform(&state);
-        //if (randomValue < interlockingFunctionY[j + i * PIC2DConst::device_ny]) {
-        if (j < Interface2DConst::device_deltaForInterlockingFunction * 3 || 
-            j >= PIC2DConst::device_ny - Interface2DConst::device_deltaForInterlockingFunction * 3) {
+        if (randomValue < interlockingFunctionY[j + i * PIC2DConst::device_ny]) {
             particlesSpecies[k].isExist = false;
         }
     }
@@ -270,11 +268,8 @@ __global__ void reloadParticlesSpecies_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
-        if (j >= Interface2DConst::device_deltaForInterlockingFunction * 3 && 
-            j < PIC2DConst::device_ny - Interface2DConst::device_deltaForInterlockingFunction * 3) return; 
-
+        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny; 
         int indexForReload = j + i * PIC2DConst::device_ny; 
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         float u = reloadParticlesDataSpecies[indexForReload].u;
         float v = reloadParticlesDataSpecies[indexForReload].v;
         float w = reloadParticlesDataSpecies[indexForReload].w;
@@ -283,17 +278,18 @@ __global__ void reloadParticlesSpecies_kernel(
         Particle particleSource, particleReload;
         float x, y, z, vx, vy, vz, gamma;
 
-        curandState stateReloadIndex, stateReload; 
-        curand_init(seed, (i + 1) * (j + 1), 0, &stateReloadIndex);
+        curandState stateForReloadIndex;
+        curand_init(seed, indexForReload, 0, &stateForReloadIndex);
         unsigned long long restartParticlesIndexSpecies = static_cast<unsigned long long>(
-            curand_uniform(&stateReloadIndex) * reloadParticlesTotalNumSpecies
+            curand_uniform(&stateForReloadIndex) * reloadParticlesTotalNumSpecies
         );
 
-        curand_init(seed, (i + 1) * (j + 1), 0, &stateReload);
+        curandState stateForReload; 
+        curand_init(seed, indexForReload, 0, &stateForReload);
         for (unsigned long long k = 0; k < reloadParticlesDataSpecies[indexForReload].numAndIndex; k++) {
-            float randomValue = curand_uniform(&stateReload);
+            float randomValue = curand_uniform(&stateForReload);
 
-            //if (randomValue < interlockingFunctionY[indexPIC]) {
+            if (randomValue < interlockingFunctionY[indexPIC]) {
                 particleSource = reloadParticlesSourceSpecies[
                     (restartParticlesIndexSpecies + k) % reloadParticlesTotalNumSpecies
                 ];
@@ -322,7 +318,7 @@ __global__ void reloadParticlesSpecies_kernel(
 
                 unsigned long long loadIndex = atomicAdd(&(particlesNumCounter[0]), 1);
                 particlesSpecies[loadIndex] = particleReload;
-            //} 
+            }
         }
     }
 }

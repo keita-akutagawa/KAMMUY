@@ -11,6 +11,7 @@ namespace Interface2DConst
 
     extern const int interfaceLength; 
     extern const double deltaForInterlockingFunction; 
+    extern const int indexOfInterfaceStartInMHD; 
 
     extern const int convolutionCount; 
 
@@ -27,6 +28,7 @@ namespace Interface2DConst
 
     extern __constant__ int device_interfaceLength; 
     extern __constant__ double device_deltaForInterlockingFunction; 
+    extern __constant__ int device_indexOfInterfaceStartInMHD; 
 
     extern __constant__ int device_nx; 
     extern __constant__ int device_ny; 

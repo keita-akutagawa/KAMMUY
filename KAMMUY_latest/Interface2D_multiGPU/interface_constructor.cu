@@ -10,25 +10,17 @@ __global__ void initializeReloadParticlesSource_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < reloadParticlesNumSpecies) {
-        curandState stateX; 
-        curandState stateY;
-        curandState stateVx; 
-        curandState stateVy; 
-        curandState stateVz;  
-        curand_init(seed + 0, i, 0, &stateX);
-        curand_init(seed + 1, i, 0, &stateY);
-        curand_init(seed + 2, i, 0, &stateVx);
-        curand_init(seed + 3, i, 0, &stateVy);
-        curand_init(seed + 4, i, 0, &stateVz);
+        curandState state;
+        curand_init(seed, i, 0, &state);
 
         float x, y, z, vx, vy, vz;
         
-        x = curand_uniform(&stateX);
-        y = curand_uniform(&stateY);
+        x = curand_uniform(&state);
+        y = curand_uniform(&state);
         z = 0.0f;
-        vx = curand_normal(&stateVx);
-        vy = curand_normal(&stateVy);
-        vz = curand_normal(&stateVz);
+        vx = curand_normal(&state);
+        vy = curand_normal(&state);
+        vz = curand_normal(&state);
 
         reloadParticlesSourceSpecies[i].x  = x;
         reloadParticlesSourceSpecies[i].y  = y;

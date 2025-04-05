@@ -138,11 +138,11 @@ void Interface2D::sumUpTimeAveragedPICParameters(
 
 
 __global__ void averagingParametersForPICtoMHD_kernel(
-    const MagneticField* tmp_B, 
-    const ZerothMoment* tmp_zerothMomentIon, 
-    const ZerothMoment* tmp_zerothMomentElectron, 
-    const FirstMoment* tmp_firstMomentIon, 
-    const FirstMoment* tmp_firstMomentElectron, 
+    const MagneticField* B_timeAve, 
+    const ZerothMoment* zerothMomentIon_timeAve, 
+    const ZerothMoment* zerothMomentElectron_timeAve, 
+    const FirstMoment* firstMomentIon_timeAve, 
+    const FirstMoment* firstMomentElectron_timeAve, 
     MagneticField* B_PICtoMHD, 
     ZerothMoment* zerothMomentIon_PICtoMHD, 
     ZerothMoment* zerothMomentElectron_PICtoMHD, 
@@ -155,27 +155,28 @@ __global__ void averagingParametersForPICtoMHD_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
-        
+        int indexPIC = j * Interface2DConst::device_gridSizeRatio
+                     + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny;
+
         MagneticField averagedB; 
         ZerothMoment averagedZerothMomentIon, averagedZerothMomentElecteron; 
         FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
         for (int windowX = 0; windowX < Interface2DConst::device_gridSizeRatio; windowX++) {
             for (int windowY = 0; windowY < Interface2DConst::device_gridSizeRatio; windowY++) {
-                int indexPIC = (j * Interface2DConst::device_gridSizeRatio + windowY)
-                             + (i * Interface2DConst::device_gridSizeRatio + bufferPIC + windowX) * PIC2DConst::device_ny; 
+                int indexForAveraging = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
                 
-                averagedB                     = averagedB + tmp_B[indexPIC]; 
-                averagedZerothMomentIon       = averagedZerothMomentIon + tmp_zerothMomentIon[indexPIC]; 
-                averagedZerothMomentElecteron = averagedZerothMomentElecteron + tmp_zerothMomentElectron[indexPIC]; 
-                averagedFirstMomentIon        = averagedFirstMomentIon + tmp_firstMomentIon[indexPIC]; 
-                averagedFirstMomentElectron   = averagedFirstMomentElectron + tmp_firstMomentElectron[indexPIC];
+                averagedB                     += B_timeAve[indexPIC]; 
+                averagedZerothMomentIon       += zerothMomentIon_timeAve[indexPIC]; 
+                averagedZerothMomentElecteron += zerothMomentElectron_timeAve[indexPIC]; 
+                averagedFirstMomentIon        += firstMomentIon_timeAve[indexPIC]; 
+                averagedFirstMomentElectron   += firstMomentElectron_timeAve[indexPIC];
             }
         }
-        averagedB                     = 1.0 / pow(Interface2DConst::device_gridSizeRatio, 2) * averagedB;
-        averagedZerothMomentIon       = 1.0 / pow(Interface2DConst::device_gridSizeRatio, 2) * averagedZerothMomentIon;
-        averagedZerothMomentElecteron = 1.0 / pow(Interface2DConst::device_gridSizeRatio, 2) * averagedZerothMomentElecteron;
-        averagedFirstMomentIon        = 1.0 / pow(Interface2DConst::device_gridSizeRatio, 2) * averagedFirstMomentIon;
-        averagedFirstMomentElectron   = 1.0 / pow(Interface2DConst::device_gridSizeRatio, 2) * averagedFirstMomentElectron;
+        averagedB                     = averagedB                     / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedZerothMomentIon       = averagedZerothMomentIon       / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedZerothMomentElecteron = averagedZerothMomentElecteron / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedFirstMomentIon        = averagedFirstMomentIon        / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedFirstMomentElectron   = averagedFirstMomentElectron   / pow(Interface2DConst::device_gridSizeRatio, 2);
         
 
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
@@ -190,11 +191,11 @@ __global__ void averagingParametersForPICtoMHD_kernel(
 
 
 __global__ void calculateSubPICParameters_kernel(
-    MagneticField* B, 
-    ZerothMoment* zerothMomentIon, 
-    ZerothMoment* zerothMomentElectron, 
-    FirstMoment* firstMomentIon, 
-    FirstMoment* firstMomentElectron, 
+    MagneticField* B_timeAve, 
+    ZerothMoment* zerothMomentIon_timeAve, 
+    ZerothMoment* zerothMomentElectron_timeAve, 
+    FirstMoment* firstMomentIon_timeAve, 
+    FirstMoment* firstMomentElectron_timeAve, 
     int count, 
     int localSizeXPIC
 )
@@ -205,11 +206,11 @@ __global__ void calculateSubPICParameters_kernel(
     if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
         int index = j + i * PIC2DConst::device_ny;
 
-        B[index]                    = 1.0 / count * B[index]; 
-        zerothMomentIon[index]      = 1.0 / count * zerothMomentIon[index]; 
-        zerothMomentElectron[index] = 1.0 / count * zerothMomentElectron[index]; 
-        firstMomentIon[index]       = 1.0 / count * firstMomentIon[index]; 
-        firstMomentElectron[index]  = 1.0 / count * firstMomentElectron[index]; 
+        B_timeAve[index]                    = B_timeAve[index] / count; 
+        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / count; 
+        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / count; 
+        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / count; 
+        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / count; 
     }
 }
 

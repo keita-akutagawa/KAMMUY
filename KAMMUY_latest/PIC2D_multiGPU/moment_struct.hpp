@@ -32,6 +32,14 @@ struct ZerothMoment
     }
 
     __host__ __device__
+    ZerothMoment& operator+=(const ZerothMoment& other)
+    {
+        n += other.n;
+        
+        return *this;
+    }
+
+    __host__ __device__
     ZerothMoment operator*(float scalar) const
     {
         return ZerothMoment(scalar * n);
@@ -41,6 +49,12 @@ struct ZerothMoment
     friend ZerothMoment operator*(float scalar, const ZerothMoment& other) 
     {
         return ZerothMoment(scalar * other.n);
+    }
+
+    __host__ __device__
+    ZerothMoment operator/(double scalar) const
+    {
+        return ZerothMoment(n / scalar);
     }
 };
 
@@ -83,6 +97,16 @@ struct FirstMoment
     }
 
     __host__ __device__
+    FirstMoment& operator+=(const FirstMoment& other)
+    {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        
+        return *this;
+    }
+
+    __host__ __device__
     FirstMoment operator*(float scalar) const
     {
         return FirstMoment(scalar * x, scalar * y, scalar * z);
@@ -92,6 +116,12 @@ struct FirstMoment
     friend FirstMoment operator*(float scalar, const FirstMoment& other) 
     {
         return FirstMoment(scalar * other.x, scalar * other.y, scalar * other.z);
+    }
+
+    __host__ __device__
+    FirstMoment operator/(double scalar) const
+    {
+        return FirstMoment(x / scalar, y / scalar, z / scalar);
     }
 };
 
@@ -149,6 +179,19 @@ struct SecondMoment
     }
 
     __host__ __device__
+    SecondMoment& operator+=(const SecondMoment& other)
+    {
+        xx += other.xx;
+        yy += other.yy;
+        zz += other.zz;
+        xy += other.xy; 
+        xz += other.xz; 
+        yz += other.yz; 
+        
+        return *this;
+    }
+
+    __host__ __device__
     SecondMoment operator*(float scalar) const
     {
         return SecondMoment(scalar * xx, scalar * yy, scalar * zz, 
@@ -160,6 +203,12 @@ struct SecondMoment
     {
         return SecondMoment(scalar * other.xx, scalar * other.yy, scalar * other.zz, 
                             scalar * other.xy, scalar * other.xz, scalar * other.yz);
+    }
+
+    __host__ __device__
+    SecondMoment operator/(double scalar) const
+    {
+        return SecondMoment(xx / scalar, yy / scalar, zz / scalar, xy / scalar, xz / scalar, yz / scalar);
     }
 };
 

@@ -47,6 +47,22 @@ struct ConservationParameter
         return ConservationParameter(rho + other.rho, rhoU + other.rhoU, rhoV + other.rhoV, rhoW + other.rhoW, 
                                      bX + other.bX, bY + other.bY, bZ + other.bZ, e + other.e, psi + other.psi);
     }
+    
+    __host__ __device__
+    ConservationParameter& operator+=(const ConservationParameter& other)
+    {
+        rho  += other.rho;
+        rhoU += other.rhoU;
+        rhoV += other.rhoV;
+        rhoW += other.rhoW;
+        bX   += other.bX;
+        bY   += other.bY;
+        bZ   += other.bZ;
+        e    += other.e;
+        psi  += other.psi;
+        
+        return *this;
+    }
 
     __host__ __device__
     ConservationParameter operator*(double scalar) const
@@ -60,6 +76,13 @@ struct ConservationParameter
     {
         return ConservationParameter(scalar * other.rho, scalar * other.rhoU, scalar * other.rhoV, scalar * other.rhoW, 
                                      scalar * other.bX, scalar * other.bY, scalar * other.bZ, scalar * other.e, scalar * other.psi);
+    }
+
+    __host__ __device__
+    ConservationParameter operator/(double scalar) const
+    {
+        return ConservationParameter(rho / scalar, rhoU / scalar, rhoV / scalar, rhoW / scalar,
+                                    bX / scalar, bY / scalar, bZ / scalar, e / scalar, psi / scalar);
     }
 };
 

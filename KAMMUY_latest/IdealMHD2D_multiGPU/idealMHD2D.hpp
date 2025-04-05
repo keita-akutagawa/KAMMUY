@@ -3,6 +3,7 @@
 #include <string>
 #include "flux_solver.hpp"
 #include "boundary.hpp"
+#include "const.hpp"
 #include "mpi.hpp"
 
 
@@ -32,10 +33,15 @@ public:
 
     void setPastU();
 
-    void oneStepRK2_periodicXSymmetricY_predictor();
+    void oneStepRK2_periodicXSymmetricY_predictor(
+        int indexForTimeEvolution_yStart, 
+        int indexForTimeEvolution_yEnd
+    );
 
     void oneStepRK2_periodicXSymmetricY_corrector(
-        thrust::device_vector<ConservationParameter>& UHalf
+        thrust::device_vector<ConservationParameter>& UHalf, 
+        int indexForTimeEvolution_yStart, 
+        int indexForTimeEvolution_yEnd
     );
 
     void save(

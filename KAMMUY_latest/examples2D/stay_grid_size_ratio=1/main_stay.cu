@@ -148,6 +148,11 @@ void PIC2D::initialize()
 }
 
 
+template <typename T>
+T clamp(T x, T low, T high) {
+    return std::min(std::max(x, low), high);
+}
+
 
 int main(int argc, char** argv)
 {
@@ -184,10 +189,10 @@ int main(int argc, char** argv)
     IdealMHD2DConst::initializeDeviceConstants();
     Interface2DConst::initializeDeviceConstants();
 
-    mPIInfoPIC.existNumIonPerProcs      = PIC2DConst::totalNumIon / mPIInfoPIC.procs;
-    mPIInfoPIC.existNumElectronPerProcs = PIC2DConst::totalNumElectron / mPIInfoPIC.procs;
-    mPIInfoPIC.totalNumIonPerProcs = mPIInfoPIC.existNumIonPerProcs * 2;
-    mPIInfoPIC.totalNumElectronPerProcs = mPIInfoPIC.existNumElectronPerProcs * 2;
+    mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
+    mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
+    mPIInfoPIC.totalNumIonPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumIonPerProcs * 2.0);
+    mPIInfoPIC.totalNumElectronPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumElectronPerProcs * 2.0);
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin
                             + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX
@@ -195,14 +200,21 @@ int main(int argc, char** argv)
     mPIInfoPIC.xmaxForProcs = PIC2DConst::xmin
                             + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX
                             * (mPIInfoPIC.localGridX + 1);
-    
+
+    int bufferForInterlocking = 1; 
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
-        for (int j = 0; j < PIC2DConst::ny; j++) {
-            host_interlockingFunctionY[j + i * PIC2DConst::ny]
-                = max(1.0
-                - (1.0 - exp(-pow((j - 0) / Interface2DConst::deltaForInterlockingFunction, 2)))
-                * (1.0 - exp(-pow((j - (PIC2DConst::ny - 1)) / Interface2DConst::deltaForInterlockingFunction, 2))), 
-                Interface2DConst::EPS); 
+        for (int j = 0; j < PIC2DConst::ny / 2; j++) {
+            if (j < bufferForInterlocking) continue; 
+            if (j <= Interface2DConst::deltaForInterlockingFunction) {
+                host_interlockingFunctionY[j + i * PIC2DConst::ny] = 1.0 - (j - bufferForInterlocking) / Interface2DConst::deltaForInterlockingFunction;
+            } else {
+                host_interlockingFunctionY[j + i * PIC2DConst::ny] = 0.0; 
+            }
+        }
+    }
+    for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
+        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny; j++) {
+            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
     
@@ -274,6 +286,9 @@ int main(int argc, char** argv)
             pIC2D.saveFirstMoments(
                 directoryName, filenameWithoutStep, step
             );
+            pIC2D.saveSecondMoments(
+                directoryName, filenameWithoutStep, step
+            );
             idealMHD2D.save(
                 directoryName, filenameWithoutStep + "_U", step
             );
@@ -335,7 +350,7 @@ int main(int argc, char** argv)
         interface2D.calculateUHalf(UPast, UNext); 
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
-        //interface2D.sendPICtoMHD(UHalf);
+        interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
@@ -347,6 +362,14 @@ int main(int argc, char** argv)
         }
 
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+
+        thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(U);
+
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+        }
 
 
         //when crashed 
