@@ -50,20 +50,6 @@ private:
 public:
     BoundaryPIC(PIC2DMPI::MPIInfo& mPIInfo);
 
-    void periodicBoundaryForInitializeParticle_x(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
-    );
-    void periodicBoundaryForInitializeParticleOfOneSpecies_x(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies, 
-        unsigned int& numForSendParticlesSpeciesLeftToRight, 
-        unsigned int& numForSendParticlesSpeciesRightToLeft, 
-        unsigned int& numForRecvParticlesSpeciesLeftToRight, 
-        unsigned int& numForRecvParticlesSpeciesRightToLeft
-    );
-
-
     void periodicBoundaryParticle_x(
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron

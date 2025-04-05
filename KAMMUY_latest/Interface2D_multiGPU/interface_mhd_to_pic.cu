@@ -202,12 +202,12 @@ __global__ void deleteParticles_kernel(
     if (k < existNumSpecies) {
         float x = particlesSpecies[k].x;
         float y = particlesSpecies[k].y;
-        float xmin = xminForProcs - bufferPIC * PIC2DConst::device_dx;
+        float xmin = xminForProcs;
         float ymin = PIC2DConst::device_ymin;
 
         int i = floorf(x - xmin); 
         int j = floorf(y - ymin);
-        if (i < bufferPIC || i >= PIC2DConst::device_nx + bufferPIC) {
+        if (i < 0 || i >= PIC2DConst::device_nx) {
             particlesSpecies[k].isExist = false; 
             return; 
         }
@@ -215,7 +215,7 @@ __global__ void deleteParticles_kernel(
         curandState state; 
         curand_init(seed, k, 0, &state);
         float randomValue = curand_uniform(&state);
-        if (randomValue < interlockingFunctionY[j + i * PIC2DConst::device_ny]) {
+        if (randomValue < interlockingFunctionY[j + (i + bufferPIC) * PIC2DConst::device_ny]) {
             particlesSpecies[k].isExist = false;
         }
     }

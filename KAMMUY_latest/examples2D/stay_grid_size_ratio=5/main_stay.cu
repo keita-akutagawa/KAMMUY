@@ -99,10 +99,10 @@ void PIC2D::initialize()
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
 
-            xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs;
-            xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs;
-            yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin;
-            ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin;
+            xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs + PIC2DConst::EPS;
+            xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs - PIC2DConst::EPS;
+            yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin + PIC2DConst::EPS;
+            ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin - PIC2DConst::EPS;
             bulkVx = 0.0f;
             bulkVy = 0.0f;
             bulkVz = 0.0f;
@@ -140,9 +140,11 @@ void PIC2D::initialize()
     MPI_Barrier(MPI_COMM_WORLD);
 
     boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
     boundaryPIC.periodicBoundaryE_x(E);
-    boundaryPIC.periodicBoundaryCurrent_x(current);
-    boundaryPIC.periodicBoundaryForInitializeParticle_x(particlesIon, particlesElectron);
+    boundaryPIC.freeBoundaryE_y(E);
+    boundaryPIC.periodicBoundaryParticle_x(particlesIon, particlesElectron);
+    boundaryPIC.freeBoundaryParticle_y(particlesIon, particlesElectron);
     
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -260,12 +262,6 @@ int main(int argc, char** argv)
     pIC2D.initialize();
 
     const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
-    int indexForTimeEvolutionMHD_yStart = -1;Interface2DConst::indexOfInterfaceStartInMHD
-                                        + Interface2DConst::deltaForInterlockingFunction / Interface2DConst::gridSizeRatio;
-    int indexForTimeEvolutionMHD_yEnd   = -1;Interface2DConst::indexOfInterfaceStartInMHD
-                                        + PIC2DConst::ny / Interface2DConst::gridSizeRatio
-                                        - Interface2DConst::deltaForInterlockingFunction / Interface2DConst::gridSizeRatio;
-    std::cout << indexForTimeEvolutionMHD_yStart << " " << indexForTimeEvolutionMHD_yEnd << std::endl;
     for (int step = 0; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -311,10 +307,7 @@ int main(int argc, char** argv)
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor(
-            indexForTimeEvolutionMHD_yStart, 
-            indexForTimeEvolutionMHD_yEnd
-        );
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -370,11 +363,7 @@ int main(int argc, char** argv)
             boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
         }
 
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(
-            UHalf, 
-            indexForTimeEvolutionMHD_yStart, 
-            indexForTimeEvolutionMHD_yEnd
-        );
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
 
         //when crashed 

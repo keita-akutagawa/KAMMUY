@@ -41,18 +41,13 @@ __global__ void oneStepFirst_kernel(
     const ConservationParameter* U, 
     const Flux* fluxF, const Flux* fluxG, 
     ConservationParameter* UBar, 
-    int localSizeX, 
-    int indexForTimeEvolution_yStart, 
-    int indexForTimeEvolution_yEnd
+    int localSizeX
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
-
-        if (indexForTimeEvolution_yStart <= j && j < indexForTimeEvolution_yEnd) return; 
-
         int index = j + i * IdealMHD2DConst::device_ny;
 
         UBar[index].rho  = U[index].rho  
@@ -91,18 +86,13 @@ __global__ void oneStepSecond_kernel(
     const ConservationParameter* UBar, 
     const Flux* fluxF, const Flux* fluxG, 
     ConservationParameter* U, 
-    int localSizeX, 
-    int indexForTimeEvolution_yStart, 
-    int indexForTimeEvolution_yEnd
+    int localSizeX
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
-
-        if (indexForTimeEvolution_yStart <= j && j < indexForTimeEvolution_yEnd) return; 
-
         int index = j + i * IdealMHD2DConst::device_ny;
 
         U[index].rho  = 0.5 * (U[index].rho + UBar[index].rho
@@ -137,10 +127,7 @@ __global__ void oneStepSecond_kernel(
 }
 
 
-void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor(
-    int indexForTimeEvolution_yStart, 
-    int indexForTimeEvolution_yEnd
-)
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -166,9 +153,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor(
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(UBar.data()), 
-        mPIInfo.localSizeX, 
-        indexForTimeEvolution_yStart, 
-        indexForTimeEvolution_yEnd
+        mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -184,9 +169,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor(
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
-        mPIInfo.localSizeX, 
-        indexForTimeEvolution_yStart, 
-        indexForTimeEvolution_yEnd
+        mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
 
@@ -199,9 +182,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor(
 
 
 void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
-    thrust::device_vector<ConservationParameter>& UHalf, 
-    int indexForTimeEvolution_yStart, 
-    int indexForTimeEvolution_yEnd
+    thrust::device_vector<ConservationParameter>& UHalf
 )
 {
     MPI_Barrier(MPI_COMM_WORLD);
@@ -218,9 +199,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
-        mPIInfo.localSizeX, 
-        indexForTimeEvolution_yStart, 
-        indexForTimeEvolution_yEnd
+        mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
 

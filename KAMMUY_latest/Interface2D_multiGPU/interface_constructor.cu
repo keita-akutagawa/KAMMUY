@@ -22,6 +22,9 @@ __global__ void initializeReloadParticlesSource_kernel(
         vy = curand_normal(&state);
         vz = curand_normal(&state);
 
+        x = min(max(x, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
+        y = min(max(y, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
+
         reloadParticlesSourceSpecies[i].x  = x;
         reloadParticlesSourceSpecies[i].y  = y;
         reloadParticlesSourceSpecies[i].z  = z;

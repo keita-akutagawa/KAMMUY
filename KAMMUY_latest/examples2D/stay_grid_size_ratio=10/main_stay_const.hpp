@@ -19,7 +19,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_stay_grid_size_ratio=5";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_stay_grid_size_ratio=10";
 std::string filenameWithoutStep = "stay";
 std::ofstream logfile(    directoryName + "/log_stay.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_stay.txt");
@@ -38,7 +38,7 @@ const int particleRecordStep = PIC2DConst::totalStep;
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const int Interface2DConst::gridSizeRatio = 5; 
+const int Interface2DConst::gridSizeRatio = 10; 
 
 const double Interface2DConst::EPS = 0.0001;
 const double Interface2DConst::PI = 3.14159265358979;

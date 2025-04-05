@@ -46,12 +46,12 @@ const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const int PIC2DConst::nx = 10;
+const int PIC2DConst::nx = 200;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 20;
+const int PIC2DConst::ny = 200;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -74,7 +74,7 @@ const int Interface2DConst::convolutionCount = 1;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
-const int indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
+const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
@@ -243,7 +243,8 @@ __constant__ double Interface2DConst::device_PI;
 __constant__ int Interface2DConst::device_gridSizeRatio;
 
 __constant__ int Interface2DConst::device_interfaceLength;
-__constant__ double Interface2DConst::device_deltaForInterlockingFunction;
+__constant__ double Interface2DConst::device_deltaForInterlockingFunction; 
+__constant__ int Interface2DConst::device_indexOfInterfaceStartInMHD;
 
 __constant__ int Interface2DConst::device_nx; 
 __constant__ int Interface2DConst::device_ny;  

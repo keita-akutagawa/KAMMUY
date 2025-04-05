@@ -33,15 +33,10 @@ public:
 
     void setPastU();
 
-    void oneStepRK2_periodicXSymmetricY_predictor(
-        int indexForTimeEvolution_yStart, 
-        int indexForTimeEvolution_yEnd
-    );
+    void oneStepRK2_periodicXSymmetricY_predictor();
 
     void oneStepRK2_periodicXSymmetricY_corrector(
-        thrust::device_vector<ConservationParameter>& UHalf, 
-        int indexForTimeEvolution_yStart, 
-        int indexForTimeEvolution_yEnd
+        thrust::device_vector<ConservationParameter>& UHalf
     );
 
     void save(

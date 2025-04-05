@@ -50,17 +50,17 @@ __global__ void freeBoundaryParticle_y_kernel(
             particlesSpecies[i].isExist = false; 
         }
         
-        if (y > boundaryDown + PIC2DConst::device_dy && y <= boundaryDown + 2 * PIC2DConst::device_dy - PIC2DConst::device_EPS) {
+        if (y > boundaryDown + PIC2DConst::device_dy && y <= boundaryDown + 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y - PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y - PIC2DConst::device_dy + PIC2DConst::device_EPS; 
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
-        if (y < boundaryUp - PIC2DConst::device_dy && y >= boundaryUp - 2 * PIC2DConst::device_dy + PIC2DConst::device_EPS) {
+        if (y < boundaryUp - PIC2DConst::device_dy && y >= boundaryUp - 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y + PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y + PIC2DConst::device_dy - PIC2DConst::device_EPS; 
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
         }
     }
