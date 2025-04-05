@@ -45,7 +45,7 @@ void InitializeParticle::uniformForPosition_x(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         xmin, xmax, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
@@ -84,7 +84,7 @@ void InitializeParticle::uniformForPosition_y(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         ymin, ymax, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
@@ -149,7 +149,7 @@ void InitializeParticle::maxwellDistributionForVelocity(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         bulkVxSpecies, bulkVySpecies, bulkVzSpecies, 
         vxThSpecies, vyThSpecies, vzThSpecies, 
-        nStart, nEnd, seed, mPIInfo.rank * (nEnd - nStart)
+        nStart, nEnd, seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
@@ -171,7 +171,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         xmin, xmax, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 
@@ -179,7 +179,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         ymin, ymax, 
-        seed + 1, mPIInfo.rank * (nEnd - nStart)
+        seed + 1, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 
@@ -188,7 +188,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         bulkVxSpecies, bulkVySpecies, bulkVzSpecies, 
         vxThSpecies, vyThSpecies, vzThSpecies, 
         nStart, nEnd, 
-        seed + 2, mPIInfo.rank * (nEnd - nStart)
+        seed + 2, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
@@ -236,7 +236,7 @@ void InitializeParticle::harrisForPosition_y(
     harrisForPosition_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), sheatThickness, 
         nStart, nEnd, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
@@ -284,7 +284,7 @@ void InitializeParticle::harrisBackgroundForPosition_y(
     harrisBackgroundForPosition_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), sheatThickness, 
         nStart, nEnd, 
-        seed, mPIInfo.rank * (nEnd - nStart)
+        seed, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }

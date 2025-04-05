@@ -50,35 +50,6 @@ __global__ void oneStepFirst_kernel(
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
         int index = j + i * IdealMHD2DConst::device_ny;
 
-        if (isnan(fluxF[index].f0)) return; if (isnan(fluxG[index].f0)) return;
-        if (isnan(fluxF[index].f1)) return; if (isnan(fluxG[index].f1)) return;
-        if (isnan(fluxF[index].f2)) return; if (isnan(fluxG[index].f2)) return;
-        if (isnan(fluxF[index].f3)) return; if (isnan(fluxG[index].f3)) return;
-        if (isnan(fluxF[index].f4)) return; if (isnan(fluxG[index].f4)) return;
-        if (isnan(fluxF[index].f5)) return; if (isnan(fluxG[index].f5)) return;
-        if (isnan(fluxF[index].f6)) return; if (isnan(fluxG[index].f6)) return;
-        if (isnan(fluxF[index].f7)) return; if (isnan(fluxG[index].f7)) return;
-        if (isnan(fluxF[index].f8)) return; if (isnan(fluxG[index].f8)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f0)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f0)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f1)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f1)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f2)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f2)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f3)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f3)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f4)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f4)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f5)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f5)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f6)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f6)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f7)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f7)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f8)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f8)) return;
-        if (isnan(fluxF[index - 1].f0)) return; if (isnan(fluxG[index - 1].f0)) return;
-        if (isnan(fluxF[index - 1].f1)) return; if (isnan(fluxG[index - 1].f1)) return;
-        if (isnan(fluxF[index - 1].f2)) return; if (isnan(fluxG[index - 1].f2)) return;
-        if (isnan(fluxF[index - 1].f3)) return; if (isnan(fluxG[index - 1].f3)) return;
-        if (isnan(fluxF[index - 1].f4)) return; if (isnan(fluxG[index - 1].f4)) return;
-        if (isnan(fluxF[index - 1].f5)) return; if (isnan(fluxG[index - 1].f5)) return;
-        if (isnan(fluxF[index - 1].f6)) return; if (isnan(fluxG[index - 1].f6)) return;
-        if (isnan(fluxF[index - 1].f7)) return; if (isnan(fluxG[index - 1].f7)) return;
-        if (isnan(fluxF[index - 1].f8)) return; if (isnan(fluxG[index - 1].f8)) return;
-
-
         UBar[index].rho  = U[index].rho  
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
@@ -123,34 +94,6 @@ __global__ void oneStepSecond_kernel(
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
         int index = j + i * IdealMHD2DConst::device_ny;
-        
-        if (isnan(fluxF[index].f0)) return; if (isnan(fluxG[index].f0)) return;
-        if (isnan(fluxF[index].f1)) return; if (isnan(fluxG[index].f1)) return;
-        if (isnan(fluxF[index].f2)) return; if (isnan(fluxG[index].f2)) return;
-        if (isnan(fluxF[index].f3)) return; if (isnan(fluxG[index].f3)) return;
-        if (isnan(fluxF[index].f4)) return; if (isnan(fluxG[index].f4)) return;
-        if (isnan(fluxF[index].f5)) return; if (isnan(fluxG[index].f5)) return;
-        if (isnan(fluxF[index].f6)) return; if (isnan(fluxG[index].f6)) return;
-        if (isnan(fluxF[index].f7)) return; if (isnan(fluxG[index].f7)) return;
-        if (isnan(fluxF[index].f8)) return; if (isnan(fluxG[index].f8)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f0)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f0)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f1)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f1)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f2)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f2)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f3)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f3)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f4)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f4)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f5)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f5)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f6)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f6)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f7)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f7)) return;
-        if (isnan(fluxF[index - IdealMHD2DConst::device_ny].f8)) return; if (isnan(fluxG[index - IdealMHD2DConst::device_ny].f8)) return;
-        if (isnan(fluxF[index - 1].f0)) return; if (isnan(fluxG[index - 1].f0)) return;
-        if (isnan(fluxF[index - 1].f1)) return; if (isnan(fluxG[index - 1].f1)) return;
-        if (isnan(fluxF[index - 1].f2)) return; if (isnan(fluxG[index - 1].f2)) return;
-        if (isnan(fluxF[index - 1].f3)) return; if (isnan(fluxG[index - 1].f3)) return;
-        if (isnan(fluxF[index - 1].f4)) return; if (isnan(fluxG[index - 1].f4)) return;
-        if (isnan(fluxF[index - 1].f5)) return; if (isnan(fluxG[index - 1].f5)) return;
-        if (isnan(fluxF[index - 1].f6)) return; if (isnan(fluxG[index - 1].f6)) return;
-        if (isnan(fluxF[index - 1].f7)) return; if (isnan(fluxG[index - 1].f7)) return;
-        if (isnan(fluxF[index - 1].f8)) return; if (isnan(fluxG[index - 1].f8)) return;
 
         U[index].rho  = 0.5 * (U[index].rho + UBar[index].rho
                       - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
@@ -242,12 +185,11 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     thrust::device_vector<ConservationParameter>& UHalf
 )
 {
+    MPI_Barrier(MPI_COMM_WORLD);
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
-
-    MPI_Barrier(MPI_COMM_WORLD);
 
     fluxF = fluxSolver.getFluxF(UHalf);
     fluxG = fluxSolver.getFluxG(UHalf);
@@ -261,8 +203,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     );
     cudaDeviceSynchronize();
 
-    boundaryMHD.periodicBoundaryX2nd_U(UBar);
-    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     checkAndResetExtremeValues();
@@ -409,42 +351,42 @@ __global__ void checkAndResetExtremeValues_kernel(
         }
 
         double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0); 
-        if (u > VA * 2.0) {
-            u = VA * 2.0; 
+        if (u > VA * 10.0) {
+            u = VA * 10.0; 
         }
-        if (v > VA * 2.0) {
-            v = VA * 2.0; 
+        if (v > VA * 10.0) {
+            v = VA * 10.0; 
         }
-        if (w > VA * 2.0) {
-            w = VA * 2.0; 
+        if (w > VA * 10.0) {
+            w = VA * 10.0; 
         }
-        if (u < -VA * 2.0) {
-            u = -VA * 2.0; 
+        if (u < -VA * 10.0) {
+            u = -VA * 10.0; 
         }
-        if (v < -VA * 2.0) {
-            v = -VA * 2.0; 
+        if (v < -VA * 10.0) {
+            v = -VA * 10.0; 
         }
-        if (w < -VA * 2.0) {
-            w = -VA * 2.0; 
+        if (w < -VA * 10.0) {
+            w = -VA * 10.0; 
         }
 
-        if (bX > IdealMHD2DConst::device_B0 * 2.0) {
-            bX = IdealMHD2DConst::device_B0 * 2.0; 
+        if (bX > IdealMHD2DConst::device_B0 * 10.0) {
+            bX = IdealMHD2DConst::device_B0 * 10.0; 
         }
-        if (bY > IdealMHD2DConst::device_B0 * 2.0) {
-            bY = IdealMHD2DConst::device_B0 * 2.0; 
+        if (bY > IdealMHD2DConst::device_B0 * 10.0) {
+            bY = IdealMHD2DConst::device_B0 * 10.0; 
         }
-        if (bZ > IdealMHD2DConst::device_B0 * 2.0) {
-            bZ = IdealMHD2DConst::device_B0 * 2.0; 
+        if (bZ > IdealMHD2DConst::device_B0 * 10.0) {
+            bZ = IdealMHD2DConst::device_B0 * 10.0; 
         }
-        if (bX < -IdealMHD2DConst::device_B0 * 2.0) {
-            bX = -IdealMHD2DConst::device_B0 * 2.0; 
+        if (bX < -IdealMHD2DConst::device_B0 * 10.0) {
+            bX = -IdealMHD2DConst::device_B0 * 10.0; 
         }
-        if (bY < -IdealMHD2DConst::device_B0 * 2.0) {
-            bY = -IdealMHD2DConst::device_B0 * 2.0; 
+        if (bY < -IdealMHD2DConst::device_B0 * 10.0) {
+            bY = -IdealMHD2DConst::device_B0 * 10.0; 
         }
-        if (bZ < -IdealMHD2DConst::device_B0 * 2.0) {
-            bZ = -IdealMHD2DConst::device_B0 * 2.0; 
+        if (bZ < -IdealMHD2DConst::device_B0 * 10.0) {
+            bZ = -IdealMHD2DConst::device_B0 * 10.0; 
         }
 
 

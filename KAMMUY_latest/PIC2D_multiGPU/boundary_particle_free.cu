@@ -17,6 +17,9 @@ void BoundaryPIC::freeBoundaryParticle_y(
         mPIInfo.existNumElectronPerProcs
     );
     MPI_Barrier(MPI_COMM_WORLD);
+
+    if (mPIInfo.existNumIonPerProcs > mPIInfo.totalNumIonPerProcs) std::cout << "BROKEN" << std::endl;
+    if (mPIInfo.existNumElectronPerProcs > mPIInfo.totalNumElectronPerProcs) std::cout << "BROKEN" << std::endl;
 }
 
 
@@ -37,27 +40,27 @@ __global__ void freeBoundaryParticle_y_kernel(
     if (i < existNumSpecies) {
         float y = particlesSpecies[i].y; 
         
-        float boundaryDown  = PIC2DConst::device_ymin + PIC2DConst::device_EPS; 
-        float boundaryUp    = PIC2DConst::device_ymax - PIC2DConst::device_EPS;
+        float boundaryDown  = PIC2DConst::device_ymin; 
+        float boundaryUp    = PIC2DConst::device_ymax;
         
-        if (y < boundaryDown + PIC2DConst::device_dy) {
+        if (y <= boundaryDown + PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
-        if (y > boundaryUp - PIC2DConst::device_dy) {
+        if (y >= boundaryUp - PIC2DConst::device_dy) {
             particlesSpecies[i].isExist = false; 
         }
         
-        if (y > boundaryDown + PIC2DConst::device_dy && y < boundaryDown + 2 * PIC2DConst::device_dy) {
+        if (y > boundaryDown + PIC2DConst::device_dy && y <= boundaryDown + 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y - PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y - PIC2DConst::device_dy + PIC2DConst::device_EPS; 
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
-        if (y < boundaryUp - PIC2DConst::device_dy && y > boundaryUp - 2 * PIC2DConst::device_dy) {
+        if (y < boundaryUp - PIC2DConst::device_dy && y >= boundaryUp - 2 * PIC2DConst::device_dy) {
             unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            sendParticle.y = sendParticle.y + PIC2DConst::device_dy; 
+            sendParticle.y = sendParticle.y + PIC2DConst::device_dy - PIC2DConst::device_EPS; 
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
         }
     }
@@ -92,7 +95,7 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpecies = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
 
     //sendはしないので注意。再利用しているだけ。
 

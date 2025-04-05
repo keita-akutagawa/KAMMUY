@@ -11,7 +11,7 @@
 #include "field_solver.hpp"
 #include "current_calculator.hpp"
 #include "boundary.hpp"
-#include "moment_calculater.hpp"
+#include "moment_calculator.hpp"
 #include "filter.hpp"
 #include "particle_struct.hpp"
 #include "field_parameter_struct.hpp"
@@ -61,7 +61,7 @@ private:
     FieldSolver fieldSolver;
     CurrentCalculator currentCalculator;
     BoundaryPIC boundaryPIC;
-    MomentCalculater momentCalculater;
+    MomentCalculator momentCalculator;
     Filter filter;
 
 public:
@@ -69,7 +69,11 @@ public:
     
     virtual void initialize();
 
-    void oneStep_periodicXFreeY();
+    void oneStep_periodicXFreeY(
+        Interface2D& interface2D, 
+        thrust::device_vector<ConservationParameter>& U, 
+        unsigned long long seedForReload
+    );
 
     void saveFields(
         std::string directoryname, 
@@ -124,6 +128,14 @@ public:
     thrust::host_vector<Particle>& getHostParticlesElectronRef();
 
     thrust::device_vector<Particle>& getParticlesElectronRef();
+
+    thrust::device_vector<ZerothMoment>& getZerothMomentIonRef();
+
+    thrust::device_vector<ZerothMoment>& getZerothMomentElectronRef();
+
+    thrust::device_vector<FirstMoment>& getFirstMomentIonRef();
+
+    thrust::device_vector<FirstMoment>& getFirstMomentElectronRef();
 
     BoundaryPIC& getBoundaryPICRef(); 
 

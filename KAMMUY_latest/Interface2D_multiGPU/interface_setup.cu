@@ -6,7 +6,7 @@ __global__ void calculateSubU_kernel(
     const ConservationParameter* UNext, 
     ConservationParameter* USub, 
     double mixingRatio, 
-    int localSizeXMHD
+    const int localSizeXMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -42,7 +42,28 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 }
 
 
-void Interface2D::resetTimeAveParameters()
+//void Interface2D::setMoments(
+//    const thrust::device_vector<Particle>& particlesIon, 
+//    const thrust::device_vector<Particle>& particlesElectron
+//)
+//{
+//    momentCalculator.calculateZerothMomentOfOneSpecies(
+//        tmp_zerothMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
+//    );
+//    momentCalculator.calculateZerothMomentOfOneSpecies(
+//        tmp_zerothMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
+//    );
+//
+//    momentCalculator.calculateFirstMomentOfOneSpecies(
+//        tmp_firstMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
+//    );
+//    momentCalculator.calculateFirstMomentOfOneSpecies(
+//        tmp_firstMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
+//    );
+//}
+
+
+void Interface2D::resetTimeAveragedPICParameters()
 {
     thrust::fill(
         B_timeAve.begin(), 
@@ -74,75 +95,108 @@ void Interface2D::resetTimeAveParameters()
 }
 
 
-void Interface2D::setMoments(
-    const thrust::device_vector<Particle>& particlesIon, 
-    const thrust::device_vector<Particle>& particlesElectron
-)
-{
-    momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
-    );
-    momentCalculater.calculateZerothMomentOfOneSpecies(
-        zerothMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
-    );
-
-    momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentIon, particlesIon, mPIInfoPIC.existNumIonPerProcs
-    );
-    momentCalculater.calculateFirstMomentOfOneSpecies(
-        firstMomentElectron, particlesElectron, mPIInfoPIC.existNumElectronPerProcs
-    );
-}
-
-
-void Interface2D::sumUpTimeAveParameters(
+void Interface2D::sumUpTimeAveragedPICParameters(
     const thrust::device_vector<MagneticField>& B, 
-    const thrust::device_vector<Particle>& particlesIon, 
-    const thrust::device_vector<Particle>& particlesElectron
+    const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+    const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
+    const thrust::device_vector<FirstMoment>& firstMomentIon, 
+    const thrust::device_vector<FirstMoment>& firstMomentElectron
 )
 {
     thrust::transform(
-        B_timeAve.begin(), B_timeAve.end(), B.begin(), 
-        B_timeAve.begin(), thrust::plus<MagneticField>()
+        B_timeAve.begin(), B_timeAve.end(), 
+        B.begin(), 
+        B_timeAve.begin(), 
+        thrust::plus<MagneticField>()
     );
 
-    setMoments(particlesIon, particlesElectron); 
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon); 
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon); 
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron); 
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon); 
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron); 
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron); 
-
     thrust::transform(
-        zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), zerothMomentIon.begin(), 
-        zerothMomentIon_timeAve.begin(), thrust::plus<ZerothMoment>()
+        zerothMomentIon_timeAve.begin(), zerothMomentIon_timeAve.end(), 
+        zerothMomentIon.begin(), 
+        zerothMomentIon_timeAve.begin(), 
+        thrust::plus<ZerothMoment>()
     );
     thrust::transform(
-        zerothMomentElectron_timeAve.begin(), zerothMomentElectron_timeAve.end(), zerothMomentElectron.begin(), 
-        zerothMomentElectron_timeAve.begin(), thrust::plus<ZerothMoment>()
+        zerothMomentElectron_timeAve.begin(), zerothMomentElectron_timeAve.end(), 
+        zerothMomentElectron.begin(), 
+        zerothMomentElectron_timeAve.begin(), 
+        thrust::plus<ZerothMoment>()
     );
     thrust::transform(
-        firstMomentIon_timeAve.begin(), firstMomentIon_timeAve.end(), firstMomentIon.begin(), 
-        firstMomentIon_timeAve.begin(), thrust::plus<FirstMoment>()
+        firstMomentIon_timeAve.begin(), firstMomentIon_timeAve.end(), 
+        firstMomentIon.begin(), 
+        firstMomentIon_timeAve.begin(), 
+        thrust::plus<FirstMoment>()
     );
     thrust::transform(
-        firstMomentElectron_timeAve.begin(), firstMomentElectron_timeAve.end(), firstMomentElectron.begin(), 
-        firstMomentElectron_timeAve.begin(), thrust::plus<FirstMoment>()
+        firstMomentElectron_timeAve.begin(), firstMomentElectron_timeAve.end(), 
+        firstMomentElectron.begin(), 
+        firstMomentElectron_timeAve.begin(), 
+        thrust::plus<FirstMoment>()
     );
 }
 
 
-/*
-__global__ void calculateTimeAveParameters_kernel(
+__global__ void averagingParametersForPICtoMHD_kernel(
+    const MagneticField* B_timeAve, 
+    const ZerothMoment* zerothMomentIon_timeAve, 
+    const ZerothMoment* zerothMomentElectron_timeAve, 
+    const FirstMoment* firstMomentIon_timeAve, 
+    const FirstMoment* firstMomentElectron_timeAve, 
+    MagneticField* B_PICtoMHD, 
+    ZerothMoment* zerothMomentIon_PICtoMHD, 
+    ZerothMoment* zerothMomentElectron_PICtoMHD, 
+    FirstMoment* firstMomentIon_PICtoMHD, 
+    FirstMoment* firstMomentElectron_PICtoMHD, 
+    const int localNxMHD, const int bufferPIC, const int bufferMHD
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
+        int indexPIC = j * Interface2DConst::device_gridSizeRatio
+                     + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny;
+
+        MagneticField averagedB; 
+        ZerothMoment averagedZerothMomentIon, averagedZerothMomentElecteron; 
+        FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
+        for (int windowX = 0; windowX < Interface2DConst::device_gridSizeRatio; windowX++) {
+            for (int windowY = 0; windowY < Interface2DConst::device_gridSizeRatio; windowY++) {
+                int indexForAveraging = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
+                
+                averagedB                     += B_timeAve[indexPIC]; 
+                averagedZerothMomentIon       += zerothMomentIon_timeAve[indexPIC]; 
+                averagedZerothMomentElecteron += zerothMomentElectron_timeAve[indexPIC]; 
+                averagedFirstMomentIon        += firstMomentIon_timeAve[indexPIC]; 
+                averagedFirstMomentElectron   += firstMomentElectron_timeAve[indexPIC];
+            }
+        }
+        averagedB                     = averagedB                     / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedZerothMomentIon       = averagedZerothMomentIon       / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedZerothMomentElecteron = averagedZerothMomentElecteron / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedFirstMomentIon        = averagedFirstMomentIon        / pow(Interface2DConst::device_gridSizeRatio, 2);
+        averagedFirstMomentElectron   = averagedFirstMomentElectron   / pow(Interface2DConst::device_gridSizeRatio, 2);
+        
+
+        int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
+
+        B_PICtoMHD[indexPICtoMHD] = averagedB; 
+        zerothMomentIon_PICtoMHD[indexPICtoMHD] = averagedZerothMomentIon; 
+        zerothMomentElectron_PICtoMHD[indexPICtoMHD] = averagedZerothMomentElecteron; 
+        firstMomentIon_PICtoMHD[indexPICtoMHD] = averagedFirstMomentIon; 
+        firstMomentElectron_PICtoMHD[indexPICtoMHD] = averagedFirstMomentElectron; 
+    }
+}
+
+
+__global__ void calculateSubPICParameters_kernel(
     MagneticField* B_timeAve, 
     ZerothMoment* zerothMomentIon_timeAve, 
     ZerothMoment* zerothMomentElectron_timeAve, 
     FirstMoment* firstMomentIon_timeAve, 
     FirstMoment* firstMomentElectron_timeAve, 
-    int substeps, 
+    int count, 
     int localSizeXPIC
 )
 {
@@ -152,50 +206,75 @@ __global__ void calculateTimeAveParameters_kernel(
     if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
         int index = j + i * PIC2DConst::device_ny;
 
-        B_timeAve[index].bX                   /= static_cast<float>(substeps);
-        B_timeAve[index].bY                   /= static_cast<float>(substeps);
-        B_timeAve[index].bZ                   /= static_cast<float>(substeps);
-        zerothMomentIon_timeAve[index].n      /= static_cast<float>(substeps);
-        zerothMomentElectron_timeAve[index].n /= static_cast<float>(substeps);
-        firstMomentIon_timeAve[index].x       /= static_cast<float>(substeps);
-        firstMomentIon_timeAve[index].y       /= static_cast<float>(substeps);
-        firstMomentIon_timeAve[index].z       /= static_cast<float>(substeps);
-        firstMomentElectron_timeAve[index].x  /= static_cast<float>(substeps);
-        firstMomentElectron_timeAve[index].y  /= static_cast<float>(substeps);
-        firstMomentElectron_timeAve[index].z  /= static_cast<float>(substeps);
+        B_timeAve[index]                    = B_timeAve[index] / count; 
+        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / count; 
+        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / count; 
+        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / count; 
+        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / count; 
     }
 }
 
-void Interface2D::calculateTimeAveParameters(int substeps)
-{
 
+void Interface2D::calculateTimeAveragedPICParameters(int count)
+{
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((localSizeXPIC + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    calculateTimeAveParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    calculateSubPICParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B_timeAve.data()), 
         thrust::raw_pointer_cast(zerothMomentIon_timeAve.data()), 
         thrust::raw_pointer_cast(zerothMomentElectron_timeAve.data()), 
         thrust::raw_pointer_cast(firstMomentIon_timeAve.data()), 
         thrust::raw_pointer_cast(firstMomentElectron_timeAve.data()), 
-        substeps, 
-        localSizeXPIC
+        count, 
+        mPIInfoPIC.localSizeX
     );
     cudaDeviceSynchronize();
 
-    boundaryPIC.periodicBoundaryB_x(B_timeAve);
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon_timeAve); 
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron_timeAve); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon_timeAve); 
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron_timeAve); 
-    boundaryPIC.freeBoundaryB_y(B_timeAve);
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon_timeAve); 
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron_timeAve); 
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon_timeAve); 
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron_timeAve); 
 }
-*/
+
+void Interface2D::setParametersForPICtoMHD()
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfoMHD.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (PIC2DConst::ny / Interface2DConst::gridSizeRatio + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    averagingParametersForPICtoMHD_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(B_timeAve.data()), 
+        thrust::raw_pointer_cast(zerothMomentIon_timeAve.data()), 
+        thrust::raw_pointer_cast(zerothMomentElectron_timeAve.data()), 
+        thrust::raw_pointer_cast(firstMomentIon_timeAve.data()), 
+        thrust::raw_pointer_cast(firstMomentElectron_timeAve.data()), 
+        thrust::raw_pointer_cast(B_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(zerothMomentIon_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(zerothMomentElectron_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(firstMomentIon_PICtoMHD.data()), 
+        thrust::raw_pointer_cast(firstMomentElectron_PICtoMHD.data()), 
+        mPIInfoMHD.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
+    );
+    cudaDeviceSynchronize();
+}
+
+
+void Interface2D::calculateUHalf(
+    const thrust::device_vector<ConservationParameter>& UPast, 
+    const thrust::device_vector<ConservationParameter>& UNext 
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(UPast.data()), 
+        thrust::raw_pointer_cast(UNext.data()), 
+        thrust::raw_pointer_cast(UHalf.data()), 
+        0.5, 
+        mPIInfoMHD.localSizeX
+    );
+    cudaDeviceSynchronize();
+}
 
 
 thrust::device_vector<ConservationParameter>& Interface2D::getUHalfRef()

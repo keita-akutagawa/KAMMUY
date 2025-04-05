@@ -10,30 +10,20 @@ __global__ void initializeReloadParticlesSource_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < reloadParticlesNumSpecies) {
-        curandState stateX; 
-        curandState stateY;
-        curandState stateVx; 
-        curandState stateVy; 
-        curandState stateVz;  
-        curand_init(seed + 0, 100 * i, 0, &stateX);
-        curand_init(seed + 1, 100 * i, 0, &stateY);
-        curand_init(seed + 2, 100 * i, 0, &stateVx);
-        curand_init(seed + 3, 100 * i, 0, &stateVy);
-        curand_init(seed + 4, 100 * i, 0, &stateVz);
+        curandState state;
+        curand_init(seed, i, 0, &state);
 
         float x, y, z, vx, vy, vz;
-        float EPS = 0.001f;
-        while (true) {
-            x  = curand_uniform(&stateX);
-            y  = curand_uniform(&stateY);
-            z  = 0.0f;
-
-            if (EPS < x && x < 1.0f - EPS && EPS < y && y < 1.0f - EPS) break;
-        }
         
-        vx = curand_normal(&stateVx);
-        vy = curand_normal(&stateVy);
-        vz = curand_normal(&stateVz);
+        x = curand_uniform(&state);
+        y = curand_uniform(&state);
+        z = 0.0f;
+        vx = curand_normal(&state);
+        vy = curand_normal(&state);
+        vz = curand_normal(&state);
+
+        x = min(max(x, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
+        y = min(max(y, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
 
         reloadParticlesSourceSpecies[i].x  = x;
         reloadParticlesSourceSpecies[i].y  = y;
@@ -43,6 +33,7 @@ __global__ void initializeReloadParticlesSource_kernel(
         reloadParticlesSourceSpecies[i].vz = vz;
     }
 }
+
 
 Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
@@ -60,10 +51,11 @@ Interface2D::Interface2D(
 
       interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0), 
 
-      zerothMomentIon     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentElectron(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentIon      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentElectron (mPIInfoPIC.localSizeX * PIC2DConst::ny),
+      B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny),
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -71,19 +63,19 @@ Interface2D::Interface2D(
       reloadParticlesSourceIon     (Interface2DConst::reloadParticlesTotalNum), 
       reloadParticlesSourceElectron(Interface2DConst::reloadParticlesTotalNum), 
 
-      reloadParticlesDataIon     (mPIInfoInterface.localSizeX * PIC2DConst::ny), 
-      reloadParticlesDataElectron(mPIInfoInterface.localSizeX * PIC2DConst::ny), 
+      reloadParticlesDataIon     (mPIInfoPIC.localNx * PIC2DConst::ny), 
+      reloadParticlesDataElectron(mPIInfoPIC.localNx * PIC2DConst::ny), 
       
-      B_timeAve                   (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
-      firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      B_PICtoMHD                   (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentIon_PICtoMHD     (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentIon_PICtoMHD      (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentElectron_PICtoMHD (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
 
       USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
       UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
 
-      momentCalculater(mPIInfoPIC), 
+      momentCalculator(mPIInfoPIC), 
       boundaryPIC(mPIInfoPIC), 
       interfaceNoiseRemover2D(interfaceNoiseRemover2D)
 {

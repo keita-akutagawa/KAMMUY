@@ -3,6 +3,7 @@
 #include <string>
 #include "flux_solver.hpp"
 #include "boundary.hpp"
+#include "const.hpp"
 #include "mpi.hpp"
 
 

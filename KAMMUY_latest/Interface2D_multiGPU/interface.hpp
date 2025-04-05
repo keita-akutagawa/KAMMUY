@@ -21,7 +21,7 @@
 #include "../PIC2D_multiGPU/field_parameter_struct.hpp"
 #include "../PIC2D_multiGPU/moment_struct.hpp"
 #include "../PIC2D_multiGPU/particle_struct.hpp"
-#include "../PIC2D_multiGPU/moment_calculater.hpp"
+#include "../PIC2D_multiGPU/moment_calculator.hpp"
 #include "../PIC2D_multiGPU/is_exist_transform.hpp"
 #include "../PIC2D_multiGPU/boundary.hpp"
 #include "../IdealMHD2D_multiGPU/mpi.hpp"
@@ -42,10 +42,11 @@ private:
 
     thrust::device_vector<double> interlockingFunctionY;
 
-    thrust::device_vector<ZerothMoment> zerothMomentIon;
-    thrust::device_vector<ZerothMoment> zerothMomentElectron;
-    thrust::device_vector<FirstMoment> firstMomentIon;
-    thrust::device_vector<FirstMoment> firstMomentElectron;
+    thrust::device_vector<MagneticField> B_timeAve; 
+    thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
+    thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
+    thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
+    thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
 
     unsigned long long restartParticlesIndexIon;
     unsigned long long restartParticlesIndexElectron;
@@ -56,16 +57,16 @@ private:
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataIon;
     thrust::device_vector<ReloadParticlesData> reloadParticlesDataElectron;
 
-    thrust::device_vector<MagneticField> B_timeAve;
-    thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
-    thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
-    thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
-    thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
+    thrust::device_vector<MagneticField> B_PICtoMHD;
+    thrust::device_vector<ZerothMoment> zerothMomentIon_PICtoMHD;
+    thrust::device_vector<ZerothMoment> zerothMomentElectron_PICtoMHD;
+    thrust::device_vector<FirstMoment> firstMomentIon_PICtoMHD;
+    thrust::device_vector<FirstMoment> firstMomentElectron_PICtoMHD;
 
     thrust::device_vector<ConservationParameter> USub;
     thrust::device_vector<ConservationParameter> UHalf;
 
-    MomentCalculater momentCalculater;
+    MomentCalculator momentCalculator;
     BoundaryPIC boundaryPIC; 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D;
 
@@ -99,7 +100,7 @@ public:
     void deleteParticlesSpecies(
         thrust::device_vector<Particle>& particlesSpecies, 
         unsigned long long& existNumSpeciesPerProcs, 
-        int seed
+        unsigned long long seed
     );
 
     //CUDAのラムダ制限のためpublicに移動
@@ -108,14 +109,18 @@ public:
         thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
         thrust::device_vector<Particle>& reloadParticlesSourceSpecies, 
         unsigned long long& existNumSpeciesPerProcs, 
-        int seed 
+        unsigned long long seed 
     );
 
     void sendMHDtoPIC_particle(
         const thrust::device_vector<ConservationParameter>& U, 
+        const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+        const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
+        const thrust::device_vector<FirstMoment>& firstMomentIon, 
+        const thrust::device_vector<FirstMoment>& firstMomentElectron, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron, 
-        int seed
+        unsigned long long seed
     );
 
 
@@ -130,24 +135,31 @@ public:
         double mixingRatio
     );
 
-    void resetTimeAveParameters();
+    void resetTimeAveragedPICParameters();
 
-    void sumUpTimeAveParameters(
+    void sumUpTimeAveragedPICParameters(
         const thrust::device_vector<MagneticField>& B, 
-        const thrust::device_vector<Particle>& particlesIon, 
-        const thrust::device_vector<Particle>& particlesElectron
+        const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
+        const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
+        const thrust::device_vector<FirstMoment>& firstMomentIon, 
+        const thrust::device_vector<FirstMoment>& firstMomentElectron
     );
 
-    //void calculateTimeAveParameters(int substeps);
+    void calculateTimeAveragedPICParameters(
+        int count
+    );
+
+    void setParametersForPICtoMHD();
+
+    void calculateUHalf(
+        const thrust::device_vector<ConservationParameter>& UPast, 
+        const thrust::device_vector<ConservationParameter>& UNext 
+    ); 
 
     thrust::device_vector<ConservationParameter>& getUHalfRef();
 
 private:
 
-    void setMoments(
-        const thrust::device_vector<Particle>& particlesIon, 
-        const thrust::device_vector<Particle>& particlesElectron
-    );
 };
 
 #endif

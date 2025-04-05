@@ -25,6 +25,9 @@ void BoundaryPIC::periodicBoundaryParticle_x(
         mPIInfo.numForRecvParticlesElectronRight
     );
     MPI_Barrier(MPI_COMM_WORLD);
+
+    if (mPIInfo.existNumIonPerProcs > mPIInfo.totalNumIonPerProcs) std::cout << "BROKEN" << std::endl;
+    if (mPIInfo.existNumElectronPerProcs > mPIInfo.totalNumElectronPerProcs) std::cout << "BROKEN" << std::endl;
 }
 
 
@@ -44,8 +47,8 @@ __global__ void periodicBoundaryParticle_x_kernel(
     if (i < existNumSpecies) {
         float x = particlesSpecies[i].x; 
 
-        float boundaryLeft  = xminForProcs + PIC2DConst::device_EPS; 
-        float boundaryRight = xmaxForProcs - PIC2DConst::device_EPS; 
+        float boundaryLeft  = xminForProcs; 
+        float boundaryRight = xmaxForProcs; 
 
         if (x <= boundaryLeft) {
             particlesSpecies[i].isExist = false;
@@ -56,19 +59,19 @@ __global__ void periodicBoundaryParticle_x_kernel(
             return;
         }
 
-        if (x > boundaryLeft && x <= boundaryLeft + buffer * PIC2DConst::device_dx) {
+        if (x > boundaryLeft && x <= boundaryLeft + buffer * PIC2DConst::device_dx - PIC2DConst::device_EPS) {
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx) {
+            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx - PIC2DConst::device_EPS) {
                 sendParticle.x = sendParticle.x + PIC2DConst::device_xmax;
             }
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
-        if (x < boundaryRight && x >= boundaryRight - buffer * PIC2DConst::device_dx) {
+        if (x < boundaryRight && x >= boundaryRight - buffer * PIC2DConst::device_dx + PIC2DConst::device_EPS) {
             unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx) {
+            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx + PIC2DConst::device_EPS) {
                 sendParticle.x = sendParticle.x - PIC2DConst::device_xmax;
             }
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
@@ -107,7 +110,7 @@ void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
         particlesSpecies.begin(), particlesSpecies.end(), 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
-    existNumSpecies = thrust::distance(particlesSpecies.begin(), partitionEnd);
+    existNumSpecies = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
 
     numForSendParticlesSpeciesLeft  = countForSendParticlesSpeciesLeft[0];
     numForSendParticlesSpeciesRight = countForSendParticlesSpeciesRight[0];
@@ -144,7 +147,6 @@ void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
         particlesSpecies.begin() + existNumSpecies
     );
     existNumSpecies += numForRecvParticlesSpeciesRight;
-
 }
 
 
