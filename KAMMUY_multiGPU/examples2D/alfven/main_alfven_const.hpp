@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include <cuda_runtime.h>
 
 #include "../../IdealMHD2D_multiGPU/idealMHD2D.hpp"
@@ -18,7 +19,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_multiGPU/results_alfven";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_alfven";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
@@ -28,7 +29,7 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 10;
 const bool isParticleRecord = false;
@@ -37,64 +38,54 @@ const int particleRecordStep = PIC2DConst::totalStep;
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const double Interface2DConst::EPS = 1.0e-20;
+const int Interface2DConst::gridSizeRatio = 4; 
+
+const double Interface2DConst::EPS = 0.0001;
 const double Interface2DConst::PI = 3.14159265358979;
-const float PIC2DConst::EPS = 1.0e-10f;
-const double IdealMHD2DConst::EPS = 1.0e-20;
+const float PIC2DConst::EPS = 0.0001;
+const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
 const double waveAmp = 0.1;
-const double waveLength = 5000.0;
+const double waveLength = 1000.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
 const int PIC2DConst::nx = 20;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
-const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx - 0.0f * PIC2DConst::dx;
+const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 1000;
+const int PIC2DConst::ny = 100;
 const float PIC2DConst::dy = 1.0f;
-const float PIC2DConst::ymin = buffer * PIC2DConst::dy; 
-const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + buffer * PIC2DConst::dy;
+const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
+const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
 
 
-const int IdealMHD2DConst::nx = PIC2DConst::nx;
+const int IdealMHD2DConst::nx = PIC2DConst::nx / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dx = 1.0;
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
-const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx - 0.0 * IdealMHD2DConst::dx;
+const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = 9550;
+const int IdealMHD2DConst::ny = waveLength * 5 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = 1.0;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
-const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy - 0.0 * IdealMHD2DConst::dy;
+const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
 
 
 // Interface
 
 const int Interface2DConst::convolutionCount = 5;
 
-const int Interface2DConst::interfaceLength = 50;
-const int indexOfInterfaceStartInPIC_lower = 0;
-const int indexOfInterfaceStartInMHD_lower = IdealMHD2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInPIC_upper = PIC2DConst::ny + 2 * buffer - Interface2DConst::interfaceLength;
-const int indexOfInterfaceStartInMHD_upper = 0;
+const int Interface2DConst::interfaceLength = -1; //使わないこと
+const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
+const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
-const int convolutionSizeX = PIC2DConst::nx + 2 * buffer; 
-const int convolutionSizeY = Interface2DConst::interfaceLength + 20; 
-const int indexOfConvolutionStartInPIC_lowerInterface = 0;
-const int indexOfConvolutionStartInMHD_lowerInterface = IdealMHD2DConst::ny + 2 * buffer - convolutionSizeY; 
-const int indexOfConvolutionStartInPIC_upperInterface = PIC2DConst::ny + 2 * buffer - convolutionSizeY; 
-const int indexOfConvolutionStartInMHD_upperInterface = 0;
-
-const int Interface2DConst::nx = PIC2DConst::nx; 
+const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
-thrust::host_vector<double> host_interlockingFunctionY_lower(Interface2DConst::ny, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_lower(Interface2DConst::ny, 0.0);
-thrust::host_vector<double> host_interlockingFunctionY_upper(Interface2DConst::ny, 0.0);
-thrust::host_vector<double> host_interlockingFunctionYHalf_upper(Interface2DConst::ny, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * buffer) * PIC2DConst::ny, 0.0);
 
-const unsigned long long Interface2DConst::reloadParticlesTotalNum = 100000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNum = 1000000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
 // PIC
 
@@ -113,7 +104,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.1f / sqrt(2.0f) * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -154,6 +145,10 @@ const double IdealMHD2DConst::CFL = 0.7;
 const double IdealMHD2DConst::gamma = 5.0 / 3.0;
 
 double IdealMHD2DConst::dt = 0.0;
+
+double IdealMHD2DConst::ch = 0.0; 
+double IdealMHD2DConst::cp = 0.0; 
+double IdealMHD2DConst::cr = 0.18; 
 
 ////////// device //////////
 
@@ -240,13 +235,20 @@ __constant__ double IdealMHD2DConst::device_gamma;
 
 __device__ double IdealMHD2DConst::device_dt;
 
+__device__ double IdealMHD2DConst::device_ch; 
+__device__ double IdealMHD2DConst::device_cp; 
+__device__ double IdealMHD2DConst::device_cr; 
 
 // Interface
 
 __constant__ double Interface2DConst::device_EPS;
 __constant__ double Interface2DConst::device_PI;
 
+__constant__ int Interface2DConst::device_gridSizeRatio;
+
 __constant__ int Interface2DConst::device_interfaceLength;
+__constant__ double Interface2DConst::device_deltaForInterlockingFunction; 
+__constant__ int Interface2DConst::device_indexOfInterfaceStartInMHD;
 
 __constant__ int Interface2DConst::device_nx; 
 __constant__ int Interface2DConst::device_ny;  
