@@ -62,12 +62,12 @@ const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymi
 
 
 const int IdealMHD2DConst::nx = PIC2DConst::nx / Interface2DConst::gridSizeRatio;
-const double IdealMHD2DConst::dx = 1.0;
+const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = waveLength * 5 / Interface2DConst::gridSizeRatio;
-const double IdealMHD2DConst::dy = 1.0;
+const int IdealMHD2DConst::ny = PIC2DConst::ny * 4 / Interface2DConst::gridSizeRatio;
+const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
 
