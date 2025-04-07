@@ -61,7 +61,7 @@ struct MagneticField
     }
 
     __host__ __device__
-    MagneticField operator/(double scalar) const
+    MagneticField operator/(float scalar) const
     {
         return MagneticField(bX / scalar, bY / scalar, bZ / scalar);
     }
@@ -128,7 +128,7 @@ struct ElectricField
     }
 
     __host__ __device__
-    ElectricField operator/(double scalar) const
+    ElectricField operator/(float scalar) const
     {
         return ElectricField(eX / scalar, eY / scalar, eZ / scalar);
     }
@@ -195,7 +195,7 @@ struct CurrentField
     }
 
     __host__ __device__
-    CurrentField operator/(double scalar) const
+    CurrentField operator/(float scalar) const
     {
         return CurrentField(jX / scalar, jY / scalar, jZ / scalar);
     }

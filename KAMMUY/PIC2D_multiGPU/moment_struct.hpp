@@ -52,7 +52,7 @@ struct ZerothMoment
     }
 
     __host__ __device__
-    ZerothMoment operator/(double scalar) const
+    ZerothMoment operator/(float scalar) const
     {
         return ZerothMoment(n / scalar);
     }
@@ -119,7 +119,7 @@ struct FirstMoment
     }
 
     __host__ __device__
-    FirstMoment operator/(double scalar) const
+    FirstMoment operator/(float scalar) const
     {
         return FirstMoment(x / scalar, y / scalar, z / scalar);
     }
@@ -206,7 +206,7 @@ struct SecondMoment
     }
 
     __host__ __device__
-    SecondMoment operator/(double scalar) const
+    SecondMoment operator/(float scalar) const
     {
         return SecondMoment(xx / scalar, yy / scalar, zz / scalar, xy / scalar, xz / scalar, yz / scalar);
     }
