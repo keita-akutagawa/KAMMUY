@@ -102,19 +102,15 @@ __global__ void maxwellDistributionForVelocity_kernel(
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < nEnd - nStart) {
-        curandState stateVx; 
-        curandState stateVy; 
-        curandState stateVz; 
-        curand_init(seed,           100 * (offset + i), 0, &stateVx);
-        curand_init(seed + 1000000, 100 * (offset + i), 0, &stateVy);
-        curand_init(seed + 2000000, 100 * (offset + i), 0, &stateVz);
+        curandState state; 
+        curand_init(seed, offset + i, 0, &state);
 
         float vx, vy, vz, gamma;
 
         while (true) {
-            vx = bulkVxSpecies + curand_normal(&stateVx) * vxThSpecies;
-            vy = bulkVySpecies + curand_normal(&stateVy) * vyThSpecies;
-            vz = bulkVzSpecies + curand_normal(&stateVz) * vzThSpecies;
+            vx = bulkVxSpecies + curand_normal(&state) * vxThSpecies;
+            vy = bulkVySpecies + curand_normal(&state) * vyThSpecies;
+            vz = bulkVzSpecies + curand_normal(&state) * vzThSpecies;
 
             if (vx * vx + vy * vy + vz * vz < PIC2DConst::device_c * PIC2DConst::device_c) break;
         }
@@ -179,7 +175,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         nStart, nEnd,
         ymin, ymax, 
-        seed + 1, (mPIInfo.rank + 1) * (nEnd - nStart)
+        seed + 1000, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 
@@ -188,7 +184,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
         bulkVxSpecies, bulkVySpecies, bulkVzSpecies, 
         vxThSpecies, vyThSpecies, vzThSpecies, 
         nStart, nEnd, 
-        seed + 2, (mPIInfo.rank + 1) * (nEnd - nStart)
+        seed + 2000, (mPIInfo.rank + 1) * (nEnd - nStart)
     );
     cudaDeviceSynchronize();
 }
