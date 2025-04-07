@@ -165,11 +165,11 @@ __global__ void averagingParametersForPICtoMHD_kernel(
             for (int windowY = 0; windowY < Interface2DConst::device_gridSizeRatio; windowY++) {
                 int indexForAveraging = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
                 
-                averagedB                     += B_timeAve[indexForAveraging]; 
-                averagedZerothMomentIon       += zerothMomentIon_timeAve[indexForAveraging]; 
-                averagedZerothMomentElecteron += zerothMomentElectron_timeAve[indexForAveraging]; 
-                averagedFirstMomentIon        += firstMomentIon_timeAve[indexForAveraging]; 
-                averagedFirstMomentElectron   += firstMomentElectron_timeAve[indexForAveraging];
+                averagedB                     += B_timeAve[indexPIC]; 
+                averagedZerothMomentIon       += zerothMomentIon_timeAve[indexPIC]; 
+                averagedZerothMomentElecteron += zerothMomentElectron_timeAve[indexPIC]; 
+                averagedFirstMomentIon        += firstMomentIon_timeAve[indexPIC]; 
+                averagedFirstMomentElectron   += firstMomentElectron_timeAve[indexPIC];
             }
         }
         averagedB                     = averagedB                     / pow(Interface2DConst::device_gridSizeRatio, 2);
