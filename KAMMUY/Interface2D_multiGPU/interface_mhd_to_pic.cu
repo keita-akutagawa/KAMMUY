@@ -152,13 +152,13 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
         jZPIC = current[indexPIC].jZ;
 
         jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dx);
         jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio)
+              / (2.0 * IdealMHD2DConst::device_dx)
               - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         
         jXInterface = interlockingFunctionY[indexPIC] * jXMHD + (1.0 - interlockingFunctionY[indexPIC]) * jXPIC;
         jYInterface = interlockingFunctionY[indexPIC] * jYMHD + (1.0 - interlockingFunctionY[indexPIC]) * jYPIC;
@@ -397,13 +397,13 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
                * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
                - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
         jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dx);
         jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio)
+              / (2.0 * IdealMHD2DConst::device_dx)
               - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
 
         niMHD = rhoMHD / (PIC2DConst::device_mIon + PIC2DConst::device_mElectron);
         neMHD = niMHD;
