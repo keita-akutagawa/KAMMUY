@@ -19,18 +19,11 @@ namespace Interface2DMPI
         int buffer = 0;
         int localSizeX = 0;
 
-        MPI_Datatype mpi_reloadParticlesDataType;
-
         __host__ __device__
         int getRank(int dx);
     }; 
 
     void setupInfo(MPIInfo& mPIInfo, int buffer);
-
-    void sendrecv_reloadParticlesData_x(
-        thrust::device_vector<ReloadParticlesData>& reloadParticlesDataSpecies, 
-        MPIInfo& mPIInfo
-    );
 }
 
 #endif
