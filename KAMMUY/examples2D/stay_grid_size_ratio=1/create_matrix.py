@@ -21,7 +21,7 @@ def make_poisson_matrix_periodic(Nx, Ny, dx, dy):
     Ty[-2, 0] = -1 / (2.0 * dy)**2 
     Ty[-1, 1] = -1 / (2.0 * dy)**2 
 
-    A = sp.kron(Iy, Tx) + sp.kron(Ty, Ix)
+    A = sp.kron(Ix, Ty) + sp.kron(Tx, Iy)
     
     return A
 
