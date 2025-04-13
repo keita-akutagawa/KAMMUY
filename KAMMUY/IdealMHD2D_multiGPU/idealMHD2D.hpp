@@ -4,6 +4,7 @@
 #include "flux_solver.hpp"
 #include "boundary.hpp"
 #include "const.hpp"
+#include "projection.hpp"
 #include "mpi.hpp"
 
 
@@ -25,6 +26,7 @@ private:
     thrust::host_vector<ConservationParameter> hU;
 
     BoundaryMHD boundaryMHD;
+    Projection projection; 
 
 public:
     IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo);
@@ -33,9 +35,9 @@ public:
 
     void setPastU();
 
-    void oneStepRK2_periodicXSymmetricY_predictor();
+    void oneStepRK2_periodicXY_predictor();
 
-    void oneStepRK2_periodicXSymmetricY_corrector(
+    void oneStepRK2_periodicXY_corrector(
         thrust::device_vector<ConservationParameter>& UHalf
     );
 
@@ -58,6 +60,8 @@ public:
     thrust::device_vector<ConservationParameter>& getUPastRef();
 
     BoundaryMHD& getBoundaryMHDRef(); 
+
+    Projection& getProjectionRef(); 
 
 private:
 

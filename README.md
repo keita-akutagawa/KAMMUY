@@ -9,6 +9,11 @@ This is the modern computing style in a CPU & GPU environment.
 
 KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditional belief system of the Ainu people in Hokkaido, Japan.
 
+## Latest Information
+
+[2025.4.13]
+The ratio of MHD to PIC grid size can be freely determined. 
+
 ## Schemes
 
 ### MHD
@@ -16,7 +21,7 @@ KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditi
 - HLLD
 - MUSCL(minmod)
 - RK2
-- 9 wave
+- Projection
 
 ### PIC
 
@@ -28,6 +33,13 @@ KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditi
 
 - interlocking method
 - convolution
+
+## Library
+
+- Thrust
+- AmgX
+  - AMG_CLASSICAL_CG.json
+  - PCG_W.json (stable)
 
 ## reference
 

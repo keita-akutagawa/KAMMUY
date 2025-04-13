@@ -29,7 +29,11 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_stay.txt");
 
 const int buffer = 3; 
 
-const int IdealMHD2DConst::totalStep = 1000;
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/stay_grid_size_ratio=1/poisson_periodic.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/stay_grid_size_ratio=1/AMG_CLASSICAL_CG.json";
+
+
+const int IdealMHD2DConst::totalStep = 2000;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 10;
 const bool isParticleRecord = false;
@@ -46,7 +50,7 @@ const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const int PIC2DConst::nx = 200;
+const int PIC2DConst::nx = 400;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
@@ -62,7 +66,7 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = PIC2DConst::ny * 4 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = PIC2DConst::ny * 2 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
@@ -70,7 +74,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 5;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
@@ -142,9 +146,6 @@ const double IdealMHD2DConst::gamma = 5.0 / 3.0;
 
 double IdealMHD2DConst::dt = 0.0;
 
-double IdealMHD2DConst::ch = 0.0; 
-double IdealMHD2DConst::cp = 0.0; 
-double IdealMHD2DConst::cr = 0.18; 
 
 ////////// device //////////
 
@@ -230,10 +231,6 @@ __constant__ double IdealMHD2DConst::device_CFL;
 __constant__ double IdealMHD2DConst::device_gamma;
 
 __device__ double IdealMHD2DConst::device_dt;
-
-__device__ double IdealMHD2DConst::device_ch; 
-__device__ double IdealMHD2DConst::device_cp; 
-__device__ double IdealMHD2DConst::device_cr; 
 
 // Interface
 

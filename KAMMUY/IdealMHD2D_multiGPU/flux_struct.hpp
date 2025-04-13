@@ -12,7 +12,6 @@ struct Flux
     double f5;
     double f6;
     double f7;
-    double f8; 
 
     __host__ __device__
     Flux() : 
@@ -23,8 +22,7 @@ struct Flux
         f4(0.0),
         f5(0.0),
         f6(0.0),
-        f7(0.0), 
-        f8(0.0)
+        f7(0.0)
         {}
 };
 

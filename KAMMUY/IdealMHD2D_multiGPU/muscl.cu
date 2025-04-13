@@ -25,11 +25,10 @@ __global__ void leftParameter_kernel(
         dQLeft[index].u   = dQ[index].u   + 0.5 * minmod(dQ[index].u   - dQ[index - shiftForNeighbor].u  , dQ[index + shiftForNeighbor].u   - dQ[index].u  );
         dQLeft[index].v   = dQ[index].v   + 0.5 * minmod(dQ[index].v   - dQ[index - shiftForNeighbor].v  , dQ[index + shiftForNeighbor].v   - dQ[index].v  );
         dQLeft[index].w   = dQ[index].w   + 0.5 * minmod(dQ[index].w   - dQ[index - shiftForNeighbor].w  , dQ[index + shiftForNeighbor].w   - dQ[index].w  );
-        dQLeft[index].bX  = dQ[index].bX  + 0.5 * minmod(dQ[index].bX  - dQ[index - shiftForNeighbor].bX , dQ[index + shiftForNeighbor].bX  - dQ[index].bX );
+        dQLeft[index].bX  = dQ[index].bX;
         dQLeft[index].bY  = dQ[index].bY  + 0.5 * minmod(dQ[index].bY  - dQ[index - shiftForNeighbor].bY , dQ[index + shiftForNeighbor].bY  - dQ[index].bY );
         dQLeft[index].bZ  = dQ[index].bZ  + 0.5 * minmod(dQ[index].bZ  - dQ[index - shiftForNeighbor].bZ , dQ[index + shiftForNeighbor].bZ  - dQ[index].bZ );
         dQLeft[index].p   = dQ[index].p   + 0.5 * minmod(dQ[index].p   - dQ[index - shiftForNeighbor].p  , dQ[index + shiftForNeighbor].p   - dQ[index].p  );
-        dQLeft[index].psi = dQ[index].psi + 0.5 * minmod(dQ[index].psi - dQ[index - shiftForNeighbor].psi, dQ[index + shiftForNeighbor].psi - dQ[index].psi);
     }
 }
 
@@ -63,7 +62,7 @@ void MUSCL::getLeftQY(
     leftParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQLeft.data()), 
-        mPIInfo.localSizeX, 1
+        mPIInfo.localSizeX, 1 
     );
 }
 
@@ -84,11 +83,10 @@ __global__ void rightParameter_kernel(
         dQRight[index].u   = dQ[index + shiftForNeighbor].u   - 0.5 * minmod(dQ[index + shiftForNeighbor].u   - dQ[index].u  , dQ[index + 2 * shiftForNeighbor].u   - dQ[index + shiftForNeighbor].u  );
         dQRight[index].v   = dQ[index + shiftForNeighbor].v   - 0.5 * minmod(dQ[index + shiftForNeighbor].v   - dQ[index].v  , dQ[index + 2 * shiftForNeighbor].v   - dQ[index + shiftForNeighbor].v  );
         dQRight[index].w   = dQ[index + shiftForNeighbor].w   - 0.5 * minmod(dQ[index + shiftForNeighbor].w   - dQ[index].w  , dQ[index + 2 * shiftForNeighbor].w   - dQ[index + shiftForNeighbor].w  );
-        dQRight[index].bX  = dQ[index + shiftForNeighbor].bX  - 0.5 * minmod(dQ[index + shiftForNeighbor].bX  - dQ[index].bX , dQ[index + 2 * shiftForNeighbor].bX  - dQ[index + shiftForNeighbor].bX );
+        dQRight[index].bX  = dQ[index].bX;
         dQRight[index].bY  = dQ[index + shiftForNeighbor].bY  - 0.5 * minmod(dQ[index + shiftForNeighbor].bY  - dQ[index].bY , dQ[index + 2 * shiftForNeighbor].bY  - dQ[index + shiftForNeighbor].bY );
         dQRight[index].bZ  = dQ[index + shiftForNeighbor].bZ  - 0.5 * minmod(dQ[index + shiftForNeighbor].bZ  - dQ[index].bZ , dQ[index + 2 * shiftForNeighbor].bZ  - dQ[index + shiftForNeighbor].bZ );
         dQRight[index].p   = dQ[index + shiftForNeighbor].p   - 0.5 * minmod(dQ[index + shiftForNeighbor].p   - dQ[index].p  , dQ[index + 2 * shiftForNeighbor].p   - dQ[index + shiftForNeighbor].p  );
-        dQRight[index].psi = dQ[index + shiftForNeighbor].psi - 0.5 * minmod(dQ[index + shiftForNeighbor].psi - dQ[index].psi, dQ[index + 2 * shiftForNeighbor].psi - dQ[index + shiftForNeighbor].psi);
     }
 }
 
@@ -122,7 +120,7 @@ void MUSCL::getRightQY(
     rightParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQRight.data()), 
-        mPIInfo.localSizeX, 1
+        mPIInfo.localSizeX, 1 
     );
 }
 

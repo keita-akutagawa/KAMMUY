@@ -47,8 +47,8 @@ void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer)
     mPIInfo.localSizeX = mPIInfo.localNx + 2 * mPIInfo.buffer;
 
 
-    int block_lengths_conservation_parameter[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-    MPI_Aint offsets_conservation_parameter[9];
+    int block_lengths_conservation_parameter[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    MPI_Aint offsets_conservation_parameter[8];
     offsets_conservation_parameter[0] = offsetof(ConservationParameter, rho);
     offsets_conservation_parameter[1] = offsetof(ConservationParameter, rhoU);
     offsets_conservation_parameter[2] = offsetof(ConservationParameter, rhoV);
@@ -57,15 +57,14 @@ void IdealMHD2DMPI::setupInfo(IdealMHD2DMPI::MPIInfo& mPIInfo, int buffer)
     offsets_conservation_parameter[5] = offsetof(ConservationParameter, bY);
     offsets_conservation_parameter[6] = offsetof(ConservationParameter, bZ);
     offsets_conservation_parameter[7] = offsetof(ConservationParameter, e);
-    offsets_conservation_parameter[8] = offsetof(ConservationParameter, psi);
 
-    MPI_Datatype types_conservation_parameter[9] = {
+    MPI_Datatype types_conservation_parameter[8] = {
         MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, 
         MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, 
-        MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE
+        MPI_DOUBLE, MPI_DOUBLE
     };
 
-    MPI_Type_create_struct(9, block_lengths_conservation_parameter, offsets_conservation_parameter, types_conservation_parameter, &mPIInfo.mpi_conservation_parameter_type);
+    MPI_Type_create_struct(8, block_lengths_conservation_parameter, offsets_conservation_parameter, types_conservation_parameter, &mPIInfo.mpi_conservation_parameter_type);
     MPI_Type_commit(&mPIInfo.mpi_conservation_parameter_type);
 
 }

@@ -29,6 +29,44 @@ void BoundaryMHD::periodicBoundaryX2nd_U(
     ); 
 }
 
+
+__global__
+void periodicBoundaryY2nd_U_kernel(
+    ConservationParameter* U, 
+    int localSizeX, 
+    IdealMHD2DMPI::MPIInfo* device_mPIInfo
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    IdealMHD2DMPI::MPIInfo mPIInfo = *device_mPIInfo;
+
+    if (i < localSizeX) {
+        for (int buf = 0; buf < mPIInfo.buffer; buf++) {            
+            U[buf + i * IdealMHD2DConst::device_ny] = U[IdealMHD2DConst::device_ny - 2 * mPIInfo.buffer + buf + i * IdealMHD2DConst::device_ny];
+        }
+        
+        for (int buf = 0; buf < mPIInfo.buffer; buf++) {
+            U[IdealMHD2DConst::device_ny - mPIInfo.buffer + buf + i * IdealMHD2DConst::device_ny] = U[buf + mPIInfo.buffer + i * IdealMHD2DConst::device_ny];
+        }
+    }
+}
+
+
+void BoundaryMHD::periodicBoundaryY2nd_U(
+    thrust::device_vector<ConservationParameter>& U
+)
+{
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (mPIInfo.localSizeX + threadsPerBlock - 1) / threadsPerBlock;
+
+    periodicBoundaryY2nd_U_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U.data()), 
+        mPIInfo.localSizeX, 
+        device_mPIInfo
+    );
+    cudaDeviceSynchronize();
+}
+
 ///////////////////////
 
 __global__

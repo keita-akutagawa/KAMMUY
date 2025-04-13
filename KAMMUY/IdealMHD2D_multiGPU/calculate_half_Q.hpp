@@ -6,14 +6,14 @@
 #include "mpi.hpp"
 
 
-class CalculateQ
+class CalculateHalfQ
 {
 private:
     IdealMHD2DMPI::MPIInfo mPIInfo;
     MUSCL muscl;
 
 public:
-    CalculateQ(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    CalculateHalfQ(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
     void setPhysicalParameterX(
         const thrust::device_vector<ConservationParameter>& U, 

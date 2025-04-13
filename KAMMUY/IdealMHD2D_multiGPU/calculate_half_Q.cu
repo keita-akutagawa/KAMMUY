@@ -1,11 +1,12 @@
-#include "calculate_Q.hpp"
+#include "calculate_half_Q.hpp"
 
 
-CalculateQ::CalculateQ(IdealMHD2DMPI::MPIInfo& mPIInfo)
+CalculateHalfQ::CalculateHalfQ(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
       muscl(mPIInfo)
 {
 }
+
 
 __global__ void getBasicParamter_kernel(
     const ConservationParameter* U, 
@@ -19,35 +20,34 @@ __global__ void getBasicParamter_kernel(
 
     if (i < localSizeX - 1 && j < IdealMHD2DConst::device_ny - 1) {
 
-        double rho, u, v, w, bX, bY, bZ, e, p, psi;
+        double rho, u, v, w, bX, bY, bZ, e, p; 
         int index = j + i * IdealMHD2DConst::device_ny;
 
         rho = U[index].rho;
         u   = U[index].rhoU / rho;
         v   = U[index].rhoV / rho;
         w   = U[index].rhoW / rho;
-        bX  = U[index].bX;
+        bX  = 0.5 * (U[index].bX + U[index + shiftForNeighbor].bX); // flux計算でx, y方向使いまわすため
         bY  = U[index].bY;
         bZ  = U[index].bZ;
         e   = U[index].e;
         p   = (IdealMHD2DConst::device_gamma - 1.0)
             * (e - 0.5 * (rho * (u * u + v * v + w * w))
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
-        psi = U[index].psi; 
         
         dQ[index].rho = rho;
         dQ[index].u   = u;
         dQ[index].v   = v;
         dQ[index].w   = w;
-        dQ[index].bX  = bX; 
+        dQ[index].bX  = bX; //HLLDではBxは中心のものを使うため
         dQ[index].bY  = bY;
         dQ[index].bZ  = bZ;
         dQ[index].p   = p;
-        dQ[index].psi = psi; 
     }
 }
 
-void CalculateQ::setPhysicalParameterX(
+
+void CalculateHalfQ::setPhysicalParameterX(
     const thrust::device_vector<ConservationParameter>& U, 
     thrust::device_vector<BasicParameter>& dQCenter
 )
@@ -65,7 +65,7 @@ void CalculateQ::setPhysicalParameterX(
     cudaDeviceSynchronize();
 }
 
-void CalculateQ::setPhysicalParameterY(
+void CalculateHalfQ::setPhysicalParameterY(
     const thrust::device_vector<ConservationParameter>& U, 
     thrust::device_vector<BasicParameter>& dQCenter
 )
@@ -83,7 +83,7 @@ void CalculateQ::setPhysicalParameterY(
 }
 
 
-void CalculateQ::calculateLeftQX(
+void CalculateHalfQ::calculateLeftQX(
     const thrust::device_vector<BasicParameter>& dQCenter, 
     thrust::device_vector<BasicParameter>& dQLeft
 )
@@ -92,7 +92,7 @@ void CalculateQ::calculateLeftQX(
 }
 
 
-void CalculateQ::calculateLeftQY(
+void CalculateHalfQ::calculateLeftQY(
     const thrust::device_vector<BasicParameter>& dQCenter, 
     thrust::device_vector<BasicParameter>& dQLeft
 )
@@ -101,7 +101,7 @@ void CalculateQ::calculateLeftQY(
 }
 
 
-void CalculateQ::calculateRightQX(
+void CalculateHalfQ::calculateRightQX(
     const thrust::device_vector<BasicParameter>& dQCenter, 
     thrust::device_vector<BasicParameter>& dQRight
 )
@@ -110,12 +110,11 @@ void CalculateQ::calculateRightQX(
 }
 
 
-void CalculateQ::calculateRightQY(
+void CalculateHalfQ::calculateRightQY(
     const thrust::device_vector<BasicParameter>& dQCenter, 
     thrust::device_vector<BasicParameter>& dQRight
 )
 { 
     muscl.getRightQY(dQCenter, dQRight);
 }
-
 

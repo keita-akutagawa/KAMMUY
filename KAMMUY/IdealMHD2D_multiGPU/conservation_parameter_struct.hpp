@@ -12,7 +12,6 @@ struct ConservationParameter
     double bY;
     double bZ;
     double e;
-    double psi; 
 
     __host__ __device__
     ConservationParameter() : 
@@ -23,13 +22,12 @@ struct ConservationParameter
         bX(0.0), 
         bY(0.0), 
         bZ(0.0), 
-        e(0.0), 
-        psi(0.0)
+        e(0.0)
         {}
     
     __host__ __device__
     ConservationParameter(double rho, double rhoU, double rhoV, double rhoW, 
-                          double bX, double bY, double bZ, double e, double psi) :
+                          double bX, double bY, double bZ, double e) :
         rho(rho), 
         rhoU(rhoU),
         rhoV(rhoV), 
@@ -37,15 +35,14 @@ struct ConservationParameter
         bX(bX), 
         bY(bY), 
         bZ(bZ), 
-        e(e), 
-        psi(psi)
+        e(e)
     {}
     
     __host__ __device__
     ConservationParameter operator+(const ConservationParameter& other) const
     {
         return ConservationParameter(rho + other.rho, rhoU + other.rhoU, rhoV + other.rhoV, rhoW + other.rhoW, 
-                                     bX + other.bX, bY + other.bY, bZ + other.bZ, e + other.e, psi + other.psi);
+                                     bX + other.bX, bY + other.bY, bZ + other.bZ, e + other.e);
     }
     
     __host__ __device__
@@ -59,7 +56,6 @@ struct ConservationParameter
         bY   += other.bY;
         bZ   += other.bZ;
         e    += other.e;
-        psi  += other.psi;
         
         return *this;
     }
@@ -68,21 +64,21 @@ struct ConservationParameter
     ConservationParameter operator*(double scalar) const
     {
         return ConservationParameter(scalar * rho, scalar * rhoU, scalar * rhoV, scalar * rhoW, 
-                                     scalar * bX, scalar * bY, scalar * bZ, scalar * e, scalar * psi);
+                                     scalar * bX, scalar * bY, scalar * bZ, scalar * e);
     }
 
     __host__ __device__
     friend ConservationParameter operator*(double scalar, const ConservationParameter& other) 
     {
         return ConservationParameter(scalar * other.rho, scalar * other.rhoU, scalar * other.rhoV, scalar * other.rhoW, 
-                                     scalar * other.bX, scalar * other.bY, scalar * other.bZ, scalar * other.e, scalar * other.psi);
+                                     scalar * other.bX, scalar * other.bY, scalar * other.bZ, scalar * other.e);
     }
 
     __host__ __device__
     ConservationParameter operator/(double scalar) const
     {
         return ConservationParameter(rho / scalar, rhoU / scalar, rhoV / scalar, rhoW / scalar,
-                                    bX / scalar, bY / scalar, bZ / scalar, e / scalar, psi / scalar);
+                                    bX / scalar, bY / scalar, bZ / scalar, e / scalar);
     }
 };
 
