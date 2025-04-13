@@ -234,6 +234,7 @@ void Interface2D::calculateTimeAveragedPICParameters(int count)
 
 }
 
+
 void Interface2D::setParametersForPICtoMHD()
 {
     dim3 threadsPerBlock(16, 16);

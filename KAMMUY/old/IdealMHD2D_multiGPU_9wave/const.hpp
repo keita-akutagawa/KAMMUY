@@ -1,14 +1,8 @@
-#ifndef CONST_STRUCT_H
-#define CONST_STRUCT_H
-
-#include <string>
-
+#ifndef CONST_MHD_H
+#define CONST_MHD_H
 
 namespace IdealMHD2DConst
 {
-    extern const std::string MTXfilename;
-    extern const std::string jsonFilenameForSolver;
-
     extern const double EPS;
     extern const double PI;
 
@@ -30,6 +24,10 @@ namespace IdealMHD2DConst
     extern const double gamma;
 
     extern double dt;
+
+    extern double ch; 
+    extern double cp; 
+    extern double cr; 
 
     extern const int totalStep;
     extern double totalTime;
@@ -56,6 +54,10 @@ namespace IdealMHD2DConst
     extern __constant__ double device_gamma;
 
     extern __device__ double device_dt;
+
+    extern __device__ double device_ch; 
+    extern __device__ double device_cp; 
+    extern __device__ double device_cr; 
 
 
     void initializeDeviceConstants();

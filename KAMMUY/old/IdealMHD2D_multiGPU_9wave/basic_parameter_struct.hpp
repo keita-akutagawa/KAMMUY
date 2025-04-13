@@ -12,6 +12,7 @@ struct BasicParameter
     double bY;
     double bZ;
     double p;
+    double psi; 
 
     __host__ __device__
     BasicParameter() : 
@@ -22,7 +23,8 @@ struct BasicParameter
         bX(0.0), 
         bY(0.0), 
         bZ(0.0), 
-        p(0.0)
+        p(0.0), 
+        psi(0.0)
         {}
 };
 

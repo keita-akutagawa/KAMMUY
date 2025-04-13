@@ -4,7 +4,7 @@
 HLLD::HLLD(IdealMHD2DMPI::MPIInfo& mPIInfo)
     : mPIInfo(mPIInfo), 
       
-      calculateHalfQ(mPIInfo), 
+      calculateQ(mPIInfo), 
       
       dQCenter     (mPIInfo.localSizeX * IdealMHD2DConst::ny),
       dQLeft       (mPIInfo.localSizeX * IdealMHD2DConst::ny),
@@ -39,6 +39,7 @@ inline double calculateFluxComponent(
 }
 
 __global__ void calculateFlux_kernel(
+    const BasicParameter* dQLeft, const BasicParameter* dQRight, 
     const HLLDParameter* hLLDParameter, 
     const Flux* fluxOuterLeft, const Flux* fluxMiddleLeft, const Flux* fluxInnerLeft, 
     const Flux* fluxOuterRight, const Flux* fluxMiddleRight, const Flux* fluxInnerRight, 
@@ -78,11 +79,6 @@ __global__ void calculateFlux_kernel(
             fluxOuterRight[index].f3, fluxMiddleRight[index].f3, fluxInnerRight[index].f3, 
             SL, S1L, SM, SR, S1R
         );
-        flux[index].f4 = calculateFluxComponent(
-            fluxOuterLeft[index].f4, fluxMiddleLeft[index].f4, fluxInnerLeft[index].f4, 
-            fluxOuterRight[index].f4, fluxMiddleRight[index].f4, fluxInnerRight[index].f4, 
-            SL, S1L, SM, SR, S1R
-        );
         flux[index].f5 = calculateFluxComponent(
             fluxOuterLeft[index].f5, fluxMiddleLeft[index].f5, fluxInnerLeft[index].f5, 
             fluxOuterRight[index].f5, fluxMiddleRight[index].f5, fluxInnerRight[index].f5, 
@@ -98,7 +94,14 @@ __global__ void calculateFlux_kernel(
             fluxOuterRight[index].f7, fluxMiddleRight[index].f7, fluxInnerRight[index].f7, 
             SL, S1L, SM, SR, S1R
         );
-    }
+
+
+        double bXL = dQLeft[index].bX, bXR = dQRight[index].bX;
+        double psiL = dQLeft[index].psi, psiR = dQRight[index].psi;
+
+        flux[index].f4 = 0.5 * (psiL + psiR - IdealMHD2DConst::device_ch * (bXR - bXL));
+        flux[index].f8 = 0.5 * (IdealMHD2DConst::device_ch * IdealMHD2DConst::device_ch * (bXL + bXR) - IdealMHD2DConst::device_ch * (psiR - psiL));
+     }
 }
 
 
@@ -115,6 +118,8 @@ void HLLD::calculateFluxF(
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     calculateFlux_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(dQLeft.data()), 
+        thrust::raw_pointer_cast(dQRight.data()), 
         thrust::raw_pointer_cast(hLLDParameter.data()), 
         thrust::raw_pointer_cast(fluxOuterLeft.data()), 
         thrust::raw_pointer_cast(fluxMiddleLeft.data()), 
@@ -148,6 +153,7 @@ __global__ void shuffleForTmpUForFluxG_kernel(
         tmpU[index].bY   = U[index].bZ;
         tmpU[index].bZ   = U[index].bX;
         tmpU[index].e    = U[index].e;
+        tmpU[index].psi  = U[index].psi;  
     }
 }
 
@@ -155,6 +161,7 @@ void HLLD::shuffleForTmpUForFluxG(
     const thrust::device_vector<ConservationParameter>& U
 )
 {
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -164,6 +171,7 @@ void HLLD::shuffleForTmpUForFluxG(
         thrust::raw_pointer_cast(tmpUForFluxG.data()), 
         mPIInfo.localSizeX
     );
+
     cudaDeviceSynchronize();
 }
 
@@ -225,6 +233,8 @@ void HLLD::calculateFluxG(
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     calculateFlux_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(dQLeft.data()), 
+        thrust::raw_pointer_cast(dQRight.data()), 
         thrust::raw_pointer_cast(hLLDParameter.data()), 
         thrust::raw_pointer_cast(fluxOuterLeft.data()), 
         thrust::raw_pointer_cast(fluxMiddleLeft.data()), 
@@ -244,9 +254,9 @@ void HLLD::setQX(
     const thrust::device_vector<ConservationParameter>& U
 )
 {
-    calculateHalfQ.setPhysicalParameterX(U, dQCenter);
-    calculateHalfQ.calculateLeftQX(dQCenter, dQLeft);
-    calculateHalfQ.calculateRightQX(dQCenter, dQRight);
+    calculateQ.setPhysicalParameterX(U, dQCenter);
+    calculateQ.calculateLeftQX(dQCenter, dQLeft);
+    calculateQ.calculateRightQX(dQCenter, dQRight);
 }
 
 
@@ -254,9 +264,9 @@ void HLLD::setQY(
     const thrust::device_vector<ConservationParameter>& U
 )
 {
-    calculateHalfQ.setPhysicalParameterY(U, dQCenter);
-    calculateHalfQ.calculateLeftQY(dQCenter, dQLeft);
-    calculateHalfQ.calculateRightQY(dQCenter, dQRight);
+    calculateQ.setPhysicalParameterY(U, dQCenter);
+    calculateQ.calculateLeftQY(dQCenter, dQLeft);
+    calculateQ.calculateRightQY(dQCenter, dQRight);
 }
 
 
@@ -272,8 +282,8 @@ __global__ void calculateHLLDParameter_kernel(
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
         int index = j + i * IdealMHD2DConst::device_ny;
 
-        double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pL, pTL;
-        double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pR, pTR;
+        double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pL, pTL, psiL;
+        double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pR, pTR, psiR;
         double csL, caL, vaL, cfL; 
         double csR, caR, vaR, cfR;
         double SL, SR, SM;
@@ -283,11 +293,20 @@ __global__ void calculateHLLDParameter_kernel(
         double S1L, S1R;
         double rho2L, rho2R, u2, v2, w2, bY2, bZ2, e2L, e2R, pT2L, pT2R;
 
+        bXL  = dQLeft[index].bX;
+        bXR  = dQRight[index].bX;
+        psiL = dQLeft[index].psi;
+        psiR = dQRight[index].psi;
+
+        //以下のコードは使いまわしたいので、こうしておく
+        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / IdealMHD2DConst::device_ch); 
+        bXL = bXHalf; 
+        bXR = bXHalf; 
+
         rhoL = dQLeft[index].rho;
         uL   = dQLeft[index].u;
         vL   = dQLeft[index].v;
         wL   = dQLeft[index].w;
-        bXL  = dQLeft[index].bX;
         bYL  = dQLeft[index].bY;
         bZL  = dQLeft[index].bZ;
         pL   = dQLeft[index].p;
@@ -295,12 +314,12 @@ __global__ void calculateHLLDParameter_kernel(
              + 0.5 * rhoL * (uL * uL + vL * vL + wL * wL)
              + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL); 
         pTL  = pL + 0.5 * (bXL * bXL + bYL * bYL + bZL * bZL);
+        
 
         rhoR = dQRight[index].rho;
         uR   = dQRight[index].u;
         vR   = dQRight[index].v;
         wR   = dQRight[index].w;
-        bXR  = dQRight[index].bX;
         bYR  = dQRight[index].bY;
         bZR  = dQRight[index].bZ;
         pR   = dQRight[index].p;
@@ -494,8 +513,8 @@ __global__ void setFlux_kernel(
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
         int index = j + i * IdealMHD2DConst::device_ny;
 
-        double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pTL;
-        double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pTR;
+        double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pTL, psiL;
+        double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pTR, psiR;
         double rho1L, u1L, v1L, w1L, bY1L, bZ1L, e1L, pT1L;
         double rho1R, u1R, v1R, w1R, bY1R, bZ1R, e1R, pT1R;
         double rho2L, rho2R, u2, v2, w2, bY2, bZ2, e2L, e2R, pT2L, pT2R;
@@ -509,6 +528,7 @@ __global__ void setFlux_kernel(
         bZL  = dQLeft[index].bZ;
         eL   = hLLDParameter[index].eL;
         pTL  = hLLDParameter[index].pTL;
+        psiL = dQLeft[index].psi;
 
         rhoR = dQRight[index].rho;
         uR   = dQRight[index].u;
@@ -517,8 +537,14 @@ __global__ void setFlux_kernel(
         bXR  = dQRight[index].bX;
         bYR  = dQRight[index].bY;
         bZR  = dQRight[index].bZ;
-        eR   = hLLDParameter[index].eR;
-        pTR  = hLLDParameter[index].pTR;
+        eR   = hLLDParameter[index].eR; 
+        pTR  = hLLDParameter[index].pTR; 
+        psiR = dQRight[index].psi; 
+
+        //以下のコードは使いまわしたいので、こうしておく
+        double bXHalf = 0.5 * (bXL + bXR - (psiR - psiL) / IdealMHD2DConst::device_ch); 
+        bXL = bXHalf;
+        bXR = bXHalf;
 
         rho1L = hLLDParameter[index].rho1L;
         rho1R = hLLDParameter[index].rho1R;
@@ -586,3 +612,4 @@ thrust::device_vector<Flux>& HLLD::getFlux()
 {
     return flux;
 }
+

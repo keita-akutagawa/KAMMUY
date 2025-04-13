@@ -23,4 +23,8 @@ void IdealMHD2DConst::initializeDeviceConstants() {
     cudaMemcpyToSymbol(device_gamma, &gamma, sizeof(double));
 
     cudaMemcpyToSymbol(device_dt, &dt, sizeof(double));
+
+    cudaMemcpyToSymbol(device_ch, &ch, sizeof(double));
+    cudaMemcpyToSymbol(device_cp, &cp, sizeof(double));
+    cudaMemcpyToSymbol(device_cr, &cr, sizeof(double));
 }

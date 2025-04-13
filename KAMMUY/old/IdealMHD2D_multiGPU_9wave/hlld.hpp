@@ -2,7 +2,7 @@
 #include <thrust/transform.h>
 #include <thrust/tuple.h>
 #include "const.hpp"
-#include "calculate_half_Q.hpp"
+#include "calculate_Q.hpp"
 #include "hlld_parameter_struct.hpp"
 #include "flux_struct.hpp"
 #include "sign.hpp"
@@ -14,7 +14,7 @@ class HLLD
 private:
     IdealMHD2DMPI::MPIInfo mPIInfo;
 
-    CalculateHalfQ calculateHalfQ;
+    CalculateQ calculateQ;
 
     thrust::device_vector<BasicParameter> dQCenter;
     thrust::device_vector<BasicParameter> dQLeft;

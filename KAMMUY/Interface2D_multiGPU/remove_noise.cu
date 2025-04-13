@@ -300,16 +300,18 @@ __global__ void convolveU_kernel(
             for (int windowY = -1; windowY <= 1; windowY++) {
                 int localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
 
-                if (windowX == 0 && windowY == 0) {
-                    convolvedU += 4.0 * tmpU[localIndex];
-                } else if (windowX == 0 || windowY == 0) {
-                    convolvedU += 2.0 * tmpU[localIndex]; 
-                } else {
-                    convolvedU += 1.0 * tmpU[localIndex];
-                }
+                //if (windowX == 0 && windowY == 0) {
+                //    convolvedU += 4.0 * tmpU[localIndex];
+                //} else if (windowX == 0 || windowY == 0) {
+                //    convolvedU += 2.0 * tmpU[localIndex]; 
+                //} else {
+                //    convolvedU += 1.0 * tmpU[localIndex];
+                //}
+                convolvedU += tmpU[localIndex];
             }
         }
-        convolvedU = convolvedU / 16.0; 
+        //convolvedU = convolvedU / 16.0; 
+        convolvedU = convolvedU / 9.0; 
 
         U[indexMHD] = convolvedU;
     }

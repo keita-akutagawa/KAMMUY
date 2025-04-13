@@ -1,5 +1,11 @@
 CC = nvcc
-CFLAGS = -ccbin=mpic++ -gencode=arch=compute_60,code=sm_80 -rdc=true --extended-lambda -Xcompiler "-Wall -O3"
+CFLAGS  = -ccbin mpic++ \
+          -I$(AMGX_ROOT)/include \
+          -L$(AMGX_ROOT)/lib \
+          -gencode=arch=compute_60,code=sm_80 \
+		  --extended-lambda \
+          -rdc=true \
+          -Xcompiler "-Wall -O3"
 SRCDIRS = ../../PIC2D_multiGPU ../../IdealMHD2D_multiGPU ../../Interface2D_multiGPU
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
@@ -11,7 +17,9 @@ EXECUTABLE = program
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJS) $(MAIN)
-	$(CC) $(CFLAGS) $(OBJS) $(MAIN) -o $(EXECUTABLE)
+	$(CC) $(CFLAGS) $(OBJS) $(MAIN) -o $(EXECUTABLE) \
+	-lamgxsh -lcusparse -lcublas -lcudart -ldl -lmpi \
+		-Xlinker -rpath -Xlinker $(AMGX_ROOT)/lib
 
 %.o: %.cu
 	$(CC) $(CFLAGS) -c $< -o $@

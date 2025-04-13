@@ -26,10 +26,6 @@ public:
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void periodicBoundaryY2nd_U(
-        thrust::device_vector<ConservationParameter>& U
-    );
-
     void wallBoundaryY2nd_U(
         thrust::device_vector<ConservationParameter>& U
     );

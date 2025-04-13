@@ -23,15 +23,13 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
 
       dtVector(mPIInfo.localNx * IdealMHD2DConst::ny), 
 
-      boundaryMHD(mPIInfo), 
-      projection(mPIInfo)
+      boundaryMHD(mPIInfo)
 {
 
     cudaMalloc(&device_mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo));
     cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
     
 }
-
 
 void IdealMHD2D::setPastU()
 {
@@ -76,7 +74,10 @@ __global__ void oneStepFirst_kernel(
         UBar[index].e    = U[index].e 
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
                          - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7);
-
+        UBar[index].psi  = U[index].psi 
+                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f8 - fluxF[index - IdealMHD2DConst::device_ny].f8)
+                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f8 - fluxG[index - 1].f8)
+                         - IdealMHD2DConst::device_dt * pow(IdealMHD2DConst::device_ch / IdealMHD2DConst::device_cp, 2) * U[index].psi;
     }
 }
 
@@ -118,17 +119,31 @@ __global__ void oneStepSecond_kernel(
         U[index].e    = 0.5 * (U[index].e + UBar[index].e
                       - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
                       - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7));
+        U[index].psi  = 0.5 * (U[index].psi + UBar[index].psi
+                      - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f8 - fluxF[index - IdealMHD2DConst::device_ny].f8)
+                      - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f8 - fluxG[index - 1].f8))
+                      - IdealMHD2DConst::device_dt / 2.0 * pow(IdealMHD2DConst::device_ch / IdealMHD2DConst::device_cp, 2) * 0.5 * (U[index].psi + UBar[index].psi);
     }
 }
 
 
-void IdealMHD2D::oneStepRK2_periodicXY_predictor()
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+
+    MPI_Barrier(MPI_COMM_WORLD);
     
     thrust::copy(U.begin(), U.end(), UBar.begin());
+    cudaDeviceSynchronize();
+
+    //calculateDt();
+    IdealMHD2DConst::ch = IdealMHD2DConst::CFL / 2.0 * min(IdealMHD2DConst::dx, IdealMHD2DConst::dy) / IdealMHD2DConst::dt; 
+    IdealMHD2DConst::cp = sqrt(IdealMHD2DConst::cr * IdealMHD2DConst::ch); 
+    cudaMemcpyToSymbol(IdealMHD2DConst::device_ch, &IdealMHD2DConst::ch, sizeof(double));
+    cudaMemcpyToSymbol(IdealMHD2DConst::device_cp, &IdealMHD2DConst::cp, sizeof(double));
 
     fluxF = fluxSolver.getFluxF(U);
     fluxG = fluxSolver.getFluxG(U);
@@ -143,7 +158,7 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
     cudaDeviceSynchronize();
 
     boundaryMHD.periodicBoundaryX2nd_U(UBar);
-    boundaryMHD.periodicBoundaryY2nd_U(UBar);
+    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
 
     fluxF = fluxSolver.getFluxF(UBar);
@@ -159,22 +174,19 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
     cudaDeviceSynchronize();
 
     boundaryMHD.periodicBoundaryX2nd_U(U);
-    boundaryMHD.periodicBoundaryY2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     checkAndResetExtremeValues();
-
-    //projection.correctB(U); 
-    //boundaryMHD.periodicBoundaryX2nd_U(U);
-    //boundaryMHD.periodicBoundaryY2nd_U(U);
-    //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
-void IdealMHD2D::oneStepRK2_periodicXY_corrector(
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     thrust::device_vector<ConservationParameter>& UHalf
 )
 {
+    MPI_Barrier(MPI_COMM_WORLD);
+
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -192,7 +204,7 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
     cudaDeviceSynchronize();
 
     boundaryMHD.periodicBoundaryX2nd_U(U);
-    boundaryMHD.periodicBoundaryY2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
 
     checkAndResetExtremeValues();
@@ -415,7 +427,6 @@ struct IsNan
     }
 };
 
-
 bool IdealMHD2D::checkCalculationIsCrashed()
 {
     bool result = thrust::transform_reduce(
@@ -453,7 +464,4 @@ BoundaryMHD& IdealMHD2D::getBoundaryMHDRef()
     return boundaryMHD; 
 }
 
-Projection& IdealMHD2D::getProjectionRef()
-{
-    return projection; 
-}
+

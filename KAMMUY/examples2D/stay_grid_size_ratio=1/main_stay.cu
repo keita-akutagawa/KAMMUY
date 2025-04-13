@@ -233,6 +233,7 @@ int main(int argc, char** argv)
     );
     BoundaryMHD& boundaryMHD = idealMHD2D.getBoundaryMHDRef(); 
     BoundaryPIC& boundaryPIC = pIC2D.getBoundaryPICRef(); 
+    Projection& projection = idealMHD2D.getProjectionRef();
     
 
     if (mPIInfoPIC.rank == 0) {
@@ -296,7 +297,7 @@ int main(int argc, char** argv)
             );
         }
 
-        double dtCommon = min(0.7 * PIC2DConst::c, 0.1 * 1.0 / PIC2DConst::omegaPe);
+        double dtCommon = min(0.7 / PIC2DConst::c, 0.1 * 1.0 / PIC2DConst::omegaPe);
         PIC2DConst::dt = dtCommon;
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
         cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
@@ -307,7 +308,7 @@ int main(int argc, char** argv)
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
+        idealMHD2D.oneStepRK2_periodicXY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -354,16 +355,22 @@ int main(int argc, char** argv)
 
         interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        boundaryMHD.periodicBoundaryY2nd_U(UHalf);
 
+        idealMHD2D.oneStepRK2_periodicXY_corrector(UHalf);
+
+        thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(UHalf);
+            interfaceNoiseRemover2D.convolveU(U);
 
-            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.periodicBoundaryY2nd_U(U);
         }
 
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+        projection.correctB(U); 
+        boundaryMHD.periodicBoundaryX2nd_U(U);
+        boundaryMHD.periodicBoundaryY2nd_U(U);
+        MPI_Barrier(MPI_COMM_WORLD);
 
 
         //when crashed 
