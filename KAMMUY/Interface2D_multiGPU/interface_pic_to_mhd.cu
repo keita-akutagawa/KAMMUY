@@ -17,8 +17,6 @@ __global__ void sendPICtoMHD_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
-        int indexPIC = j * Interface2DConst::device_gridSizeRatio
-                     + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny; 
         int indexMHD = indexOfInterfaceStartInMHD + j  + (i + bufferMHD) * IdealMHD2DConst::device_ny;
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
@@ -52,13 +50,15 @@ __global__ void sendPICtoMHD_kernel(
         bYPICtoMHD  = B_PICtoMHD[indexPICtoMHD].bY; 
         bZPICtoMHD  = B_PICtoMHD[indexPICtoMHD].bZ; 
 
-        rhoMHD = interlockingFunctionY[indexPIC] * rhoMHD + (1.0 - interlockingFunctionY[indexPIC]) * rhoPICtoMHD;
-        uMHD   = interlockingFunctionY[indexPIC] * uMHD   + (1.0 - interlockingFunctionY[indexPIC]) * uPICtoMHD;
-        vMHD   = interlockingFunctionY[indexPIC] * vMHD   + (1.0 - interlockingFunctionY[indexPIC]) * vPICtoMHD;
-        wMHD   = interlockingFunctionY[indexPIC] * wMHD   + (1.0 - interlockingFunctionY[indexPIC]) * wPICtoMHD;
-        bXMHD  = interlockingFunctionY[indexPIC] * bXMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bXPICtoMHD;
-        bYMHD  = interlockingFunctionY[indexPIC] * bYMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bYPICtoMHD;
-        bZMHD  = interlockingFunctionY[indexPIC] * bZMHD  + (1.0 - interlockingFunctionY[indexPIC]) * bZPICtoMHD;
+        int indexForInterlocking = j * Interface2DConst::device_gridSizeRatio + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny; 
+
+        rhoMHD = interlockingFunctionY[indexForInterlocking] * rhoMHD + (1.0 - interlockingFunctionY[indexForInterlocking]) * rhoPICtoMHD;
+        uMHD   = interlockingFunctionY[indexForInterlocking] * uMHD   + (1.0 - interlockingFunctionY[indexForInterlocking]) * uPICtoMHD;
+        vMHD   = interlockingFunctionY[indexForInterlocking] * vMHD   + (1.0 - interlockingFunctionY[indexForInterlocking]) * vPICtoMHD;
+        wMHD   = interlockingFunctionY[indexForInterlocking] * wMHD   + (1.0 - interlockingFunctionY[indexForInterlocking]) * wPICtoMHD;
+        bXMHD  = interlockingFunctionY[indexForInterlocking] * bXMHD  + (1.0 - interlockingFunctionY[indexForInterlocking]) * bXPICtoMHD;
+        bYMHD  = interlockingFunctionY[indexForInterlocking] * bYMHD  + (1.0 - interlockingFunctionY[indexForInterlocking]) * bYPICtoMHD;
+        bZMHD  = interlockingFunctionY[indexForInterlocking] * bZMHD  + (1.0 - interlockingFunctionY[indexForInterlocking]) * bZPICtoMHD;
 
         niMHD = rhoMHD / (mIon + mElectron);
         neMHD = niMHD;

@@ -19,7 +19,7 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
       UBar     (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
       UPast    (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
       tmpVector(mPIInfo.localSizeX * IdealMHD2DConst::ny),
-      hU       (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
+      host_U   (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
 
       dtVector(mPIInfo.localNx * IdealMHD2DConst::ny), 
 
@@ -205,7 +205,7 @@ void IdealMHD2D::save(
     int step
 )
 {
-    hU = U;
+    host_U = U;
 
     std::string filename;
     filename = directoryname + "/"
@@ -218,14 +218,14 @@ void IdealMHD2D::save(
 
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rho),  sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoU), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoV), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoW), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bX),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bY),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bZ),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].e),    sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rho),  sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoU), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoV), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoW), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bX),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bY),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bZ),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].e),    sizeof(double));
         }
     }
 }
@@ -324,59 +324,19 @@ __global__ void checkAndResetExtremeValues_kernel(
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
 
-        if (rho < IdealMHD2DConst::device_rho0 * 0.1) {
-            rho = IdealMHD2DConst::device_rho0 * 0.1; 
-        }
-        if (p < IdealMHD2DConst::device_p0 * 0.1) {
-            p = IdealMHD2DConst::device_p0 * 0.1; 
-        }
+        rho = thrust::max(rho, 0.1 * IdealMHD2DConst::device_rho0);
+        p   = thrust::max(p,   0.1 * IdealMHD2DConst::device_p0);
+        rho = thrust::min(rho, 10.0 * IdealMHD2DConst::device_rho0);
+        p   = thrust::min(p,   10.0 * IdealMHD2DConst::device_p0);
 
-        if (rho > IdealMHD2DConst::device_rho0 * 10.0) {
-            rho = IdealMHD2DConst::device_rho0 * 10.0; 
-        }
-        if (p > IdealMHD2DConst::device_p0 * 10.0) {
-            p = IdealMHD2DConst::device_p0 * 10.0; 
-        }
+        double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0); \
+        u = thrust::max(-10.0 * VA, thrust::min(u, 10.0 * VA));
+        v = thrust::max(-10.0 * VA, thrust::min(v, 10.0 * VA));
+        w = thrust::max(-10.0 * VA, thrust::min(w, 10.0 * VA));
 
-        double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0); 
-        if (u > VA * 10.0) {
-            u = VA * 10.0; 
-        }
-        if (v > VA * 10.0) {
-            v = VA * 10.0; 
-        }
-        if (w > VA * 10.0) {
-            w = VA * 10.0; 
-        }
-        if (u < -VA * 10.0) {
-            u = -VA * 10.0; 
-        }
-        if (v < -VA * 10.0) {
-            v = -VA * 10.0; 
-        }
-        if (w < -VA * 10.0) {
-            w = -VA * 10.0; 
-        }
-
-        if (bX > IdealMHD2DConst::device_B0 * 10.0) {
-            bX = IdealMHD2DConst::device_B0 * 10.0; 
-        }
-        if (bY > IdealMHD2DConst::device_B0 * 10.0) {
-            bY = IdealMHD2DConst::device_B0 * 10.0; 
-        }
-        if (bZ > IdealMHD2DConst::device_B0 * 10.0) {
-            bZ = IdealMHD2DConst::device_B0 * 10.0; 
-        }
-        if (bX < -IdealMHD2DConst::device_B0 * 10.0) {
-            bX = -IdealMHD2DConst::device_B0 * 10.0; 
-        }
-        if (bY < -IdealMHD2DConst::device_B0 * 10.0) {
-            bY = -IdealMHD2DConst::device_B0 * 10.0; 
-        }
-        if (bZ < -IdealMHD2DConst::device_B0 * 10.0) {
-            bZ = -IdealMHD2DConst::device_B0 * 10.0; 
-        }
-
+        bX = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bX, 10.0 * IdealMHD2DConst::device_B0));
+        bY = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bY, 10.0 * IdealMHD2DConst::device_B0));
+        bZ = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bZ, 10.0 * IdealMHD2DConst::device_B0));
 
         e = p / (IdealMHD2DConst::device_gamma - 1.0)
           + 0.5 * rho * (u * u + v * v + w * w)
@@ -433,7 +393,7 @@ bool IdealMHD2D::checkCalculationIsCrashed()
 
 thrust::host_vector<ConservationParameter>& IdealMHD2D::getHostURef()
 {
-    return hU;
+    return host_U;
 }
 
 

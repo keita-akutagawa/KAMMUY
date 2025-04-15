@@ -137,6 +137,31 @@ void Interface2D::sumUpTimeAveragedPICParameters(
 }
 
 
+template <typename FieldType>
+__device__ FieldType getConvolvedFieldForPICtoMHD(
+    const FieldType* field, 
+    int indexPIC, 
+    int j
+)
+{
+    FieldType convolvedField; 
+
+    if (1 <= j && j <= PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio - 2) {
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
+                convolvedField += field[localIndex];
+            }
+        }
+        convolvedField = convolvedField / 9.0; 
+    } else {
+        convolvedField = field[indexPIC];
+    }
+
+    return convolvedField;
+}
+
+
 __global__ void averagingParametersForPICtoMHD_kernel(
     const MagneticField* B_timeAve, 
     const ZerothMoment* zerothMomentIon_timeAve, 
@@ -158,34 +183,23 @@ __global__ void averagingParametersForPICtoMHD_kernel(
         int indexPIC = j * Interface2DConst::device_gridSizeRatio
                      + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny;
 
-        MagneticField averagedB; 
-        ZerothMoment averagedZerothMomentIon, averagedZerothMomentElecteron; 
-        FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
-        for (int windowX = 0; windowX < Interface2DConst::device_gridSizeRatio; windowX++) {
-            for (int windowY = 0; windowY < Interface2DConst::device_gridSizeRatio; windowY++) {
-                int indexForAveraging = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
-                
-                averagedB                     += B_timeAve[indexPIC]; 
-                averagedZerothMomentIon       += zerothMomentIon_timeAve[indexPIC]; 
-                averagedZerothMomentElecteron += zerothMomentElectron_timeAve[indexPIC]; 
-                averagedFirstMomentIon        += firstMomentIon_timeAve[indexPIC]; 
-                averagedFirstMomentElectron   += firstMomentElectron_timeAve[indexPIC];
-            }
-        }
-        averagedB                     = averagedB                     / pow(Interface2DConst::device_gridSizeRatio, 2);
-        averagedZerothMomentIon       = averagedZerothMomentIon       / pow(Interface2DConst::device_gridSizeRatio, 2);
-        averagedZerothMomentElecteron = averagedZerothMomentElecteron / pow(Interface2DConst::device_gridSizeRatio, 2);
-        averagedFirstMomentIon        = averagedFirstMomentIon        / pow(Interface2DConst::device_gridSizeRatio, 2);
-        averagedFirstMomentElectron   = averagedFirstMomentElectron   / pow(Interface2DConst::device_gridSizeRatio, 2);
+        MagneticField convolvedB; 
+        ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
+        FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron; 
         
+        convolvedB = getConvolvedFieldForPICtoMHD(B_timeAve, indexPIC, j);
+        convolvedZerothMomentIon = getConvolvedFieldForPICtoMHD(zerothMomentIon_timeAve, indexPIC, j);
+        convolvedZerothMomentElectron = getConvolvedFieldForPICtoMHD(zerothMomentElectron_timeAve, indexPIC, j);
+        convolvedFirstMomentIon = getConvolvedFieldForPICtoMHD(firstMomentIon_timeAve, indexPIC, j);
+        convolvedFirstMomentElectron = getConvolvedFieldForPICtoMHD(firstMomentElectron_timeAve, indexPIC, j);
 
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
 
-        B_PICtoMHD[indexPICtoMHD] = averagedB; 
-        zerothMomentIon_PICtoMHD[indexPICtoMHD] = averagedZerothMomentIon; 
-        zerothMomentElectron_PICtoMHD[indexPICtoMHD] = averagedZerothMomentElecteron; 
-        firstMomentIon_PICtoMHD[indexPICtoMHD] = averagedFirstMomentIon; 
-        firstMomentElectron_PICtoMHD[indexPICtoMHD] = averagedFirstMomentElectron; 
+        B_PICtoMHD[indexPICtoMHD] = convolvedB; 
+        zerothMomentIon_PICtoMHD[indexPICtoMHD] = convolvedZerothMomentIon; 
+        zerothMomentElectron_PICtoMHD[indexPICtoMHD] = convolvedZerothMomentElectron; 
+        firstMomentIon_PICtoMHD[indexPICtoMHD] = convolvedFirstMomentIon; 
+        firstMomentElectron_PICtoMHD[indexPICtoMHD] = convolvedFirstMomentElectron; 
     }
 }
 
@@ -233,6 +247,7 @@ void Interface2D::calculateTimeAveragedPICParameters(int count)
     cudaDeviceSynchronize();
 
 }
+
 
 void Interface2D::setParametersForPICtoMHD()
 {

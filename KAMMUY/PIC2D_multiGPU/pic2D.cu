@@ -129,7 +129,6 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
-    //currentCalculator.resetCurrent(tmpCurrent);
     currentCalculator.calculateCurrent(
         tmpCurrent, firstMomentIon, firstMomentElectron,
         particlesIon, particlesElectron
@@ -175,9 +174,9 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
-    interface2D.sendMHDtoPIC_magneticField_y(U, B);
-    boundaryPIC.periodicBoundaryB_x(B);
-    boundaryPIC.freeBoundaryB_y(B);
+    //interface2D.sendMHDtoPIC_magneticField_y(U, B);
+    //boundaryPIC.periodicBoundaryB_x(B);
+    //boundaryPIC.freeBoundaryB_y(B);
     
     interface2D.sendMHDtoPIC_electricField_y(U, E);
     boundaryPIC.periodicBoundaryE_x(E);

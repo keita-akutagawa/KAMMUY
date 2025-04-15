@@ -23,7 +23,7 @@ private:
     thrust::device_vector<ConservationParameter> UPast;
     thrust::device_vector<double> dtVector;
     thrust::device_vector<double> tmpVector;
-    thrust::host_vector<ConservationParameter> hU;
+    thrust::host_vector<ConservationParameter> host_U;
 
     BoundaryMHD boundaryMHD;
     Projection projection; 

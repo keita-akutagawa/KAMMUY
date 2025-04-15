@@ -37,8 +37,7 @@ __global__ void freeBoundaryB_y_kernel(
 
     if (i < localSizeX) {
         B[0 + PIC2DConst::device_ny * i] = B[1 + PIC2DConst::device_ny * i];
-        B[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = B[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
-        B[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i] = B[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
+        B[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = B[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -59,6 +58,8 @@ void BoundaryPIC::freeBoundaryB_y(
     );
     cudaDeviceSynchronize();
 }
+
+
 
 //////////////////////////////////////////////////
 
@@ -95,8 +96,7 @@ __global__ void freeBoundaryE_y_kernel(
 
     if (i < localSizeX) {
         E[0 + PIC2DConst::device_ny * i] = E[1 + PIC2DConst::device_ny * i];
-        E[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
-        E[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
+        E[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
 
@@ -152,10 +152,10 @@ __global__ void freeBoundaryCurrent_y_kernel(
 
     if (i < localSizeX) {
         current[0 + PIC2DConst::device_ny * i] = current[1 + PIC2DConst::device_ny * i];
-        current[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
-        current[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 3 + PIC2DConst::device_ny * i];
+        current[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
     }
 }
+
 
 void BoundaryPIC::freeBoundaryCurrent_y(
     thrust::device_vector<CurrentField>& current

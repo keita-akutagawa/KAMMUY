@@ -20,7 +20,7 @@ __global__ void sendMHDtoPIC_magneticField_y_kernel(
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
-
+        
         bXPIC = B[indexPIC].bX;
         bYPIC = B[indexPIC].bY;
         bZPIC = B[indexPIC].bZ;
@@ -138,7 +138,7 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (0 < i && i < localNxPIC - 1 && 0 < j && j < PIC2DConst::device_ny - 1) {
+    if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double jXPIC, jYPIC, jZPIC;
         double jXMHD, jYMHD, jZMHD;
         double jXInterface, jYInterface, jZInterface;
@@ -152,13 +152,13 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
         jZPIC = current[indexPIC].jZ;
 
         jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dx);
         jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio)
+              / (2.0 * IdealMHD2DConst::device_dx)
               - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         
         jXInterface = interlockingFunctionY[indexPIC] * jXMHD + (1.0 - interlockingFunctionY[indexPIC]) * jXPIC;
         jYInterface = interlockingFunctionY[indexPIC] * jYMHD + (1.0 - interlockingFunctionY[indexPIC]) * jYPIC;
@@ -359,6 +359,31 @@ void Interface2D::reloadParticlesSpecies(
 }
 
 
+template <typename MomentType>
+__device__ MomentType getConvolvedMomentForMHDtoPIC(
+    const MomentType* moment, 
+    int indexPIC, 
+    int j
+)
+{
+    MomentType convolvedMoment; 
+
+    if (1 <= j && j <= PIC2DConst::device_ny - 2) {
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
+                convolvedMoment += moment[localIndex];
+            }
+        }
+        convolvedMoment = convolvedMoment / 9.0; 
+    } else {
+        convolvedMoment = moment[indexPIC];
+    }
+
+    return convolvedMoment;
+}
+
+
 __global__ void sendMHDtoPIC_particle_y_kernel(
     const double* interlockingFunctionY, 
     const ZerothMoment* zerothMomentIon, 
@@ -397,26 +422,33 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
                * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
                - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
         jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
         jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dx);
         jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx * Interface2DConst::device_gridSizeRatio)
+              / (2.0 * IdealMHD2DConst::device_dx)
               - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy * Interface2DConst::device_gridSizeRatio);
+              / (2.0 * IdealMHD2DConst::device_dy);
 
         niMHD = rhoMHD / (PIC2DConst::device_mIon + PIC2DConst::device_mElectron);
         neMHD = niMHD;
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
 
-        rhoPIC =  PIC2DConst::device_mIon * zerothMomentIon[indexPIC].n + PIC2DConst::device_mElectron * zerothMomentElectron[indexPIC].n;
-        uPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].x  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].x) / rhoPIC;
-        vPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].y  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].y) / rhoPIC;
-        wPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].z  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].z) / rhoPIC;
-        jXPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].x  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].x;
-        jYPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].y  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].y;
-        jZPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].z  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].z;
+        ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
+        FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron;
+        convolvedZerothMomentIon = getConvolvedMomentForMHDtoPIC(zerothMomentIon, indexPIC, j);
+        convolvedZerothMomentElectron = getConvolvedMomentForMHDtoPIC(zerothMomentElectron, indexPIC, j);
+        convolvedFirstMomentIon = getConvolvedMomentForMHDtoPIC(firstMomentIon, indexPIC, j);
+        convolvedFirstMomentElectron = getConvolvedMomentForMHDtoPIC(firstMomentElectron, indexPIC, j);
+
+        rhoPIC =  PIC2DConst::device_mIon * convolvedZerothMomentIon.n + PIC2DConst::device_mElectron * convolvedZerothMomentElectron.n;
+        uPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.x  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.x) / rhoPIC;
+        vPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.y  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.y) / rhoPIC;
+        wPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.z  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.z) / rhoPIC;
+        jXPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.x  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.x;
+        jYPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.y  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.y;
+        jZPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.z  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.z;
 
         rhoPIC = interlockingFunctionY[indexPIC] * rhoMHD + (1.0 - interlockingFunctionY[indexPIC]) * rhoPIC;
         uPIC   = interlockingFunctionY[indexPIC] * uMHD   + (1.0 - interlockingFunctionY[indexPIC]) * uPIC;
@@ -456,9 +488,6 @@ void Interface2D::sendMHDtoPIC_particle(
     unsigned long long seed
 )
 {
-    thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
-    thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
-
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -476,9 +505,6 @@ void Interface2D::sendMHDtoPIC_particle(
         mPIInfoPIC.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
     );
     cudaDeviceSynchronize();
-
-    //Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataIon, mPIInfoInterface);
-    //Interface2DMPI::sendrecv_reloadParticlesData_x(reloadParticlesDataElectron, mPIInfoInterface);
     
     deleteParticlesSpecies(
         particlesIon, mPIInfoPIC.existNumIonPerProcs, seed + 100
