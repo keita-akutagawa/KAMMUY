@@ -21,11 +21,6 @@ private:
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
     PIC2DMPI::MPIInfo* device_mPIInfoPIC; 
 
-    //thrust::device_vector<MagneticField> tmpB;
-    //thrust::device_vector<ElectricField> tmpE;
-    //thrust::device_vector<CurrentField> tmpCurrent;
-    //thrust::device_vector<ZerothMoment> tmpZerothMoment;
-    //thrust::device_vector<FirstMoment> tmpFirstMoment;
     thrust::device_vector<ConservationParameter> tmpU;
 
 public:
@@ -34,40 +29,11 @@ public:
         PIC2DMPI::MPIInfo& mPIInfoPIC
     );
 
-
-    /*
-    void convolve_magneticField(
-        thrust::device_vector<MagneticField>& B
-    );
-
-    void convolve_electricField(
-        thrust::device_vector<ElectricField>& E
-    );
-
-    void convolve_currentField(
-        thrust::device_vector<CurrentField>& current
-    );
-
-    void convolveMoments(
-        thrust::device_vector<ZerothMoment>& zerothMomentIon, 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
-        thrust::device_vector<FirstMoment>& firstMomentIon, 
-        thrust::device_vector<FirstMoment>& firstMomentElectron
-    );
-    */
-
     void convolveU(
         thrust::device_vector<ConservationParameter>& U
     );
 
 private:
-
-    /*
-    void convolveMomentsOfOneSpecies(
-        thrust::device_vector<ZerothMoment>& zerothMomentOfOneSpecies, 
-        thrust::device_vector<FirstMoment>& firstMomentOfOneSpecies
-    );
-    */
 
 };
 

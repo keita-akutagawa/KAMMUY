@@ -19,7 +19,7 @@ IdealMHD2D::IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo)
       UBar     (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
       UPast    (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
       tmpVector(mPIInfo.localSizeX * IdealMHD2DConst::ny),
-      hU       (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
+      host_U   (mPIInfo.localSizeX * IdealMHD2DConst::ny), 
 
       dtVector(mPIInfo.localNx * IdealMHD2DConst::ny), 
 
@@ -163,11 +163,6 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
     MPI_Barrier(MPI_COMM_WORLD);
 
     checkAndResetExtremeValues();
-
-    //projection.correctB(U); 
-    //boundaryMHD.periodicBoundaryX2nd_U(U);
-    //boundaryMHD.periodicBoundaryY2nd_U(U);
-    //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
@@ -199,13 +194,85 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
 }
 
 
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    
+    thrust::copy(U.begin(), U.end(), UBar.begin());
+
+    fluxF = fluxSolver.getFluxF(U);
+    fluxG = fluxSolver.getFluxG(U);
+
+    oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(U.data()), 
+        thrust::raw_pointer_cast(fluxF.data()), 
+        thrust::raw_pointer_cast(fluxG.data()), 
+        thrust::raw_pointer_cast(UBar.data()), 
+        mPIInfo.localSizeX
+    );
+    cudaDeviceSynchronize();
+
+    boundaryMHD.periodicBoundaryX2nd_U(UBar);
+    boundaryMHD.symmetricBoundaryY2nd_U(UBar);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    fluxF = fluxSolver.getFluxF(UBar);
+    fluxG = fluxSolver.getFluxG(UBar);
+
+    oneStepSecond_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(UBar.data()), 
+        thrust::raw_pointer_cast(fluxF.data()), 
+        thrust::raw_pointer_cast(fluxG.data()), 
+        thrust::raw_pointer_cast(U.data()), 
+        mPIInfo.localSizeX
+    );
+    cudaDeviceSynchronize();
+
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    checkAndResetExtremeValues();
+}
+
+
+void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
+    thrust::device_vector<ConservationParameter>& UHalf
+)
+{
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    fluxF = fluxSolver.getFluxF(UHalf);
+    fluxG = fluxSolver.getFluxG(UHalf);
+
+    oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(UPast.data()), 
+        thrust::raw_pointer_cast(fluxF.data()), 
+        thrust::raw_pointer_cast(fluxG.data()), 
+        thrust::raw_pointer_cast(U.data()), 
+        mPIInfo.localSizeX
+    );
+    cudaDeviceSynchronize();
+
+    boundaryMHD.periodicBoundaryX2nd_U(U);
+    boundaryMHD.symmetricBoundaryY2nd_U(U);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    checkAndResetExtremeValues();
+}
+
+
 void IdealMHD2D::save(
     std::string directoryname, 
     std::string filenameWithoutStep, 
     int step
 )
 {
-    hU = U;
+    host_U = U;
 
     std::string filename;
     filename = directoryname + "/"
@@ -218,14 +285,14 @@ void IdealMHD2D::save(
 
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rho),  sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoU), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoV), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].rhoW), sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bX),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bY),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].bZ),   sizeof(double));
-            ofs.write(reinterpret_cast<const char*>(&hU[j + i * IdealMHD2DConst::ny].e),    sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rho),  sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoU), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoV), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoW), sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bX),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bY),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].bZ),   sizeof(double));
+            ofs.write(reinterpret_cast<const char*>(&host_U[j + i * IdealMHD2DConst::ny].e),    sizeof(double));
         }
     }
 }
@@ -393,7 +460,7 @@ bool IdealMHD2D::checkCalculationIsCrashed()
 
 thrust::host_vector<ConservationParameter>& IdealMHD2D::getHostURef()
 {
-    return hU;
+    return host_U;
 }
 
 

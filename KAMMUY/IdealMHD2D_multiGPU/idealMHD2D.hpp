@@ -23,7 +23,7 @@ private:
     thrust::device_vector<ConservationParameter> UPast;
     thrust::device_vector<double> dtVector;
     thrust::device_vector<double> tmpVector;
-    thrust::host_vector<ConservationParameter> hU;
+    thrust::host_vector<ConservationParameter> host_U;
 
     BoundaryMHD boundaryMHD;
     Projection projection; 
@@ -38,6 +38,12 @@ public:
     void oneStepRK2_periodicXY_predictor();
 
     void oneStepRK2_periodicXY_corrector(
+        thrust::device_vector<ConservationParameter>& UHalf
+    );
+
+    void oneStepRK2_periodicXSymmetricY_predictor();
+
+    void oneStepRK2_periodicXSymmetricY_corrector(
         thrust::device_vector<ConservationParameter>& UHalf
     );
 

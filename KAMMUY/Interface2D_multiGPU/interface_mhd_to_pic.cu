@@ -1,6 +1,38 @@
 #include "interface.hpp"
 
 
+struct MagneticField_MHD {
+    double bX;
+    double bY;
+    double bZ;
+};
+
+struct ElectricField_MHD {
+    double eX;
+    double eY;
+    double eZ;
+};
+
+struct CurrentField_MHD {
+    double jX;
+    double jY;
+    double jZ;
+};
+
+
+__device__ MagneticField_MHD getMagneticField_MHD(
+    const ConservationParameter U
+)
+{
+    MagneticField_MHD B_MHD; 
+
+    B_MHD.bX = U.bX; 
+    B_MHD.bY = U.bY; 
+    B_MHD.bZ = U.bZ;
+
+    return B_MHD; 
+}
+
 __global__ void sendMHDtoPIC_magneticField_y_kernel(
     const double* interlockingFunctionY, 
     const ConservationParameter* U, 
@@ -14,19 +46,43 @@ __global__ void sendMHDtoPIC_magneticField_y_kernel(
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double bXPIC, bYPIC, bZPIC;
-        double bXMHD, bYMHD, bZMHD;
-        double bXInterface, bYInterface, bZInterface;
-
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
-                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
-
+        
         bXPIC = B[indexPIC].bX;
         bYPIC = B[indexPIC].bY;
         bZPIC = B[indexPIC].bZ;
-        bXMHD = U[indexMHD].bX;
-        bYMHD = U[indexMHD].bY;
-        bZMHD = U[indexMHD].bZ;
+        
+
+        double bXMHD, bYMHD, bZMHD;
+        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
+        double cx1, cx2, cy1, cy2;  
+
+        MagneticField_MHD B_MHD_x1y1 = getMagneticField_MHD(U[indexMHD]);
+        MagneticField_MHD B_MHD_x2y1 = getMagneticField_MHD(U[indexMHD + IdealMHD2DConst::device_ny]);
+        MagneticField_MHD B_MHD_x1y2 = getMagneticField_MHD(U[indexMHD + 1]);
+        MagneticField_MHD B_MHD_x2y2 = getMagneticField_MHD(U[indexMHD + IdealMHD2DConst::device_ny + 1]);
+        
+        cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>(((j % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        bXMHD = B_MHD_x1y1.bX * cx2 * cy2 + B_MHD_x2y1.bX * cx1 * cy2 + B_MHD_x1y2.bX * cx2 * cy1 + B_MHD_x2y2.bX * cx1 * cy1;
+
+        cx1 = static_cast<double>(((i % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        bYMHD = B_MHD_x1y1.bY * cx2 * cy2 + B_MHD_x2y1.bY * cx1 * cy2 + B_MHD_x1y2.bY * cx2 * cy1 + B_MHD_x2y2.bY * cx1 * cy1;
+
+        cx1 = static_cast<double>(((i % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>(((j % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        bZMHD = B_MHD_x1y1.bZ * cx2 * cy2 + B_MHD_x2y1.bZ * cx1 * cy2 + B_MHD_x1y2.bZ * cx2 * cy1 + B_MHD_x2y2.bZ * cx1 * cy1;
+        
+        
+        double bXInterface, bYInterface, bZInterface;
 
         bXInterface = interlockingFunctionY[indexPIC] * bXMHD + (1.0 - interlockingFunctionY[indexPIC]) * bXPIC;
         bYInterface = interlockingFunctionY[indexPIC] * bYMHD + (1.0 - interlockingFunctionY[indexPIC]) * bYPIC;
@@ -59,6 +115,28 @@ void Interface2D::sendMHDtoPIC_magneticField_y(
 }
 
 
+__device__ ElectricField_MHD getElectricField_MHD(
+    const ConservationParameter U
+)
+{
+    double rho, u, v, w, bX, bY, bZ;
+    ElectricField_MHD E_MHD; 
+
+    rho = U.rho;
+    u   = U.rhoU / rho;
+    v   = U.rhoV / rho;
+    w   = U.rhoW / rho; 
+    bX  = U.bX; 
+    bY  = U.bY; 
+    bZ  = U.bZ;
+    E_MHD.eX = -(v * bZ - w * bY);
+    E_MHD.eY = -(w * bX - u * bZ);
+    E_MHD.eZ = -(u * bY - v * bX);
+
+    return E_MHD; 
+}
+
+
 __global__ void sendMHDtoPIC_electricField_y_kernel(
     const double* interlockingFunctionY, 
     const ConservationParameter* U, 
@@ -72,28 +150,43 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double eXPIC, eYPIC, eZPIC;
-        double rho, u, v, w, bX, bY, bZ;
-        double eXMHD, eYMHD, eZMHD;
-        double eXInterface, eYInterface, eZInterface;
-
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
-                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
 
         eXPIC = E[indexPIC].eX;
         eYPIC = E[indexPIC].eY;
         eZPIC = E[indexPIC].eZ;
 
-        rho = U[indexMHD].rho;
-        u = U[indexMHD].rhoU / rho;
-        v = U[indexMHD].rhoV / rho;
-        w = U[indexMHD].rhoW / rho; 
-        bX = U[indexMHD].bX; 
-        bY = U[indexMHD].bY; 
-        bZ = U[indexMHD].bZ;
-        eXMHD = -(v * bZ - w * bY);
-        eYMHD = -(w * bX - u * bZ);
-        eZMHD = -(u * bY - v * bX);
+
+        double eXMHD, eYMHD, eZMHD;
+        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
+        double cx1, cx2, cy1, cy2;  
+
+        ElectricField_MHD E_MHD_x1y1 = getElectricField_MHD(U[indexMHD]);
+        ElectricField_MHD E_MHD_x2y1 = getElectricField_MHD(U[indexMHD + IdealMHD2DConst::device_ny]);
+        ElectricField_MHD E_MHD_x1y2 = getElectricField_MHD(U[indexMHD + 1]);
+        ElectricField_MHD E_MHD_x2y2 = getElectricField_MHD(U[indexMHD + IdealMHD2DConst::device_ny + 1]);
+        
+        cx1 = static_cast<double>(((i % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1;  
+        eXMHD = E_MHD_x1y1.eX * cx2 * cy2 + E_MHD_x2y1.eX * cx1 * cy2 + E_MHD_x1y2.eX * cx2 * cy1 + E_MHD_x2y2.eX * cx1 * cy1;
+        
+        cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>(((j % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        eYMHD = E_MHD_x1y1.eY * cx2 * cy2 + E_MHD_x2y1.eY * cx1 * cy2 + E_MHD_x1y2.eY * cx2 * cy1 + E_MHD_x2y2.eY * cx1 * cy1;
+        
+        cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        eZMHD = E_MHD_x1y1.eZ * cx2 * cy2 + E_MHD_x2y1.eZ * cx1 * cy2 + E_MHD_x1y2.eZ * cx2 * cy1 + E_MHD_x2y2.eZ * cx1 * cy1;
+        
+        
+        double eXInterface, eYInterface, eZInterface;
 
         eXInterface = interlockingFunctionY[indexPIC] * eXMHD + (1.0 - interlockingFunctionY[indexPIC]) * eXPIC;
         eYInterface = interlockingFunctionY[indexPIC] * eYMHD + (1.0 - interlockingFunctionY[indexPIC]) * eYPIC;
@@ -126,6 +219,23 @@ void Interface2D::sendMHDtoPIC_electricField_y(
 }
 
 
+__device__ CurrentField_MHD getCurrentField_MHD(
+    const ConservationParameter* U, int indexMHD
+)
+{
+    CurrentField_MHD J_MHD; 
+
+    J_MHD.jX = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
+             / (2.0 * IdealMHD2DConst::device_dy);
+    J_MHD.jY = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
+             / (2.0 * IdealMHD2DConst::device_dx);
+    J_MHD.jZ = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
+             / (2.0 * IdealMHD2DConst::device_dx)
+             - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
+             / (2.0 * IdealMHD2DConst::device_dy);
+
+    return J_MHD; 
+}
 
 __global__ void sendMHDtoPIC_currentField_y_kernel(
     const double* interlockingFunctionY, 
@@ -140,25 +250,43 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double jXPIC, jYPIC, jZPIC;
-        double jXMHD, jYMHD, jZMHD;
-        double jXInterface, jYInterface, jZInterface;
-
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
-                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
 
         jXPIC = current[indexPIC].jX;
         jYPIC = current[indexPIC].jY;
         jZPIC = current[indexPIC].jZ;
 
-        jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy);
-        jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx);
-        jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx)
-              - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy);
+
+        double jXMHD, jYMHD, jZMHD;
+        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+                     + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
+        double cx1, cx2, cy1, cy2;  
+
+        CurrentField_MHD J_MHD_x1y1 = getCurrentField_MHD(U, indexMHD);
+        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny);
+        CurrentField_MHD J_MHD_x1y2 = getCurrentField_MHD(U, indexMHD + 1);
+        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny + 1);
+        
+        cx1 = static_cast<double>(((i % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1;
+        jXMHD = J_MHD_x1y1.jX * cx2 * cy2 + J_MHD_x2y1.jX * cx1 * cy2 + J_MHD_x1y2.jX * cx2 * cy1 + J_MHD_x2y2.jX * cx1 * cy1;
+        
+        cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>(((j % Interface2DConst::device_gridSizeRatio) + 0.5) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        jYMHD = J_MHD_x1y1.jY * cx2 * cy2 + J_MHD_x2y1.jY * cx1 * cy2 + J_MHD_x1y2.jY * cx2 * cy1 + J_MHD_x2y2.jY * cx1 * cy1;
+        
+        cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        cx2 = 1.0 - cx1;
+        cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        cy2 = 1.0 - cy1; 
+        jZMHD = J_MHD_x1y1.jZ * cx2 * cy2 + J_MHD_x2y1.jZ * cx1 * cy2 + J_MHD_x1y2.jZ * cx2 * cy1 + J_MHD_x2y2.jZ * cx1 * cy1;
+
+        
+        double jXInterface, jYInterface, jZInterface;
         
         jXInterface = interlockingFunctionY[indexPIC] * jXMHD + (1.0 - interlockingFunctionY[indexPIC]) * jXPIC;
         jYInterface = interlockingFunctionY[indexPIC] * jYMHD + (1.0 - interlockingFunctionY[indexPIC]) * jYPIC;
@@ -359,6 +487,62 @@ void Interface2D::reloadParticlesSpecies(
 }
 
 
+template <typename MomentType>
+__device__ MomentType getConvolvedMomentForMHDtoPIC(
+    const MomentType* moment, 
+    int indexPIC, 
+    int j
+)
+{
+    MomentType convolvedMoment; 
+
+    if (1 <= j && j <= PIC2DConst::device_ny - 2) {
+        for (int windowX = -1; windowX <= 1; windowX++) {
+            for (int windowY = -1; windowY <= 1; windowY++) {
+                int localIndex = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
+                convolvedMoment += moment[localIndex];
+            }
+        }
+        convolvedMoment = convolvedMoment / 9.0; 
+    } else {
+        convolvedMoment = moment[indexPIC];
+    }
+
+    return convolvedMoment;
+}
+
+
+__device__ BasicParameter getBasicParameter_MHD(
+    ConservationParameter U
+)
+{
+    double rho, u, v, w, bX, bY, bZ, e, p;
+    BasicParameter basicParameter; 
+
+    rho = U.rho; 
+    u   = U.rhoU / rho;
+    v   = U.rhoV / rho;
+    w   = U.rhoW / rho; 
+    bX  = U.bX;
+    bY  = U.bY;
+    bZ  = U.bZ;
+    e   = U.e;
+    p   = (IdealMHD2DConst::device_gamma - 1.0)
+        * (e - 0.5 * rho * (u * u + v * v + w * w)
+        - 0.5 * (bX * bX + bY * bY + bZ * bZ));
+    
+    basicParameter.rho = rho; 
+    basicParameter.u   = u; 
+    basicParameter.v   = v; 
+    basicParameter.w   = w; 
+    basicParameter.bX  = bX; 
+    basicParameter.bY  = bY; 
+    basicParameter.bZ  = bZ;
+    basicParameter.p   = p;
+
+    return basicParameter; 
+}
+
 __global__ void sendMHDtoPIC_particle_y_kernel(
     const double* interlockingFunctionY, 
     const ZerothMoment* zerothMomentIon, 
@@ -376,47 +560,59 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
-        int indexForReload = j + i * PIC2DConst::device_ny;
         int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
+
+        ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
+        FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron;
+        convolvedZerothMomentIon = getConvolvedMomentForMHDtoPIC(zerothMomentIon, indexPIC, j);
+        convolvedZerothMomentElectron = getConvolvedMomentForMHDtoPIC(zerothMomentElectron, indexPIC, j);
+        convolvedFirstMomentIon = getConvolvedMomentForMHDtoPIC(firstMomentIon, indexPIC, j);
+        convolvedFirstMomentElectron = getConvolvedMomentForMHDtoPIC(firstMomentElectron, indexPIC, j);
+
+        double rhoPIC, uPIC, vPIC, wPIC, jXPIC, jYPIC, jZPIC;
+
+        rhoPIC =  PIC2DConst::device_mIon * convolvedZerothMomentIon.n + PIC2DConst::device_mElectron * convolvedZerothMomentElectron.n;
+        uPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.x  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.x) / rhoPIC;
+        vPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.y  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.y) / rhoPIC;
+        wPIC   = (PIC2DConst::device_mIon * convolvedFirstMomentIon.z  + PIC2DConst::device_mElectron * convolvedFirstMomentElectron.z) / rhoPIC;
+        jXPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.x  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.x;
+        jYPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.y  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.y;
+        jZPIC  =  PIC2DConst::device_qIon * convolvedFirstMomentIon.z  + PIC2DConst::device_qElectron * convolvedFirstMomentElectron.z;
+
+
         int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
-        double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
+        double rhoMHD, uMHD, vMHD, wMHD, pMHD;
         double jXMHD, jYMHD, jZMHD, niMHD, neMHD, tiMHD, teMHD;
-        double rhoPIC, uPIC, vPIC, wPIC;
-        double jXPIC, jYPIC, jZPIC, niPIC, nePIC, vThiPIC, vThePIC;
 
-        rhoMHD = U[indexMHD].rho; 
-        uMHD   = U[indexMHD].rhoU / rhoMHD;
-        vMHD   = U[indexMHD].rhoV / rhoMHD;
-        wMHD   = U[indexMHD].rhoW / rhoMHD; 
-        bXMHD  = U[indexMHD].bX;
-        bYMHD  = U[indexMHD].bY;
-        bZMHD  = U[indexMHD].bZ;
-        eMHD   = U[indexMHD].e;
-        pMHD   = (IdealMHD2DConst::device_gamma - 1.0)
-               * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
-               - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
-        jXMHD = (U[indexMHD + 1].bZ - U[indexMHD - 1].bZ)
-              / (2.0 * IdealMHD2DConst::device_dy);
-        jYMHD = -(U[indexMHD + IdealMHD2DConst::device_ny].bZ - U[indexMHD - IdealMHD2DConst::device_ny].bZ)
-              / (2.0 * IdealMHD2DConst::device_dx);
-        jZMHD = (U[indexMHD + IdealMHD2DConst::device_ny].bY - U[indexMHD - IdealMHD2DConst::device_ny].bY)
-              / (2.0 * IdealMHD2DConst::device_dx)
-              - (U[indexMHD + 1].bX - U[indexMHD - 1].bX)
-              / (2.0 * IdealMHD2DConst::device_dy);
+        double cx1 = static_cast<double>((i % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio); 
+        double cx2 = 1.0 - cx1;
+        double cy1 = static_cast<double>((j % Interface2DConst::device_gridSizeRatio) / Interface2DConst::device_gridSizeRatio);
+        double cy2 = 1.0 - cy1; 
+
+        BasicParameter basicParameter_x1y1 = getBasicParameter_MHD(U[indexMHD]); 
+        BasicParameter basicParameter_x2y1 = getBasicParameter_MHD(U[indexMHD + IdealMHD2DConst::device_ny]);
+        BasicParameter basicParameter_x1y2 = getBasicParameter_MHD(U[indexMHD + 1]);
+        BasicParameter basicParameter_x2y2 = getBasicParameter_MHD(U[indexMHD + IdealMHD2DConst::device_ny + 1]);
+
+        CurrentField_MHD J_MHD_x1y1 = getCurrentField_MHD(U, indexMHD);
+        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny);
+        CurrentField_MHD J_MHD_x1y2 = getCurrentField_MHD(U, indexMHD + 1);
+        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny + 1);
+
+        rhoMHD = basicParameter_x1y1.rho * cx2 * cy2 + basicParameter_x2y1.rho * cx1 * cy2 + basicParameter_x1y2.rho * cx2 * cy1 + basicParameter_x2y2.rho * cx1 * cy1;
+        uMHD   = basicParameter_x1y1.u   * cx2 * cy2 + basicParameter_x2y1.u   * cx1 * cy2 + basicParameter_x1y2.u   * cx2 * cy1 + basicParameter_x2y2.u   * cx1 * cy1;
+        vMHD   = basicParameter_x1y1.v   * cx2 * cy2 + basicParameter_x2y1.v   * cx1 * cy2 + basicParameter_x1y2.v   * cx2 * cy1 + basicParameter_x2y2.v   * cx1 * cy1;
+        wMHD   = basicParameter_x1y1.w   * cx2 * cy2 + basicParameter_x2y1.w   * cx1 * cy2 + basicParameter_x1y2.w   * cx2 * cy1 + basicParameter_x2y2.w   * cx1 * cy1;
+        pMHD   = basicParameter_x1y1.p   * cx2 * cy2 + basicParameter_x2y1.p   * cx1 * cy2 + basicParameter_x1y2.p   * cx2 * cy1 + basicParameter_x2y2.p   * cx1 * cy1;
+        jXMHD  = J_MHD_x1y1.jX           * cx2 * cy2 + J_MHD_x2y1.jX           * cx1 * cy2 + J_MHD_x1y2.jX           * cx2 * cy1 + J_MHD_x2y2.jX           * cx1 * cy1;
+        jYMHD  = J_MHD_x1y1.jY           * cx2 * cy2 + J_MHD_x2y1.jY           * cx1 * cy2 + J_MHD_x1y2.jY           * cx2 * cy1 + J_MHD_x2y2.jY           * cx1 * cy1;
+        jZMHD  = J_MHD_x1y1.jZ           * cx2 * cy2 + J_MHD_x2y1.jZ           * cx1 * cy2 + J_MHD_x1y2.jZ           * cx2 * cy1 + J_MHD_x2y2.jZ           * cx1 * cy1;
 
         niMHD = rhoMHD / (PIC2DConst::device_mIon + PIC2DConst::device_mElectron);
         neMHD = niMHD;
         tiMHD = pMHD / 2.0 / niMHD;
         teMHD = pMHD / 2.0 / neMHD;
-
-        rhoPIC =  PIC2DConst::device_mIon * zerothMomentIon[indexPIC].n + PIC2DConst::device_mElectron * zerothMomentElectron[indexPIC].n;
-        uPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].x  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].x) / rhoPIC;
-        vPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].y  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].y) / rhoPIC;
-        wPIC   = (PIC2DConst::device_mIon * firstMomentIon[indexPIC].z  + PIC2DConst::device_mElectron * firstMomentElectron[indexPIC].z) / rhoPIC;
-        jXPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].x  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].x;
-        jYPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].y  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].y;
-        jZPIC  =  PIC2DConst::device_qIon * firstMomentIon[indexPIC].z  + PIC2DConst::device_qElectron * firstMomentElectron[indexPIC].z;
 
         rhoPIC = interlockingFunctionY[indexPIC] * rhoMHD + (1.0 - interlockingFunctionY[indexPIC]) * rhoPIC;
         uPIC   = interlockingFunctionY[indexPIC] * uMHD   + (1.0 - interlockingFunctionY[indexPIC]) * uPIC;
@@ -426,10 +622,14 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         jYPIC  = interlockingFunctionY[indexPIC] * jYMHD  + (1.0 - interlockingFunctionY[indexPIC]) * jYPIC;
         jZPIC  = interlockingFunctionY[indexPIC] * jZMHD  + (1.0 - interlockingFunctionY[indexPIC]) * jZPIC;
 
+        double niPIC, nePIC, vThiPIC, vThePIC;
         niPIC   = rhoPIC / (PIC2DConst::device_mIon + PIC2DConst::device_mElectron);
         nePIC   = niPIC;
         vThiPIC = sqrt(2.0 * tiMHD / PIC2DConst::device_mIon);
         vThePIC = sqrt(2.0 * teMHD / PIC2DConst::device_mElectron);
+
+
+        int indexForReload = j + i * PIC2DConst::device_ny;
 
         reloadParticlesDataIon     [indexForReload].numAndIndex = round(niPIC);
         reloadParticlesDataElectron[indexForReload].numAndIndex = round(nePIC);
@@ -456,9 +656,6 @@ void Interface2D::sendMHDtoPIC_particle(
     unsigned long long seed
 )
 {
-    thrust::fill(reloadParticlesDataIon.begin(), reloadParticlesDataIon.end(), ReloadParticlesData());
-    thrust::fill(reloadParticlesDataElectron.begin(), reloadParticlesDataElectron.end(), ReloadParticlesData());
-
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfoPIC.localNx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);

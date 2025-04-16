@@ -117,6 +117,8 @@ void Projection::correctB(
     MPI_Reduce(thrust::raw_pointer_cast(divB.data()), thrust::raw_pointer_cast(sum_divB.data()), IdealMHD2DConst::nx * IdealMHD2DConst::ny, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (mPIInfo.rank == 0) {
+        thrust::fill(psi.begin(), psi.end(), 0.0); 
+        AMGX_vector_upload(amgx_sol, IdealMHD2DConst::nx * IdealMHD2DConst::ny, 1, thrust::raw_pointer_cast(psi.data()));
         AMGX_vector_upload(amgx_rhs, IdealMHD2DConst::nx * IdealMHD2DConst::ny, 1, thrust::raw_pointer_cast(sum_divB.data()));
         AMGX_solver_solve(solver, amgx_rhs, amgx_sol);
         AMGX_vector_download(amgx_sol, thrust::raw_pointer_cast(psi.data()));
