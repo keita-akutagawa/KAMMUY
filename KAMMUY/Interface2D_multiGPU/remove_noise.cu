@@ -30,27 +30,62 @@ __global__ void convolveU_kernel(
 
     if (0 < i && i < localSizeXMHD - 1 && 0 < j && j < IdealMHD2DConst::device_ny - 1) {
         int indexMHD = j + i * IdealMHD2DConst::device_ny;
+        double rho, u, v, w, bX, bY, bZ, e, p;
 
-        ConservationParameter convolvedU; 
+        BasicParameter convolvedBasicParameter; 
 
         for (int windowX = -1; windowX <= 1; windowX++) {
             for (int windowY = -1; windowY <= 1; windowY++) {
                 int localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
+                
+                BasicParameter basicParameter; 
 
-                //if (windowX == 0 && windowY == 0) {
-                //    convolvedU += 4.0 * tmpU[localIndex];
-                //} else if (windowX == 0 || windowY == 0) {
-                //    convolvedU += 2.0 * tmpU[localIndex]; 
-                //} else {
-                //    convolvedU += 1.0 * tmpU[localIndex];
-                //}
-                convolvedU += tmpU[localIndex];
+                rho = tmpU[localIndex].rho; 
+                u   = tmpU[localIndex].rhoU / rho;
+                v   = tmpU[localIndex].rhoV / rho;
+                w   = tmpU[localIndex].rhoW / rho; 
+                bX  = tmpU[localIndex].bX;
+                bY  = tmpU[localIndex].bY;
+                bZ  = tmpU[localIndex].bZ;
+                e   = tmpU[localIndex].e;
+                p   = (IdealMHD2DConst::device_gamma - 1.0)
+                    * (e - 0.5 * rho * (u * u + v * v + w * w)
+                    - 0.5 * (bX * bX + bY * bY + bZ * bZ));
+                
+                basicParameter.rho = rho;
+                basicParameter.u   = u;
+                basicParameter.v   = v;
+                basicParameter.w   = w;
+                basicParameter.bX  = bX;
+                basicParameter.bY  = bY;
+                basicParameter.bZ  = bZ;
+                basicParameter.p   = p;
+
+                convolvedBasicParameter += basicParameter;
             }
         }
-        //convolvedU = convolvedU / 16.0; 
-        convolvedU = convolvedU / 9.0; 
+        convolvedBasicParameter = convolvedBasicParameter / 9.0; 
 
-        U[indexMHD] = convolvedU;
+        rho = convolvedBasicParameter.rho;
+        u   = convolvedBasicParameter.u;
+        v   = convolvedBasicParameter.v;   
+        w   = convolvedBasicParameter.w;   
+        bX  = convolvedBasicParameter.bX;  
+        bY  = convolvedBasicParameter.bY;  
+        bZ  = convolvedBasicParameter.bZ;  
+        p   = convolvedBasicParameter.p;   
+        e   = p / (IdealMHD2DConst::device_gamma - 1.0)
+            + 0.5 * rho * (u * u + v * v + w * w)
+            + 0.5 * (bX * bX + bY * bY + bZ * bZ); 
+
+        U[indexMHD].rho  = rho;
+        U[indexMHD].rhoU = rho * u;
+        U[indexMHD].rhoV = rho * v;
+        U[indexMHD].rhoW = rho * w;
+        U[indexMHD].bX   = bX;
+        U[indexMHD].bY   = bY;
+        U[indexMHD].bZ   = bZ;
+        U[indexMHD].e    = e;
     }
 }
 

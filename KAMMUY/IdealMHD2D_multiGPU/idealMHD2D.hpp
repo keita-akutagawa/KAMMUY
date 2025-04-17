@@ -41,6 +41,12 @@ public:
         thrust::device_vector<ConservationParameter>& UHalf
     );
 
+    void oneStepRK2_periodicXSymmetricY_predictor();
+
+    void oneStepRK2_periodicXSymmetricY_corrector(
+        thrust::device_vector<ConservationParameter>& UHalf
+    );
+
     void save(
         std::string directoryname, 
         std::string filenameWithoutStep, 

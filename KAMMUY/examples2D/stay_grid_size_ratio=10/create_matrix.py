@@ -26,8 +26,8 @@ def make_poisson_matrix_periodic(Nx, Ny, dx, dy):
     return A
 
 
-Nx, Ny = 400, 400
-dx, dy = 1.0, 1.0
+Nx, Ny = 10, 20
+dx, dy = 10.0, 10.0
 N = Nx * Ny
 
 A = make_poisson_matrix_periodic(Nx, Ny, dx, dy)

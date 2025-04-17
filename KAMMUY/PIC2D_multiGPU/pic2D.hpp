@@ -139,8 +139,6 @@ public:
 
     BoundaryPIC& getBoundaryPICRef(); 
 
-private:
-
     void calculateFullMoments();
 
     void calculateZerothMoments();
@@ -148,6 +146,8 @@ private:
     void calculateFirstMoments();
 
     void calculateSecondMoments();
+
+private:
 
 };
 

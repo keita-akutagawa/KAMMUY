@@ -187,11 +187,11 @@ __global__ void averagingParametersForPICtoMHD_kernel(
         ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
         FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron; 
         
-        convolvedB = getConvolvedFieldForPICtoMHD(B_timeAve, indexPIC, j);
-        convolvedZerothMomentIon = getConvolvedFieldForPICtoMHD(zerothMomentIon_timeAve, indexPIC, j);
+        convolvedB                    = getConvolvedFieldForPICtoMHD(B_timeAve, indexPIC, j);
+        convolvedZerothMomentIon      = getConvolvedFieldForPICtoMHD(zerothMomentIon_timeAve, indexPIC, j);
         convolvedZerothMomentElectron = getConvolvedFieldForPICtoMHD(zerothMomentElectron_timeAve, indexPIC, j);
-        convolvedFirstMomentIon = getConvolvedFieldForPICtoMHD(firstMomentIon_timeAve, indexPIC, j);
-        convolvedFirstMomentElectron = getConvolvedFieldForPICtoMHD(firstMomentElectron_timeAve, indexPIC, j);
+        convolvedFirstMomentIon       = getConvolvedFieldForPICtoMHD(firstMomentIon_timeAve, indexPIC, j);
+        convolvedFirstMomentElectron  = getConvolvedFieldForPICtoMHD(firstMomentElectron_timeAve, indexPIC, j);
 
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
 

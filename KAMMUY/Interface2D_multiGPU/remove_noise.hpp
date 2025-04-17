@@ -6,6 +6,7 @@
 #include "const.hpp"
 #include "../IdealMHD2D_multiGPU/const.hpp"
 #include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
+#include "../IdealMHD2D_multiGPU/basic_parameter_struct.hpp"
 #include "../PIC2D_multiGPU/const.hpp"
 #include "../PIC2D_multiGPU/field_parameter_struct.hpp"
 #include "../PIC2D_multiGPU/moment_struct.hpp"
