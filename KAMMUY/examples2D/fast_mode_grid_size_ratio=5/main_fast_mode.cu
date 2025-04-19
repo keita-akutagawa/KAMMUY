@@ -1,8 +1,8 @@
-#include "main_alfven_const.hpp"
+#include "main_fast_mode_const.hpp"
 
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
-    double VA, double waveAmp, double waveNumber, 
+    double Cf, double waveAmp, double waveNumber, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -18,14 +18,14 @@ __global__ void initializeU_kernel(
             double rho, u, v, w, bX, bY, bZ, e, p;
             double y = j * IdealMHD2DConst::device_dy;
             
-            rho = IdealMHD2DConst::device_rho0;
-            u   = waveAmp * VA * sin(waveNumber * y);
-            v   = 0.0;
-            w   = waveAmp * VA * cos(waveNumber * y);
-            bX  = -waveAmp * IdealMHD2DConst::device_B0 * sin(waveNumber * y);
-            bY  = IdealMHD2DConst::device_B0;
-            bZ  = -waveAmp * IdealMHD2DConst::device_B0 * cos(waveNumber * y);
-            p   = IdealMHD2DConst::device_p0;
+            rho = IdealMHD2DConst::device_rho0 * (1.0 + waveAmp * sin(waveNumber * y));;
+            u   = 0.0;
+            v   = waveAmp * Cf * sin(waveNumber * y);
+            w   = 0.0;
+            bX  = 0.0;
+            bY  = 0.0;
+            bZ  = IdealMHD2DConst::device_B0 * (1.0 + waveAmp * sin(waveNumber * y));
+            p   = IdealMHD2DConst::device_p0 * (1.0 + IdealMHD2DConst::device_gamma * waveAmp * sin(waveNumber * y));
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
                 + 0.5 * rho * (u * u + v * v + w * w)
                 + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -44,7 +44,7 @@ __global__ void initializeU_kernel(
 
 void IdealMHD2D::initializeU()
 {
-    double VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
+    double Cf = sqrt(IdealMHD2DConst::B0 * IdealMHD2DConst::B0 / IdealMHD2DConst::rho0 + IdealMHD2DConst::gamma * IdealMHD2DConst::p0 / IdealMHD2DConst::rho0);
 
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -52,7 +52,7 @@ void IdealMHD2D::initializeU()
 
     initializeU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        VA, waveAmp, waveNumber, 
+        Cf, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -67,7 +67,7 @@ void IdealMHD2D::initializeU()
 
 __global__ void initializePICField_kernel(
     ElectricField* E, MagneticField* B, 
-    double VA, double waveAmp, double waveNumber, 
+    double Cf, double waveAmp, double waveNumber, 
     PIC2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -82,12 +82,12 @@ __global__ void initializePICField_kernel(
             float u, v, w, bX, bY, bZ, eX, eY, eZ;
             float y = j * PIC2DConst::device_dy + Interface2DConst::device_indexOfInterfaceStartInMHD * IdealMHD2DConst::device_dy;
 
-            u   = waveAmp * VA * sin(waveNumber * y);
-            v   = 0.0;
-            w   = waveAmp * VA * cos(waveNumber * y);
-            bX  = -waveAmp * PIC2DConst::device_B0 * sin(waveNumber * y);
-            bY  = PIC2DConst::device_B0;
-            bZ  = -waveAmp * PIC2DConst::device_B0 * cos(waveNumber * y);
+            u   = 0.0;
+            v   = waveAmp * Cf * sin(waveNumber * y);
+            w   = 0.0;
+            bX  = 0.0;
+            bY  = 0.0;
+            bZ  = PIC2DConst::device_B0 * (1.0 + waveAmp * sin(waveNumber * y));
             eX = -(v * bZ - w * bY);
             eY = -(w * bX - u * bZ);
             eZ = -(u * bY - v * bX);
@@ -104,24 +104,32 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
-    double VA = IdealMHD2DConst::B0 / sqrt(IdealMHD2DConst::rho0); 
+    double Cf = sqrt(IdealMHD2DConst::B0 * IdealMHD2DConst::B0 / IdealMHD2DConst::rho0 + IdealMHD2DConst::gamma * IdealMHD2DConst::p0 / IdealMHD2DConst::rho0);
 
+    unsigned long long countIon = 0, countElectron = 0;
     for (int i = 0; i < mPIInfo.localNx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
             float bulkVxIon, bulkVyIon, bulkVzIon;
             float bulkVxElectron, bulkVyElectron, bulkVzElectron;
+            int ni, ne; 
             float y = (j + Interface2DConst::indexOfInterfaceStartInMHD * Interface2DConst::gridSizeRatio) * PIC2DConst::dy;
+            float rho;
 
             xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs + PIC2DConst::EPS;
             xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs - PIC2DConst::EPS;
             yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin + PIC2DConst::EPS;
             ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin - PIC2DConst::EPS;
             
-            bulkVx = waveAmp * VA * sin(waveNumber * y);
-            bulkVy = 0.0;
-            bulkVz = waveAmp * VA * cos(waveNumber * y);
+            float rho0 = PIC2DConst::mIon * PIC2DConst::numberDensityIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron;
+            rho = rho0 * (1.0f + waveAmp * sin(waveNumber * y));
+            ni  = round(rho / (PIC2DConst::mIon + PIC2DConst::mElectron));
+            ne  = ni; 
+
+            bulkVx = 0.0f;
+            bulkVy = waveAmp * Cf * sin(waveNumber * y);
+            bulkVz = 0.0f;
 
             bulkVxIon = bulkVx; 
             bulkVyIon = bulkVy; 
@@ -134,7 +142,7 @@ void PIC2D::initialize()
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
                 bulkVxIon, bulkVyIon, bulkVzIon,  
                 PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
-                (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityIon, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityIon, 
+                countIon, countIon + ni, 
                 j + i * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
                 particlesIon
             );
@@ -142,12 +150,18 @@ void PIC2D::initialize()
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
                 bulkVxElectron, bulkVyElectron, bulkVzElectron,  
                 PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
-                (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityElectron, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityElectron, 
+                countElectron, countElectron + ne, 
                 j + i * PIC2DConst::ny + mPIInfo.localNx * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
                 particlesElectron
             );
+
+            countIon      += ni;
+            countElectron += ne;
         }
     }
+
+    mPIInfo.existNumIonPerProcs = countIon; 
+    mPIInfo.existNumElectronPerProcs = countElectron; 
 
 
     dim3 threadsPerBlock(16, 16);
@@ -156,7 +170,7 @@ void PIC2D::initialize()
 
     initializePICField_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), thrust::raw_pointer_cast(B.data()), 
-        VA, waveAmp, waveNumber, 
+        Cf, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -171,12 +185,6 @@ void PIC2D::initialize()
     boundaryPIC.freeBoundaryParticle_y(particlesIon, particlesElectron);
     
     MPI_Barrier(MPI_COMM_WORLD);
-}
-
-
-template <typename T>
-T clamp(T x, T low, T high) {
-    return std::min(std::max(x, low), high);
 }
 
 
@@ -240,8 +248,8 @@ int main(int argc, char** argv)
         }
     }
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
-        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny + 1; j++) {
-            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - j + i * PIC2DConst::ny];
+        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny; j++) {
+            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
     
@@ -361,10 +369,13 @@ int main(int argc, char** argv)
             thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
             thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
             thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+            thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+            thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
             interface2D.sumUpTimeAveragedPICParameters(
                 B, 
                 zerothMomentIon, zerothMomentElectron, 
-                firstMomentIon, firstMomentElectron
+                firstMomentIon, firstMomentElectron, 
+                secondMomentIon, secondMomentElectron
             );
             sumUpCount += 1; 
         }
@@ -382,15 +393,16 @@ int main(int argc, char** argv)
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(UHalf);
+
+            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        }
+
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(U);
-
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
-        }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);

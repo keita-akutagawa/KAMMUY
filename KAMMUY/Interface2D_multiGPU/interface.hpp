@@ -48,6 +48,8 @@ private:
     thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
     thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
     thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
+    thrust::device_vector<SecondMoment> secondMomentIon_timeAve;
+    thrust::device_vector<SecondMoment> secondMomentElectron_timeAve;
 
     unsigned long long restartParticlesIndexIon;
     unsigned long long restartParticlesIndexElectron;
@@ -63,6 +65,8 @@ private:
     thrust::device_vector<ZerothMoment> zerothMomentElectron_PICtoMHD;
     thrust::device_vector<FirstMoment> firstMomentIon_PICtoMHD;
     thrust::device_vector<FirstMoment> firstMomentElectron_PICtoMHD;
+    thrust::device_vector<SecondMoment> secondMomentIon_PICtoMHD;
+    thrust::device_vector<SecondMoment> secondMomentElectron_PICtoMHD;
 
     thrust::device_vector<ConservationParameter> USub;
     thrust::device_vector<ConservationParameter> UHalf;
@@ -119,6 +123,8 @@ public:
         const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         const thrust::device_vector<FirstMoment>& firstMomentIon, 
         const thrust::device_vector<FirstMoment>& firstMomentElectron, 
+        const thrust::device_vector<SecondMoment>& secondMomentIon, 
+        const thrust::device_vector<SecondMoment>& secondMomentElectron, 
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron, 
         unsigned long long seed
@@ -143,7 +149,9 @@ public:
         const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
         const thrust::device_vector<FirstMoment>& firstMomentIon, 
-        const thrust::device_vector<FirstMoment>& firstMomentElectron
+        const thrust::device_vector<FirstMoment>& firstMomentElectron, 
+        const thrust::device_vector<SecondMoment>& secondMomentIon, 
+        const thrust::device_vector<SecondMoment>& secondMomentElectron
     );
 
     void calculateTimeAveragedPICParameters(

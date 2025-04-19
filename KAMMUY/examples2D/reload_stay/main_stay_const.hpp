@@ -18,30 +18,36 @@
 #include "../../PIC2D_multiGPU/const.hpp"
 #include "../../Interface2D_multiGPU/const.hpp"
 
+#include "../../Reload/reloader.hpp"
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_fast_mode_grid_size_ratio=10";
-std::string filenameWithoutStep = "fast_mode";
-std::ofstream logfile(    directoryName + "/log_fast_mode.txt"       );
-std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_fast_mode.txt");
-std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_fast_mode.txt");
-std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_fast_mode.txt");
+
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_stay_grid_size_ratio=4";
+std::string filenameWithoutStep = "stay";
+std::ofstream logfile(    directoryName + "/log_stay.txt"       , std::ios::app);
+std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_stay.txt");
+std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_stay.txt");
+std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_stay.txt");
+
+
+const int reloadStep = 960;
 
 
 const int buffer = 3; 
 
-const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/fast_mode_grid_size_ratio=10/poisson_symmetric.mtx";
-const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/fast_mode_grid_size_ratio=10/PCG_W.json";
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/stay_grid_size_ratio=4/poisson_periodic.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/stay_grid_size_ratio=4/PCG_W.json";
 
-const int IdealMHD2DConst::totalStep = 10000;
+
+const int IdealMHD2DConst::totalStep = 2000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 1;
+const int recordStep = 10;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
 float PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const int Interface2DConst::gridSizeRatio = 10; 
+const int Interface2DConst::gridSizeRatio = 4; 
 
 const double Interface2DConst::EPS = 0.0001;
 const double Interface2DConst::PI = 3.14159265358979;
@@ -49,16 +55,12 @@ const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const double waveAmp = 0.1;
-const double waveLength = 1000.0;
-const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
-
-const int PIC2DConst::nx = 50;
+const int PIC2DConst::nx = 200;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 100;
+const int PIC2DConst::ny = 200;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -69,17 +71,18 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = waveLength * 5 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = PIC2DConst::ny * 2 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
+
 
 // Interface
 
 const int Interface2DConst::convolutionCount = 1;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
-const double Interface2DConst::deltaForInterlockingFunction = 1 * Interface2DConst::gridSizeRatio; 
+const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
 const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
@@ -106,7 +109,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.1f / sqrt(2.0f) * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = 0.5f * PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -127,8 +130,8 @@ const unsigned long long PIC2DConst::totalNumIon = static_cast<unsigned long lon
 const unsigned long long PIC2DConst::totalNumElectron = static_cast<unsigned long long>(PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityElectron);
 const unsigned long long PIC2DConst::totalNumParticles = PIC2DConst::totalNumIon + PIC2DConst::totalNumElectron;
 
-const float PIC2DConst::vThIon = sqrt(PIC2DConst::tIon / PIC2DConst::mIon);
-const float PIC2DConst::vThElectron = sqrt(PIC2DConst::tElectron / PIC2DConst::mElectron);
+const float PIC2DConst::vThIon = sqrt(2.0 * PIC2DConst::tIon / PIC2DConst::mIon);
+const float PIC2DConst::vThElectron = sqrt(2.0 * PIC2DConst::tElectron / PIC2DConst::mElectron);
 const float PIC2DConst::bulkVxIon = 0.0;
 const float PIC2DConst::bulkVyIon = 0.0;
 const float PIC2DConst::bulkVzIon = 0.0;
@@ -147,6 +150,7 @@ const double IdealMHD2DConst::CFL = 0.7;
 const double IdealMHD2DConst::gamma = 5.0 / 3.0;
 
 double IdealMHD2DConst::dt = 0.0;
+
 
 ////////// device //////////
 

@@ -75,6 +75,8 @@ public:
         unsigned long long seedForReload
     );
 
+    void oneStep_periodicXFreeY_onlyPIC();
+
     void saveFields(
         std::string directoryname, 
         std::string filenameWithoutStep, 
@@ -136,6 +138,10 @@ public:
     thrust::device_vector<FirstMoment>& getFirstMomentIonRef();
 
     thrust::device_vector<FirstMoment>& getFirstMomentElectronRef();
+
+    thrust::device_vector<SecondMoment>& getSecondMomentIonRef();
+
+    thrust::device_vector<SecondMoment>& getSecondMomentElectronRef();
 
     BoundaryPIC& getBoundaryPICRef(); 
 

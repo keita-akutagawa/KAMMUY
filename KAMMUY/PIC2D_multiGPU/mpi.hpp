@@ -46,6 +46,7 @@ namespace PIC2DMPI
         MPI_Datatype mpi_fieldType;
         MPI_Datatype mpi_zerothMomentType;
         MPI_Datatype mpi_firstMomentType;
+        MPI_Datatype mpi_secondMomentType;
 
 
         __host__ __device__
@@ -147,6 +148,15 @@ namespace PIC2DMPI
         thrust::device_vector<FirstMoment>& sendFirstMomentRight, 
         thrust::device_vector<FirstMoment>& recvFirstMomentLeft, 
         thrust::device_vector<FirstMoment>& recvFirstMomentRight, 
+        MPIInfo& mPIInfo
+    ); 
+
+    void sendrecv_secondMoment_x(
+        thrust::device_vector<SecondMoment>& secondMoment, 
+        thrust::device_vector<SecondMoment>& sendSecondMomentLeft, 
+        thrust::device_vector<SecondMoment>& sendSecondMomentRight, 
+        thrust::device_vector<SecondMoment>& recvSecondMomentLeft, 
+        thrust::device_vector<SecondMoment>& recvSecondMomentRight, 
         MPIInfo& mPIInfo
     ); 
 

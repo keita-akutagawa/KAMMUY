@@ -182,20 +182,96 @@ void PIC2D::oneStep_periodicXFreeY(
     boundaryPIC.periodicBoundaryE_x(E);
     boundaryPIC.freeBoundaryE_y(E);
     
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon);
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon);
-    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron);
-    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron);
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon);
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon);
-    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron);
-    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron);
+    calculateFullMoments();
     interface2D.sendMHDtoPIC_particle(
         U, 
         zerothMomentIon, zerothMomentElectron, 
         firstMomentIon, firstMomentElectron, 
+        secondMomentIon, secondMomentElectron, 
         particlesIon, particlesElectron, 
         seedForReload
+    );
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
+}   
+
+
+void PIC2D::oneStep_periodicXFreeY_onlyPIC()
+{
+    MPI_Barrier(MPI_COMM_WORLD);
+    
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                       (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+                      
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
+    
+    getCenterBE_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(tmpB.data()), 
+        thrust::raw_pointer_cast(tmpE.data()), 
+        thrust::raw_pointer_cast(B.data()), 
+        thrust::raw_pointer_cast(E.data()), 
+        mPIInfo.localSizeX
+    );
+    cudaDeviceSynchronize();
+    boundaryPIC.periodicBoundaryB_x(tmpB);
+    boundaryPIC.freeBoundaryB_y(tmpB);
+    boundaryPIC.periodicBoundaryE_x(tmpE);
+    boundaryPIC.freeBoundaryE_y(tmpE);
+
+    particlePush.pushVelocity(
+        particlesIon, particlesElectron, tmpB, tmpE, PIC2DConst::dt
+    );
+
+    particlePush.pushPosition(
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+    );
+    boundaryPIC.periodicBoundaryParticle_x(
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.freeBoundaryParticle_y(
+        particlesIon, particlesElectron
+    );
+
+    currentCalculator.calculateCurrent(
+        tmpCurrent, firstMomentIon, firstMomentElectron,
+        particlesIon, particlesElectron
+    );
+    boundaryPIC.periodicBoundaryCurrent_x(tmpCurrent);
+    boundaryPIC.freeBoundaryCurrent_y(tmpCurrent);
+    
+    getHalfCurrent_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(current.data()), 
+        thrust::raw_pointer_cast(tmpCurrent.data()), 
+        mPIInfo.localSizeX
+    );
+    boundaryPIC.periodicBoundaryCurrent_x(current);
+    boundaryPIC.freeBoundaryCurrent_y(current);
+
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    boundaryPIC.periodicBoundaryB_x(B);
+    boundaryPIC.freeBoundaryB_y(B);
+
+    fieldSolver.timeEvolutionE(E, B, current, PIC2DConst::dt);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+
+    filter.calculateRho(
+        zerothMomentIon, zerothMomentElectron, 
+        particlesIon, particlesElectron
+    ); 
+    filter.langdonMarderTypeCorrection(E, PIC2DConst::dt);
+    boundaryPIC.periodicBoundaryE_x(E);
+    boundaryPIC.freeBoundaryE_y(E);
+
+    particlePush.pushPosition(
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -718,6 +794,18 @@ thrust::device_vector<FirstMoment>& PIC2D::getFirstMomentIonRef()
 thrust::device_vector<FirstMoment>& PIC2D::getFirstMomentElectronRef()
 {
     return firstMomentElectron; 
+}
+
+
+thrust::device_vector<SecondMoment>& PIC2D::getSecondMomentIonRef()
+{
+    return secondMomentIon; 
+}
+
+
+thrust::device_vector<SecondMoment>& PIC2D::getSecondMomentElectronRef()
+{
+    return secondMomentElectron; 
 }
 
 

@@ -54,7 +54,7 @@ const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 1000;
+const int PIC2DConst::ny = 500;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -65,7 +65,7 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = 3000 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = 1500 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
@@ -92,17 +92,17 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 200;
-const int PIC2DConst::numberDensityElectron = 200;
+const int PIC2DConst::numberDensityIon = 100;
+const int PIC2DConst::numberDensityElectron = 100;
 
-const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 4.0f;
+const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 2.0f;
 
 const float PIC2DConst::mRatio = 25.0f;
 const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = 1.0f / 4.0f / 2.0f / sqrt(PIC2DConst::numberDensityElectron); 
+const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.2f * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -135,8 +135,8 @@ const float PIC2DConst::bulkVzElectron = 0.0;
 //追加
 const int numberDensityIonLeft = PIC2DConst::numberDensityIon; 
 const int numberDensityElectronLeft = PIC2DConst::numberDensityElectron; 
-const int numberDensityIonRight = static_cast<int>(0.125f * PIC2DConst::numberDensityIon);
-const int numberDensityElectronRight = static_cast<int>(0.125f * PIC2DConst::numberDensityElectron);
+const int numberDensityIonRight = static_cast<int>(0.2f * PIC2DConst::numberDensityIon);
+const int numberDensityElectronRight = static_cast<int>(0.2f * PIC2DConst::numberDensityElectron);
 
 const std::vector<float> bLeft = {0.0f, 0.75f * PIC2DConst::B0, 1.0f * PIC2DConst::B0}; 
 const std::vector<float> bRight = {0.0f, 0.75f * PIC2DConst::B0, -1.0f * PIC2DConst::B0}; 

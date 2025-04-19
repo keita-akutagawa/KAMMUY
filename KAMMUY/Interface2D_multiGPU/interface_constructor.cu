@@ -56,6 +56,8 @@ Interface2D::Interface2D(
       zerothMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny), 
       firstMomentIon_timeAve      (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
       firstMomentElectron_timeAve (mPIInfoPIC.localSizeX * PIC2DConst::ny),
+      secondMomentIon_timeAve     (mPIInfoPIC.localSizeX * PIC2DConst::ny), 
+      secondMomentElectron_timeAve(mPIInfoPIC.localSizeX * PIC2DConst::ny),
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -71,6 +73,8 @@ Interface2D::Interface2D(
       zerothMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
       firstMomentIon_PICtoMHD      (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
       firstMomentElectron_PICtoMHD (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      secondMomentIon_PICtoMHD     (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      secondMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
 
       USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
       UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
@@ -87,6 +91,7 @@ Interface2D::Interface2D(
     cudaMalloc(&device_mPIInfoInterface, sizeof(Interface2DMPI::MPIInfo));
     cudaMemcpy(device_mPIInfoInterface, &mPIInfoInterface, sizeof(Interface2DMPI::MPIInfo), cudaMemcpyHostToDevice);
 
+    
     interlockingFunctionY = host_interlockingFunctionY;
     
 

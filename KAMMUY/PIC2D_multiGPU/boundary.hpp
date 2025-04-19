@@ -47,6 +47,11 @@ private:
     thrust::device_vector<FirstMoment> recvFirstMomentLeft; 
     thrust::device_vector<FirstMoment> recvFirstMomentRight; 
 
+    thrust::device_vector<SecondMoment> sendSecondMomentLeft; 
+    thrust::device_vector<SecondMoment> sendSecondMomentRight; 
+    thrust::device_vector<SecondMoment> recvSecondMomentLeft; 
+    thrust::device_vector<SecondMoment> recvSecondMomentRight; 
+
 public:
     BoundaryPIC(PIC2DMPI::MPIInfo& mPIInfo);
 
@@ -130,6 +135,17 @@ public:
     );
     void freeBoundaryFirstMoment_y(
         thrust::device_vector<FirstMoment>& firstMoment
+    );
+
+    void periodicBoundarySecondMoment_x(
+        thrust::device_vector<SecondMoment>& secondMoment
+    );
+
+    void freeBoundarySecondMoment_x(
+        thrust::device_vector<SecondMoment>& secondMoment
+    );
+    void freeBoundarySecondMoment_y(
+        thrust::device_vector<SecondMoment>& secondMoment
     );
 
 private:

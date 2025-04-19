@@ -278,8 +278,8 @@ int main(int argc, char** argv)
         }
     }
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
-        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny + 1; j++) {
-            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - j + i * PIC2DConst::ny];
+        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny; j++) {
+            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
     
@@ -399,10 +399,13 @@ int main(int argc, char** argv)
             thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
             thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
             thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+            thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+            thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
             interface2D.sumUpTimeAveragedPICParameters(
                 B, 
                 zerothMomentIon, zerothMomentElectron, 
-                firstMomentIon, firstMomentElectron
+                firstMomentIon, firstMomentElectron, 
+                secondMomentIon, secondMomentElectron
             );
             sumUpCount += 1; 
         }
@@ -420,15 +423,16 @@ int main(int argc, char** argv)
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(UHalf);
+
+            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        }
+
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(U);
-
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
-        }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);

@@ -93,6 +93,18 @@ void PIC2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer, int mpiBufNumParticles)
     MPI_Datatype types_firstMoment[3] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT};
     MPI_Type_create_struct(3, block_lengths_firstMoment, offsets_firstMoment, types_firstMoment, &mPIInfo.mpi_firstMomentType);
     MPI_Type_commit(&mPIInfo.mpi_firstMomentType);
+
+    int block_lengths_secondMoment[6] = {1, 1, 1, 1, 1, 1};
+    MPI_Aint offsets_secondMoment[6];
+    offsets_secondMoment[0] = offsetof(SecondMoment, xx);
+    offsets_secondMoment[1] = offsetof(SecondMoment, yy);
+    offsets_secondMoment[2] = offsetof(SecondMoment, zz);
+    offsets_secondMoment[3] = offsetof(SecondMoment, xy);
+    offsets_secondMoment[4] = offsetof(SecondMoment, xz);
+    offsets_secondMoment[5] = offsetof(SecondMoment, yz);
+    MPI_Datatype types_secondMoment[6] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT};
+    MPI_Type_create_struct(6, block_lengths_secondMoment, offsets_secondMoment, types_secondMoment, &mPIInfo.mpi_secondMomentType);
+    MPI_Type_commit(&mPIInfo.mpi_secondMomentType);
 }
 
 
@@ -184,6 +196,24 @@ void PIC2DMPI::sendrecv_firstMoment_x(
         sendFirstMomentLeft, sendFirstMomentRight, 
         recvFirstMomentLeft, recvFirstMomentRight, 
         mPIInfo, mPIInfo.mpi_firstMomentType
+    );
+}
+
+
+void PIC2DMPI::sendrecv_secondMoment_x(
+    thrust::device_vector<SecondMoment>& secondMoment,  
+    thrust::device_vector<SecondMoment>& sendSecondMomentLeft, 
+    thrust::device_vector<SecondMoment>& sendSecondMomentRight, 
+    thrust::device_vector<SecondMoment>& recvSecondMomentLeft, 
+    thrust::device_vector<SecondMoment>& recvSecondMomentRight, 
+    MPIInfo& mPIInfo
+)
+{
+    PIC2DMPI::sendrecv_field_x(
+        secondMoment, 
+        sendSecondMomentLeft, sendSecondMomentRight, 
+        recvSecondMomentLeft, recvSecondMomentRight, 
+        mPIInfo, mPIInfo.mpi_secondMomentType
     );
 }
 
