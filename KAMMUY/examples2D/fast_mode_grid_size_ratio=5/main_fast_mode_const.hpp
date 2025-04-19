@@ -49,7 +49,7 @@ const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
-const double waveAmp = 0.01;
+const double waveAmp = 0.05;
 const double waveLength = 1000.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
