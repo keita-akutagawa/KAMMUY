@@ -263,9 +263,9 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
         double cx1, cx2, cy1, cy2;  
 
         CurrentField_MHD J_MHD_x1y1 = getCurrentField_MHD(U, indexMHD);
-        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny);
+        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Ideal2DConst::device_ny);
         CurrentField_MHD J_MHD_x1y2 = getCurrentField_MHD(U, indexMHD + 1);
-        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny + 1);
+        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Ideal2DConst::device_ny + 1);
         
         cx1 = static_cast<double>(((i % Interface2DConst::device_gridSizeRatio) + 0.5)) / Interface2DConst::device_gridSizeRatio; 
         cx2 = 1.0 - cx1;
@@ -615,9 +615,9 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         BasicParameter basicParameter_x2y2 = getBasicParameter_MHD(U[indexMHD + IdealMHD2DConst::device_ny + 1]);
 
         CurrentField_MHD J_MHD_x1y1 = getCurrentField_MHD(U, indexMHD);
-        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny);
+        CurrentField_MHD J_MHD_x2y1 = getCurrentField_MHD(U, indexMHD + Ideal2DConst::device_ny);
         CurrentField_MHD J_MHD_x1y2 = getCurrentField_MHD(U, indexMHD + 1);
-        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Interface2DConst::device_ny + 1);
+        CurrentField_MHD J_MHD_x2y2 = getCurrentField_MHD(U, indexMHD + Ideal2DConst::device_ny + 1);
 
         rhoMHD = basicParameter_x1y1.rho * cx2 * cy2 + basicParameter_x2y1.rho * cx1 * cy2 + basicParameter_x1y2.rho * cx2 * cy1 + basicParameter_x2y2.rho * cx1 * cy1;
         uMHD   = basicParameter_x1y1.u   * cx2 * cy2 + basicParameter_x2y1.u   * cx1 * cy2 + basicParameter_x1y2.u   * cx2 * cy1 + basicParameter_x2y2.u   * cx1 * cy1;
