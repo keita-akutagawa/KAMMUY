@@ -405,9 +405,20 @@ int main(int argc, char** argv)
             boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
         }
 
+        projection.correctB(UHalf); 
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        MPI_Barrier(MPI_COMM_WORLD);
+
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(U);
+
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+        }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);
