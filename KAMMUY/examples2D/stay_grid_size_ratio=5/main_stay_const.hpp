@@ -33,7 +33,7 @@ const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMU
 const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/stay_grid_size_ratio=5/PCG_W.json";
 
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 10;
 const bool isParticleRecord = false;
@@ -47,7 +47,7 @@ const int Interface2DConst::gridSizeRatio = 5;
 const double Interface2DConst::EPS = 0.0001;
 const double Interface2DConst::PI = 3.14159265358979;
 const float PIC2DConst::EPS = 0.0001;
-const double IdealMHD2DConst::EPS = 0.0001;
+const double IdealMHD2DConst::EPS = 1e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
 const int PIC2DConst::nx = 50;
@@ -83,7 +83,7 @@ const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
-thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * buffer) * (PIC2DConst::ny + 1), 0.0);
+thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * buffer) * PIC2DConst::ny, 0.0);
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNum = 1000000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
@@ -94,8 +94,8 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 50;
-const int PIC2DConst::numberDensityElectron = 50;
+const int PIC2DConst::numberDensityIon = 20;
+const int PIC2DConst::numberDensityElectron = 20;
 
 const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0f;
 

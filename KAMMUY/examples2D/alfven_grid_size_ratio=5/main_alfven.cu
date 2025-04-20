@@ -188,12 +188,6 @@ void PIC2D::initialize()
 }
 
 
-template <typename T>
-T clamp(T x, T low, T high) {
-    return std::min(std::max(x, low), high);
-}
-
-
 int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
@@ -347,7 +341,7 @@ int main(int argc, char** argv)
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
+        idealMHD2D.oneStepRK2_periodicXY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -355,7 +349,23 @@ int main(int argc, char** argv)
 
         interface2D.resetTimeAveragedPICParameters();
 
-        int sumUpCount = 0; 
+        int sumUpCount; 
+        sumUpCount = 0; 
+        pIC2D.calculateFullMoments();
+        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B, 
+            zerothMomentIon, zerothMomentElectron, 
+            firstMomentIon, firstMomentElectron, 
+            secondMomentIon, secondMomentElectron
+        );
+        sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - substep / totalSubstep;
@@ -369,13 +379,6 @@ int main(int argc, char** argv)
                 seedForReload
             );
 
-            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-            thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
-            thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
-            thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
-            thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
-            thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
-            thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
             interface2D.sumUpTimeAveragedPICParameters(
                 B, 
                 zerothMomentIon, zerothMomentElectron, 
@@ -450,11 +453,11 @@ int main(int argc, char** argv)
         }   
     }
 
-    MPI_Finalize();
-
     if (mPIInfoMHD.rank == 0) {
         std::cout << "program was completed!" << std::endl;
     }
+
+    MPI_Finalize();
 
     return 0;
 }

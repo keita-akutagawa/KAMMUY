@@ -4,7 +4,7 @@
 
 struct ReloadParticlesData
 {
-    unsigned long long numAndIndex; 
+    unsigned int number; 
     float u;
     float v;
     float w;
@@ -12,7 +12,7 @@ struct ReloadParticlesData
 
     __host__ __device__
     ReloadParticlesData() : 
-        numAndIndex(0), 
+        number(0), 
         u(0.0f), 
         v(0.0f), 
         w(0.0f),
@@ -23,7 +23,7 @@ struct ReloadParticlesData
     ReloadParticlesData& operator=(const ReloadParticlesData& other)
     {
         if (this != &other) {
-            numAndIndex = other.numAndIndex;
+            number = other.number;
             u           = other.u;
             v           = other.v;
             w           = other.w;

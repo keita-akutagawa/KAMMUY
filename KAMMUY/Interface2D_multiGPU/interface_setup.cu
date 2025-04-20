@@ -144,23 +144,27 @@ void Interface2D::sumUpTimeAveragedPICParameters(
 template <typename FieldType>
 __device__ FieldType getAveragedFieldForPICtoMHD(
     const FieldType* field, 
-    int indexPIC, int localNxMHD, 
+    int bufferPIC, 
     int i, int j
 )
 {
     FieldType convolvedField; 
 
-    if (1 <= i && i <= localNxMHD - 2 && 1 <= j && j <= PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio - 2) {
-        for (int windowX = -Interface2DConst::device_gridSizeRatio / 2; windowX <= Interface2DConst::device_gridSizeRatio / 2; windowX++) {
-            for (int windowY = -Interface2DConst::device_gridSizeRatio / 2; windowY <= Interface2DConst::device_gridSizeRatio / 2; windowY++) {
-                int localIndex = indexPIC + windowY + windowX * PIC2DConst::device_ny; 
+    int validCount = 0; 
+
+    for (int windowX = -Interface2DConst::device_gridSizeRatio / 2; windowX <= Interface2DConst::device_gridSizeRatio / 2; windowX++) {
+        for (int windowY = -Interface2DConst::device_gridSizeRatio / 2; windowY <= Interface2DConst::device_gridSizeRatio / 2; windowY++) {
+            int localI = i * Interface2DConst::device_gridSizeRatio + windowX; 
+            int localJ = j * Interface2DConst::device_gridSizeRatio + windowY;
+
+            if (0 <= localI && localI < PIC2DConst::device_nx && 0 <= localJ && localJ < PIC2DConst::device_ny) {
+                int localIndex = localJ + (localI + bufferPIC) * PIC2DConst::device_ny; 
                 convolvedField += field[localIndex];
+                validCount++; 
             }
         }
-        convolvedField = convolvedField / pow(2 * (Interface2DConst::device_gridSizeRatio / 2) + 1, 2); 
-    } else {
-        convolvedField = field[indexPIC];
     }
+    convolvedField = convolvedField / validCount; 
 
     return convolvedField;
 }
@@ -188,21 +192,18 @@ __global__ void averagingParametersForPICtoMHD_kernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
-        int indexPIC = j * Interface2DConst::device_gridSizeRatio
-                     + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny;
-
         MagneticField averagedB; 
         ZerothMoment averagedZerothMomentIon, averagedZerothMomentElectron; 
         FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
         SecondMoment averagedSecondMomentIon, averagedSecondMomentElectron; 
         
-        averagedB                    = getAveragedFieldForPICtoMHD(B_timeAve, indexPIC, localNxMHD, i, j);
-        averagedZerothMomentIon      = getAveragedFieldForPICtoMHD(zerothMomentIon_timeAve, indexPIC, localNxMHD, i, j);
-        averagedZerothMomentElectron = getAveragedFieldForPICtoMHD(zerothMomentElectron_timeAve, indexPIC, localNxMHD, i, j);
-        averagedFirstMomentIon       = getAveragedFieldForPICtoMHD(firstMomentIon_timeAve, indexPIC, localNxMHD, i, j);
-        averagedFirstMomentElectron  = getAveragedFieldForPICtoMHD(firstMomentElectron_timeAve, indexPIC, localNxMHD, i, j);
-        averagedSecondMomentIon      = getAveragedFieldForPICtoMHD(secondMomentIon_timeAve, indexPIC, localNxMHD, i, j);
-        averagedSecondMomentElectron = getAveragedFieldForPICtoMHD(secondMomentElectron_timeAve, indexPIC, localNxMHD, i, j);
+        averagedB                    = getAveragedFieldForPICtoMHD(B_timeAve, bufferPIC, i, j);
+        averagedZerothMomentIon      = getAveragedFieldForPICtoMHD(zerothMomentIon_timeAve, bufferPIC, i, j);
+        averagedZerothMomentElectron = getAveragedFieldForPICtoMHD(zerothMomentElectron_timeAve, bufferPIC, i, j);
+        averagedFirstMomentIon       = getAveragedFieldForPICtoMHD(firstMomentIon_timeAve, bufferPIC, i, j);
+        averagedFirstMomentElectron  = getAveragedFieldForPICtoMHD(firstMomentElectron_timeAve, bufferPIC, i, j);
+        averagedSecondMomentIon      = getAveragedFieldForPICtoMHD(secondMomentIon_timeAve, bufferPIC, i, j);
+        averagedSecondMomentElectron = getAveragedFieldForPICtoMHD(secondMomentElectron_timeAve, bufferPIC, i, j);
 
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
 
@@ -217,7 +218,7 @@ __global__ void averagingParametersForPICtoMHD_kernel(
 }
 
 
-__global__ void calculateSubPICParameters_kernel(
+__global__ void calculateTimeAveragedPICParameters_kernel(
     MagneticField* B_timeAve, 
     ZerothMoment* zerothMomentIon_timeAve, 
     ZerothMoment* zerothMomentElectron_timeAve, 
@@ -252,7 +253,7 @@ void Interface2D::calculateTimeAveragedPICParameters(int count)
     dim3 blocksPerGrid((mPIInfoPIC.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    calculateSubPICParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    calculateTimeAveragedPICParameters_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B_timeAve.data()), 
         thrust::raw_pointer_cast(zerothMomentIon_timeAve.data()), 
         thrust::raw_pointer_cast(zerothMomentElectron_timeAve.data()), 
