@@ -12,14 +12,14 @@ KAMMUY(KAMUY or KAMUI, 神威) refers to gods or spiritual beings in the traditi
 ## Latest Information
 
 [2025.4.13]
-The ratio of MHD to PIC grid size can be freely determined. 
+The ratio of MHD to PIC grid size can be freely determined.
 
 ## Schemes
 
 ### MHD
 
 - HLLD
-- MUSCL(minmod)
+- MUSCL (minmod)
 - RK2
 - Projection
 
@@ -38,8 +38,7 @@ The ratio of MHD to PIC grid size can be freely determined.
 
 - Thrust
 - AmgX
-  - AMG_CLASSICAL_CG.json
-  - PCG_W.json (stable)
+  - PCG_W.json is used.
 
 ## reference
 
