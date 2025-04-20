@@ -34,6 +34,13 @@ __global__ void convolveU_kernel(
 
         BasicParameter convolvedBasicParameter; 
 
+        const double kernel[3][3] = {
+            {1, 2, 1},
+            {2, 4, 2},
+            {1, 2, 1}
+        };
+        const double kernelSum = 16.0; 
+
         for (int windowX = -1; windowX <= 1; windowX++) {
             for (int windowY = -1; windowY <= 1; windowY++) {
                 int localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
@@ -61,10 +68,11 @@ __global__ void convolveU_kernel(
                 basicParameter.bZ  = bZ;
                 basicParameter.p   = p;
 
-                convolvedBasicParameter += basicParameter;
+                double weight = kernel[windowX + 1][windowY + 1];
+                convolvedBasicParameter += basicParameter * weight;
             }
         }
-        convolvedBasicParameter = convolvedBasicParameter / 9.0; 
+        convolvedBasicParameter = convolvedBasicParameter / kernelSum; 
 
         rho = convolvedBasicParameter.rho;
         u   = convolvedBasicParameter.u;

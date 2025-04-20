@@ -150,21 +150,29 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
 {
     FieldType convolvedField; 
 
-    int validCount = 0; 
+    const int R = Interface2DConst::device_gridSizeRatio / 2;
+    const float sigma = Interface2DConst::device_gridSizeRatio / 2.0f;
+    const float twoSigma2 = 2.0f * sigma * sigma;
 
-    for (int windowX = -Interface2DConst::device_gridSizeRatio / 2; windowX <= Interface2DConst::device_gridSizeRatio / 2; windowX++) {
-        for (int windowY = -Interface2DConst::device_gridSizeRatio / 2; windowY <= Interface2DConst::device_gridSizeRatio / 2; windowY++) {
-            int localI = i * Interface2DConst::device_gridSizeRatio + windowX; 
-            int localJ = j * Interface2DConst::device_gridSizeRatio + windowY;
+    float weightSum = 0.0f;
+    for (int dx = -R; dx <= R; dx++) {
+        for (int dy = -R; dy <= R; dy++) {
+            int localI = i * Interface2DConst::device_gridSizeRatio + dx;
+            int localJ = j * Interface2DConst::device_gridSizeRatio + dy;
 
-            if (0 <= localI && localI < PIC2DConst::device_nx && 0 <= localJ && localJ < PIC2DConst::device_ny) {
-                int localIndex = localJ + (localI + bufferPIC) * PIC2DConst::device_ny; 
-                convolvedField += field[localIndex];
-                validCount++; 
+            if (0 <= localI && localI < PIC2DConst::device_nx &&
+                0 <= localJ && localJ < PIC2DConst::device_ny)
+            {
+                float distance2 = float(dx * dx + dy * dy);
+                float weight = __expf(-distance2 / twoSigma2);
+
+                int index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
+                convolvedField += field[index] * weight;
+                weightSum += weight;
             }
         }
     }
-    convolvedField = convolvedField / validCount; 
+    convolvedField = convolvedField / weightSum;
 
     return convolvedField;
 }
