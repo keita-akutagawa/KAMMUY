@@ -35,11 +35,11 @@ __global__ void convolveU_kernel(
         BasicParameter convolvedBasicParameter; 
 
         const double kernel[3][3] = {
-            {1, 2, 1},
-            {2, 4, 2},
-            {1, 2, 1}
+            {1, 1, 1},
+            {1, 1, 1},
+            {1, 1, 1}
         };
-        const double kernelSum = 16.0; 
+        const double kernelSum = 9.0; 
 
         for (int windowX = -1; windowX <= 1; windowX++) {
             for (int windowY = -1; windowY <= 1; windowY++) {
