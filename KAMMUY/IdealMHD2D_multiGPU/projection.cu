@@ -17,27 +17,31 @@ Projection::Projection(IdealMHD2DMPI::MPIInfo& mPIInfo)
       sum_divB(IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
       psi(IdealMHD2DConst::nx * IdealMHD2DConst::ny)
 {
-    AMGX_initialize();
-    AMGX_config_create_from_file(&config, IdealMHD2DConst::jsonFilenameForSolver.c_str());
-    AMGX_resources_create_simple(&resource, config);
-    AMGX_solver_create(&solver, resource, AMGX_mode_dDDI, config);
-    AMGX_matrix_create(&A, resource, AMGX_mode_dDDI);
-    AMGX_vector_create(&amgx_sol, resource, AMGX_mode_dDDI);
-    AMGX_vector_create(&amgx_rhs, resource, AMGX_mode_dDDI);
-    AMGX_read_system(A, amgx_sol, amgx_rhs, IdealMHD2DConst::MTXfilename.c_str());
-    AMGX_solver_setup(solver, A);
+    if (mPIInfo.rank == 0) {
+        AMGX_initialize();
+        AMGX_config_create_from_file(&config, IdealMHD2DConst::jsonFilenameForSolver.c_str());
+        AMGX_resources_create_simple(&resource, config);
+        AMGX_solver_create(&solver, resource, AMGX_mode_dDDI, config);
+        AMGX_matrix_create(&A, resource, AMGX_mode_dDDI);
+        AMGX_vector_create(&amgx_sol, resource, AMGX_mode_dDDI);
+        AMGX_vector_create(&amgx_rhs, resource, AMGX_mode_dDDI);
+        AMGX_read_system(A, amgx_sol, amgx_rhs, IdealMHD2DConst::MTXfilename.c_str());
+        AMGX_solver_setup(solver, A);
+    }
 }
 
 
 Projection::~Projection()
 {
-    AMGX_solver_destroy(solver);
-    AMGX_vector_destroy(amgx_rhs);
-    AMGX_vector_destroy(amgx_sol);
-    AMGX_matrix_destroy(A);
-    AMGX_resources_destroy(resource);
-    AMGX_config_destroy(config);
-    AMGX_finalize();
+    if (mPIInfo.rank == 0) {
+        AMGX_solver_destroy(solver);
+        AMGX_vector_destroy(amgx_rhs);
+        AMGX_vector_destroy(amgx_sol);
+        AMGX_matrix_destroy(A);
+        AMGX_resources_destroy(resource);
+        AMGX_config_destroy(config);
+        AMGX_finalize();
+    }
 }
 
 

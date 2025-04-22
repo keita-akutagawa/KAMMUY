@@ -391,19 +391,19 @@ __global__ void checkAndResetExtremeValues_kernel(
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
 
-        rho = thrust::max(rho, 0.1 * IdealMHD2DConst::device_rho0);
-        p   = thrust::max(p,   0.1 * IdealMHD2DConst::device_p0);
-        rho = thrust::min(rho, 10.0 * IdealMHD2DConst::device_rho0);
-        p   = thrust::min(p,   10.0 * IdealMHD2DConst::device_p0);
+        rho = thrust::max(rho, 0.0001 * IdealMHD2DConst::device_rho0);
+        p   = thrust::max(p,   0.0001 * IdealMHD2DConst::device_p0);
+        rho = thrust::min(rho, 10000.0 * IdealMHD2DConst::device_rho0);
+        p   = thrust::min(p,   10000.0 * IdealMHD2DConst::device_p0);
 
         double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0); \
-        u = thrust::max(-10.0 * VA, thrust::min(u, 10.0 * VA));
-        v = thrust::max(-10.0 * VA, thrust::min(v, 10.0 * VA));
-        w = thrust::max(-10.0 * VA, thrust::min(w, 10.0 * VA));
+        u = thrust::max(-100.0 * VA, thrust::min(u, 100.0 * VA));
+        v = thrust::max(-100.0 * VA, thrust::min(v, 100.0 * VA));
+        w = thrust::max(-100.0 * VA, thrust::min(w, 100.0 * VA));
 
-        bX = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bX, 10.0 * IdealMHD2DConst::device_B0));
-        bY = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bY, 10.0 * IdealMHD2DConst::device_B0));
-        bZ = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bZ, 10.0 * IdealMHD2DConst::device_B0));
+        bX = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bX, 100.0 * IdealMHD2DConst::device_B0));
+        bY = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bY, 100.0 * IdealMHD2DConst::device_B0));
+        bZ = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bZ, 100.0 * IdealMHD2DConst::device_B0));
 
         e = p / (IdealMHD2DConst::device_gamma - 1.0)
           + 0.5 * rho * (u * u + v * v + w * w)

@@ -15,7 +15,6 @@ class BoundaryPIC
 {
 private:
     PIC2DMPI::MPIInfo& mPIInfo; 
-    PIC2DMPI::MPIInfo* device_mPIInfo; 
 
     thrust::device_vector<Particle> sendParticlesSpeciesLeft; 
     thrust::device_vector<Particle> sendParticlesSpeciesRight; 

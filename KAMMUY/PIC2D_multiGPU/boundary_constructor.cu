@@ -39,9 +39,5 @@ BoundaryPIC::BoundaryPIC(PIC2DMPI::MPIInfo& mPIInfo)
       recvSecondMomentLeft(PIC2DConst::ny * mPIInfo.buffer), 
       recvSecondMomentRight(PIC2DConst::ny * mPIInfo.buffer)
 {
-
-    cudaMalloc(&device_mPIInfo, sizeof(PIC2DMPI::MPIInfo));
-    cudaMemcpy(device_mPIInfo, &mPIInfo, sizeof(PIC2DMPI::MPIInfo), cudaMemcpyHostToDevice);
-
 }
 

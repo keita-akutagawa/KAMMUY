@@ -54,6 +54,13 @@ struct BasicParameter
     }
 
     __host__ __device__
+    BasicParameter operator*(double scalar) const
+    {
+        return BasicParameter(rho * scalar, u * scalar, v * scalar, w * scalar,
+                              bX * scalar, bY * scalar, bZ * scalar, p * scalar);
+    }
+
+    __host__ __device__
     BasicParameter operator/(double scalar) const
     {
         return BasicParameter(rho / scalar, u / scalar, v / scalar, w / scalar,

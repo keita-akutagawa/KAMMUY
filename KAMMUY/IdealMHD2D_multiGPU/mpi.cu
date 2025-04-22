@@ -98,6 +98,7 @@ void IdealMHD2DMPI::sendrecv_U_x(
                  thrust::raw_pointer_cast(recvULeft.data()),  recvULeft.size(),  mPIInfo.mpi_conservation_parameter_type, left,  0, 
                  MPI_COMM_WORLD, &st);
 
+
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
             U[j + i                              * IdealMHD2DConst::ny] = recvULeft[ j + i * IdealMHD2DConst::ny];
