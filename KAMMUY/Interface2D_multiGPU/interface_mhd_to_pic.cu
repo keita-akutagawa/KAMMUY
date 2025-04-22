@@ -376,7 +376,7 @@ void Interface2D::deleteParticlesSpecies(
     cudaDeviceSynchronize();
 
     auto partitionEnd = thrust::partition(
-        particlesSpecies.begin(), particlesSpecies.end(), 
+        particlesSpecies.begin(), particlesSpecies.begin() + existNumSpeciesPerProcs, 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     cudaDeviceSynchronize();

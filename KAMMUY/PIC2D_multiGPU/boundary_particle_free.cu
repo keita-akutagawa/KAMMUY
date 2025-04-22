@@ -92,7 +92,7 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
     cudaDeviceSynchronize();
 
     auto partitionEnd = thrust::partition(
-        particlesSpecies.begin(), particlesSpecies.end(), 
+        particlesSpecies.begin(), particlesSpecies.begin() + existNumSpecies, 
         [] __device__ (const Particle& p) { return p.isExist; }
     );
     existNumSpecies = static_cast<unsigned long long>(thrust::distance(particlesSpecies.begin(), partitionEnd));
