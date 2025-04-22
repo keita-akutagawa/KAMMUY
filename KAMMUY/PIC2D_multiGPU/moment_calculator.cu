@@ -75,8 +75,8 @@ __global__ void calculateZerothMomentOfOneSpecies_kernel(
         yIndex2 = yIndex1 + 1;
         yIndex2 = (yIndex2 == PIC2DConst::device_ny) ? 0 : yIndex2;
 
-        if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("x = %f, ERROR\n", particlesSpecies[i].x); 
-        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, ERROR\n", particlesSpecies[i].y);
+        if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("x = %f, index = %d, ERROR\n", particlesSpecies[i].x, xIndex1); 
+        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
@@ -146,8 +146,8 @@ __global__ void calculateFirstMomentOfOneSpecies_kernel(
         yIndex2 = yIndex1 + 1;
         yIndex2 = (yIndex2 == PIC2DConst::device_ny) ? 0 : yIndex2;
         
-        if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("x = %f, ERROR\n", particlesSpecies[i].x); 
-        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, ERROR\n", particlesSpecies[i].y);
+        if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("x = %f, index = %d, ERROR\n", particlesSpecies[i].x, xIndex1); 
+        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
@@ -229,8 +229,9 @@ __global__ void calculateSecondMomentOfOneSpecies_kernel(
         yIndex1 = floorf(yOverDy);
         yIndex2 = yIndex1 + 1;
         yIndex2 = (yIndex2 == PIC2DConst::device_ny) ? 0 : yIndex2;
-        if (xIndex1 < 0 || xIndex1 >= localSizeX) return;
-        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) return;
+        
+        if (xIndex1 < 0 || xIndex1 >= localSizeX) printf("x = %f, index = %d, ERROR\n", particlesSpecies[i].x, xIndex1); 
+        if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
         cx2 = 1.0f - cx1;
