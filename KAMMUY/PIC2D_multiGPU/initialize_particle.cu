@@ -201,7 +201,7 @@ __global__ void harrisForPosition_y_kernel(
 
     if (i < nEnd - nStart) {
         curandState state; 
-        curand_init(seed, 100 * (i + offset), 0, &state);
+        curand_init(seed, offset + i, 0, &state);
         float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         float randomValue;
@@ -210,7 +210,7 @@ __global__ void harrisForPosition_y_kernel(
             randomValue = curand_uniform(&state);
             y = yCenter + sheatThickness * atanh(2.0f * randomValue - 1.0f);
 
-            if (PIC2DConst::device_ymin < y && y < PIC2DConst::device_ymax) break;
+            if (PIC2DConst::device_ymin + PIC2DConst::device_EPS < y && y < PIC2DConst::device_ymax - PIC2DConst::device_EPS) break;
         }
         
         particle[i + nStart].y = y;
