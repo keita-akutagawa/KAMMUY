@@ -144,6 +144,7 @@ void Interface2D::sumUpTimeAveragedPICParameters(
 template <typename FieldType>
 __device__ FieldType getAveragedFieldForPICtoMHD(
     const FieldType* field, 
+    int localNxPIC, 
     int bufferPIC, 
     int i, int j
 )
@@ -160,7 +161,7 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
             int localI = i * Interface2DConst::device_gridSizeRatio + dx;
             int localJ = j * Interface2DConst::device_gridSizeRatio + dy;
 
-            if (0 <= localI && localI < PIC2DConst::device_nx &&
+            if (0 <= localI && localI < localNxPIC &&
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
                 float distance2 = float(dx * dx + dy * dy);
@@ -193,7 +194,8 @@ __global__ void averagingParametersForPICtoMHD_kernel(
     FirstMoment* firstMomentElectron_PICtoMHD, 
     SecondMoment* secondMomentIon_PICtoMHD, 
     SecondMoment* secondMomentElectron_PICtoMHD, 
-    const int localNxMHD, const int bufferPIC, const int bufferMHD
+    const int localNxPIC, const int localNxMHD, 
+    const int bufferPIC, const int bufferMHD
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -205,13 +207,13 @@ __global__ void averagingParametersForPICtoMHD_kernel(
         FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
         SecondMoment averagedSecondMomentIon, averagedSecondMomentElectron; 
         
-        averagedB                    = getAveragedFieldForPICtoMHD(B_timeAve, bufferPIC, i, j);
-        averagedZerothMomentIon      = getAveragedFieldForPICtoMHD(zerothMomentIon_timeAve, bufferPIC, i, j);
-        averagedZerothMomentElectron = getAveragedFieldForPICtoMHD(zerothMomentElectron_timeAve, bufferPIC, i, j);
-        averagedFirstMomentIon       = getAveragedFieldForPICtoMHD(firstMomentIon_timeAve, bufferPIC, i, j);
-        averagedFirstMomentElectron  = getAveragedFieldForPICtoMHD(firstMomentElectron_timeAve, bufferPIC, i, j);
-        averagedSecondMomentIon      = getAveragedFieldForPICtoMHD(secondMomentIon_timeAve, bufferPIC, i, j);
-        averagedSecondMomentElectron = getAveragedFieldForPICtoMHD(secondMomentElectron_timeAve, bufferPIC, i, j);
+        averagedB                    = getAveragedFieldForPICtoMHD(B_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedZerothMomentIon      = getAveragedFieldForPICtoMHD(zerothMomentIon_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedZerothMomentElectron = getAveragedFieldForPICtoMHD(zerothMomentElectron_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedFirstMomentIon       = getAveragedFieldForPICtoMHD(firstMomentIon_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedFirstMomentElectron  = getAveragedFieldForPICtoMHD(firstMomentElectron_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedSecondMomentIon      = getAveragedFieldForPICtoMHD(secondMomentIon_timeAve, localNxPIC, bufferPIC, i, j);
+        averagedSecondMomentElectron = getAveragedFieldForPICtoMHD(secondMomentElectron_timeAve, localNxPIC, bufferPIC, i, j);
 
         int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
 
@@ -298,7 +300,8 @@ void Interface2D::setParametersForPICtoMHD()
         thrust::raw_pointer_cast(firstMomentElectron_PICtoMHD.data()), 
         thrust::raw_pointer_cast(secondMomentIon_PICtoMHD.data()), 
         thrust::raw_pointer_cast(secondMomentElectron_PICtoMHD.data()), 
-        mPIInfoMHD.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
+        mPIInfoPIC.localNx, mPIInfoMHD.localNx, 
+        mPIInfoPIC.buffer, mPIInfoMHD.buffer
     );
     cudaDeviceSynchronize();
 }
