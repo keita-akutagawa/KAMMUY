@@ -325,7 +325,7 @@ __global__ void deleteParticles_kernel(
     const unsigned long long existNumSpecies, 
     const unsigned long long seed, 
     const float xminForProcs, const float xmaxForProcs, 
-    const int bufferPIC
+    const int localNxPIC, const int bufferPIC
 )
 {
     unsigned long long k = blockIdx.x * blockDim.x + threadIdx.x;
@@ -338,7 +338,7 @@ __global__ void deleteParticles_kernel(
 
         int i = floorf(x - xmin); 
         int j = floorf(y - ymin);
-        if (i < 0 || i >= PIC2DConst::device_nx) {
+        if (i < 0 || i >= localNxPIC) {
             particlesSpecies[k].isExist = false; 
             return; 
         }
@@ -371,7 +371,7 @@ void Interface2D::deleteParticlesSpecies(
         existNumSpeciesPerProcs, 
         seed, 
         mPIInfoPIC.xminForProcs, mPIInfoPIC.xmaxForProcs, 
-        mPIInfoPIC.buffer
+        mPIInfoPIC.localNx, mPIInfoPIC.buffer
     );
     cudaDeviceSynchronize();
 
@@ -441,9 +441,9 @@ __global__ void reloadParticlesSpecies_kernel(
                 vz = particleSource.vz; vz = w + vz * vth;
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
                     float normalizedVelocity = sqrt(vx * vx + vy * vy + vz * vz);
-                    vx = vx / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
-                    vy = vy / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
-                    vz = vz / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
+                    vx = vx / normalizedVelocity * 0.9f * PIC2DConst::device_c;
+                    vy = vy / normalizedVelocity * 0.9f * PIC2DConst::device_c;
+                    vz = vz / normalizedVelocity * 0.9f * PIC2DConst::device_c;
                 };
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
@@ -495,6 +495,7 @@ void Interface2D::reloadParticlesSpecies(
 template <typename MomentType>
 __device__ MomentType getConvolvedMomentForMHDtoPIC(
     const MomentType* moment, 
+    int localNxPIC, 
     int bufferPIC, 
     int i, int j
 )
@@ -511,7 +512,7 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
             int localI = i + dx;
             int localJ = j + dy;
 
-            if (0 <= localI && localI < PIC2DConst::device_nx &&
+            if (0 <= localI && localI < localNxPIC &&
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
                 float distance2 = float(dx * dx + dy * dy);
@@ -584,12 +585,12 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
         FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron;
         SecondMoment convolvedSecondMomentIon, convolvedSecondMomentElectron;
-        convolvedZerothMomentIon      = getConvolvedMomentForMHDtoPIC(zerothMomentIon, bufferPIC, i, j);
-        convolvedZerothMomentElectron = getConvolvedMomentForMHDtoPIC(zerothMomentElectron, bufferPIC, i, j);
-        convolvedFirstMomentIon       = getConvolvedMomentForMHDtoPIC(firstMomentIon, bufferPIC, i, j);
-        convolvedFirstMomentElectron  = getConvolvedMomentForMHDtoPIC(firstMomentElectron, bufferPIC, i, j);
-        convolvedSecondMomentIon      = getConvolvedMomentForMHDtoPIC(secondMomentIon, bufferPIC, i, j);
-        convolvedSecondMomentElectron = getConvolvedMomentForMHDtoPIC(secondMomentElectron, bufferPIC, i, j);
+        convolvedZerothMomentIon      = getConvolvedMomentForMHDtoPIC(zerothMomentIon, localNxPIC, bufferPIC, i, j);
+        convolvedZerothMomentElectron = getConvolvedMomentForMHDtoPIC(zerothMomentElectron, localNxPIC, bufferPIC, i, j);
+        convolvedFirstMomentIon       = getConvolvedMomentForMHDtoPIC(firstMomentIon, localNxPIC, bufferPIC, i, j);
+        convolvedFirstMomentElectron  = getConvolvedMomentForMHDtoPIC(firstMomentElectron, localNxPIC, bufferPIC, i, j);
+        convolvedSecondMomentIon      = getConvolvedMomentForMHDtoPIC(secondMomentIon, localNxPIC, bufferPIC, i, j);
+        convolvedSecondMomentElectron = getConvolvedMomentForMHDtoPIC(secondMomentElectron, localNxPIC, bufferPIC, i, j);
 
         double niPIC, nePIC, rhoPIC, uPIC, vPIC, wPIC, jXPIC, jYPIC, jZPIC, piPIC, pePIC;
 
@@ -645,6 +646,8 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         //pressure ratio is assumed to be 1.0
         piMHD = pMHD / 2.0; 
         peMHD = pMHD / 2.0;
+
+        if (niPIC > 1000 || niMHD > 1000) printf("%f %f %d %d\n", niPIC, niMHD, i, j);
 
         niPIC = interlockingFunctionY[indexPIC] * niMHD + (1.0 - interlockingFunctionY[indexPIC]) * niPIC;
         nePIC = interlockingFunctionY[indexPIC] * neMHD + (1.0 - interlockingFunctionY[indexPIC]) * nePIC;
