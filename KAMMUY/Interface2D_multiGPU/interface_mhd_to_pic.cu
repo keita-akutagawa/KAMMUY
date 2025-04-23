@@ -422,7 +422,7 @@ __global__ void reloadParticlesSpecies_kernel(
 
         curandState stateForReload; 
         curand_init(seed, indexForReload, 0, &stateForReload);
-        for (unsigned long long k = 0; k < reloadParticlesDataSpecies[indexForReload].number; k++) {
+        for (unsigned int k = 0; k < reloadParticlesDataSpecies[indexForReload].number; k++) {
             float randomValue = curand_uniform(&stateForReload);
 
             if (randomValue < interlockingFunctionY[indexPIC]) {
@@ -441,9 +441,9 @@ __global__ void reloadParticlesSpecies_kernel(
                 vz = particleSource.vz; vz = w + vz * vth;
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
                     float normalizedVelocity = sqrt(vx * vx + vy * vy + vz * vz);
-                    vx = vx / normalizedVelocity * 0.99f * PIC2DConst::device_c;
-                    vy = vy / normalizedVelocity * 0.99f * PIC2DConst::device_c;
-                    vz = vz / normalizedVelocity * 0.99f * PIC2DConst::device_c;
+                    vx = vx / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
+                    vy = vy / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
+                    vz = vz / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
                 };
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
@@ -656,6 +656,9 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         jZPIC = interlockingFunctionY[indexPIC] * jZMHD + (1.0 - interlockingFunctionY[indexPIC]) * jZPIC;
         piPIC = interlockingFunctionY[indexPIC] * piMHD + (1.0 - interlockingFunctionY[indexPIC]) * piPIC;
         pePIC = interlockingFunctionY[indexPIC] * peMHD + (1.0 - interlockingFunctionY[indexPIC]) * pePIC;
+
+        niPIC = thrust::max(niPIC, 1.0);
+        nePIC = thrust::max(nePIC, 1.0);
 
         double vThiPIC, vThePIC;
         vThiPIC = sqrt(piPIC / static_cast<unsigned int>(round(niPIC)) / PIC2DConst::device_mIon);
