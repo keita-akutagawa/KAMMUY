@@ -441,9 +441,9 @@ __global__ void reloadParticlesSpecies_kernel(
                 vz = particleSource.vz; vz = w + vz * vth;
                 if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
                     float normalizedVelocity = sqrt(vx * vx + vy * vy + vz * vz);
-                    vx = vx / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
-                    vy = vy / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
-                    vz = vz / normalizedVelocity * 0.9f / sqrtf(3.0f) * PIC2DConst::device_c;
+                    vx = vx / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
+                    vy = vy / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
+                    vz = vz / normalizedVelocity * 0.9f / * PIC2DConst::device_c;
                 };
                 gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
