@@ -100,6 +100,7 @@ void Interface2D::sendPICtoMHD(
         indexOfInterfaceStartInMHD, 
         mPIInfoMHD.localNx, mPIInfoPIC.buffer, mPIInfoMHD.buffer
     );
+    cudaDeviceSynchronize();
 }
 
 

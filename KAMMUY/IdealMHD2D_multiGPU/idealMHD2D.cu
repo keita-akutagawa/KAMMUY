@@ -43,6 +43,7 @@ __global__ void oneStepFirst_kernel(
     const ConservationParameter* U, 
     const Flux* fluxF, const Flux* fluxG, 
     ConservationParameter* UBar, 
+    const double dt, 
     int localSizeX
 )
 {
@@ -53,29 +54,29 @@ __global__ void oneStepFirst_kernel(
         int index = j + i * IdealMHD2DConst::device_ny;
 
         UBar[index].rho  = U[index].rho  
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
         UBar[index].rhoU = U[index].rhoU 
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f1 - fluxF[index - IdealMHD2DConst::device_ny].f1)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f1 - fluxG[index - 1].f1);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f1 - fluxF[index - IdealMHD2DConst::device_ny].f1)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f1 - fluxG[index - 1].f1);
         UBar[index].rhoV = U[index].rhoV
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f2 - fluxF[index - IdealMHD2DConst::device_ny].f2)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f2 - fluxG[index - 1].f2);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f2 - fluxF[index - IdealMHD2DConst::device_ny].f2)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f2 - fluxG[index - 1].f2);
         UBar[index].rhoW = U[index].rhoW
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f3 - fluxF[index - IdealMHD2DConst::device_ny].f3)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f3 - fluxG[index - 1].f3);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f3 - fluxF[index - IdealMHD2DConst::device_ny].f3)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f3 - fluxG[index - 1].f3);
         UBar[index].bX   = U[index].bX 
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f4 - fluxF[index - IdealMHD2DConst::device_ny].f4)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f4 - fluxG[index - 1].f4);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f4 - fluxF[index - IdealMHD2DConst::device_ny].f4)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f4 - fluxG[index - 1].f4);
         UBar[index].bY   = U[index].bY 
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f5 - fluxF[index - IdealMHD2DConst::device_ny].f5)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f5 - fluxG[index - 1].f5);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f5 - fluxF[index - IdealMHD2DConst::device_ny].f5)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f5 - fluxG[index - 1].f5);
         UBar[index].bZ   = U[index].bZ 
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f6 - fluxF[index - IdealMHD2DConst::device_ny].f6)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f6 - fluxG[index - 1].f6);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f6 - fluxF[index - IdealMHD2DConst::device_ny].f6)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f6 - fluxG[index - 1].f6);
         UBar[index].e    = U[index].e 
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
-                         - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7);
+                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
+                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7);
 
     }
 }
@@ -138,6 +139,7 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(UBar.data()), 
+        IdealMHD2DConst::dt, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
@@ -178,10 +180,11 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
     fluxG = fluxSolver.getFluxG(UHalf);
 
     oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(UPast.data()), 
+        thrust::raw_pointer_cast(UHalf.data()), 
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
+        IdealMHD2DConst::dt / 2.0, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
@@ -210,6 +213,7 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(UBar.data()), 
+        IdealMHD2DConst::dt, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
@@ -250,10 +254,11 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     fluxG = fluxSolver.getFluxG(UHalf);
 
     oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(UPast.data()), 
+        thrust::raw_pointer_cast(UHalf.data()), 
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
+        IdealMHD2DConst::dt / 2.0, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
@@ -391,10 +396,10 @@ __global__ void checkAndResetExtremeValues_kernel(
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
 
-        rho = thrust::max(rho, 0.0001 * IdealMHD2DConst::device_rho0);
-        p   = thrust::max(p,   0.0001 * IdealMHD2DConst::device_p0);
-        rho = thrust::min(rho, 10000.0 * IdealMHD2DConst::device_rho0);
-        p   = thrust::min(p,   10000.0 * IdealMHD2DConst::device_p0);
+        rho = thrust::max(rho, 0.01 * IdealMHD2DConst::device_rho0);
+        p   = thrust::max(p,   0.01 * IdealMHD2DConst::device_p0);
+        rho = thrust::min(rho, 100.0 * IdealMHD2DConst::device_rho0);
+        p   = thrust::min(p,   100.0 * IdealMHD2DConst::device_p0);
 
         double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0); \
         u = thrust::max(-100.0 * VA, thrust::min(u, 100.0 * VA));
