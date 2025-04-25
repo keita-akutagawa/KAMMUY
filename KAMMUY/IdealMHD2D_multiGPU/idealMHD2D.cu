@@ -180,11 +180,11 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
     fluxG = fluxSolver.getFluxG(UHalf);
 
     oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(UHalf.data()), 
+        thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
-        IdealMHD2DConst::dt / 2.0, 
+        IdealMHD2DConst::dt, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
@@ -254,11 +254,11 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     fluxG = fluxSolver.getFluxG(UHalf);
 
     oneStepFirst_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        thrust::raw_pointer_cast(UHalf.data()), 
+        thrust::raw_pointer_cast(UPast.data()), 
         thrust::raw_pointer_cast(fluxF.data()), 
         thrust::raw_pointer_cast(fluxG.data()), 
         thrust::raw_pointer_cast(U.data()), 
-        IdealMHD2DConst::dt / 2.0, 
+        IdealMHD2DConst::dt, 
         mPIInfo.localSizeX
     );
     cudaDeviceSynchronize();
