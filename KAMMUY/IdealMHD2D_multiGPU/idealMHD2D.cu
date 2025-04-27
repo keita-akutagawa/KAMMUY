@@ -187,6 +187,8 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(UBar);
+
     boundaryMHD.periodicBoundaryX2nd_U(UBar);
     boundaryMHD.periodicBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -203,11 +205,11 @@ void IdealMHD2D::oneStepRK2_periodicXY_predictor()
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(U);
+
     boundaryMHD.periodicBoundaryX2nd_U(U);
     boundaryMHD.periodicBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
-
-    checkAndResetExtremeValues();
 }
 
 
@@ -218,6 +220,8 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    
+    checkAndResetExtremeValues(UHalf);
 
     fluxF = fluxSolver.getFluxF(UHalf);
     fluxG = fluxSolver.getFluxG(UHalf);
@@ -232,11 +236,11 @@ void IdealMHD2D::oneStepRK2_periodicXY_corrector(
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(U);
+
     boundaryMHD.periodicBoundaryX2nd_U(U);
     boundaryMHD.periodicBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
-
-    checkAndResetExtremeValues();
 }
 
 
@@ -261,6 +265,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(UBar);
+
     boundaryMHD.periodicBoundaryX2nd_U(UBar);
     boundaryMHD.symmetricBoundaryY2nd_U(UBar);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -277,11 +283,11 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_predictor()
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(U);
+
     boundaryMHD.periodicBoundaryX2nd_U(U);
     boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
-
-    checkAndResetExtremeValues();
 }
 
 
@@ -292,6 +298,8 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    checkAndResetExtremeValues(UHalf);
 
     fluxF = fluxSolver.getFluxF(UHalf);
     fluxG = fluxSolver.getFluxG(UHalf);
@@ -306,11 +314,11 @@ void IdealMHD2D::oneStepRK2_periodicXSymmetricY_corrector(
     );
     cudaDeviceSynchronize();
 
+    checkAndResetExtremeValues(U);
+
     boundaryMHD.periodicBoundaryX2nd_U(U);
     boundaryMHD.symmetricBoundaryY2nd_U(U);
     MPI_Barrier(MPI_COMM_WORLD);
-
-    checkAndResetExtremeValues();
 }
 
 
@@ -469,7 +477,9 @@ __global__ void checkAndResetExtremeValues_kernel(
     }
 }
 
-void IdealMHD2D::checkAndResetExtremeValues()
+void IdealMHD2D::checkAndResetExtremeValues(
+    thrust::device_vector<ConservationParameter>& U
+)
 {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -479,6 +489,7 @@ void IdealMHD2D::checkAndResetExtremeValues()
         thrust::raw_pointer_cast(U.data()), 
         mPIInfo.localSizeX
     );
+    cudaDeviceSynchronize(); 
 }
 
 

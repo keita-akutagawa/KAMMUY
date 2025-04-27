@@ -55,7 +55,9 @@ public:
 
     void calculateDt();
 
-    void checkAndResetExtremeValues();
+    void checkAndResetExtremeValues(
+        thrust::device_vector<ConservationParameter>& U
+    );
 
     bool checkCalculationIsCrashed();
 
