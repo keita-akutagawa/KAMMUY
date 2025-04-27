@@ -50,7 +50,7 @@ __global__ void oneStepFirst_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
+    if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < IdealMHD2DConst::device_ny - 1)) {
         int index = j + i * IdealMHD2DConst::device_ny;
 
         UBar[index].rho  = U[index].rho  
@@ -105,7 +105,7 @@ __global__ void oneStepSecond_kernel(
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX) && (0 < j) && (j < IdealMHD2DConst::device_ny)) {
+    if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < IdealMHD2DConst::device_ny - 1)) {
         int index = j + i * IdealMHD2DConst::device_ny;
         double rho, rhoU, rhoV, rhoW, bX, bY, bZ, e;
 
