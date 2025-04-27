@@ -3,6 +3,7 @@
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
     const float betaUpstream, const float sheatThickness, const float triggerRatio, 
+    const float bulkVx, const float bulkVy, const float bulkVz, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -26,7 +27,7 @@ __global__ void initializeU_kernel(
             bX  = IdealMHD2DConst::device_B0 * tanh((y - yCenter) / sheatThickness)
                 - IdealMHD2DConst::device_B0 * triggerRatio * (y - yCenter) / sheatThickness
                 * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-                / pow(2.0f * sheatThickness, 2));;
+                / pow(2.0f * sheatThickness, 2));
             bY  = IdealMHD2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
                 * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
                 / pow(2.0f * sheatThickness, 2)); 
@@ -54,9 +55,16 @@ void IdealMHD2D::initializeU()
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
+    double rho0, bulkVx, bulkVy, bulkVz; 
+    rho0 = PIC2DConst::mIon * PIC2DConst::numberDensityIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron; 
+    bulkVx = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0;  
+    bulkVy = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0; 
+    bulkVz = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0; 
+
     initializeU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
         betaUpstream, sheatThickness, triggerRatio, 
+        bulkVx, bulkVy, bulkVz, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -416,15 +424,19 @@ int main(int argc, char** argv)
         double dtCommon = min(0.7 / PIC2DConst::c, 0.1 * 1.0 / PIC2DConst::omegaPe);
         PIC2DConst::dt = dtCommon;
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
+        IdealMHD2DConst::eta = 0.05 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
+        IdealMHD2DConst::viscosity = 0.05 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
         cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
+        cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
+
 
         // STEP1 : MHD step
 
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXY_predictor();
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -432,8 +444,7 @@ int main(int argc, char** argv)
 
         interface2D.resetTimeAveragedPICParameters();
 
-        int sumUpCount; 
-        sumUpCount = 0; 
+        int sumUpCount = 0;  
         pIC2D.calculateFullMoments();
         thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
         thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
@@ -451,7 +462,7 @@ int main(int argc, char** argv)
         sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
-            float mixingRatio = 1.0 - substep / totalSubstep;
+            float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
             
             unsigned long long seedForReload; 
@@ -484,26 +495,17 @@ int main(int argc, char** argv)
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(UHalf);
-
-            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-        }
-
-        projection.correctB(UHalf); 
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-        MPI_Barrier(MPI_COMM_WORLD);
-
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(U);
 
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
+        if (step % 1 == 0) {
+            for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+                interfaceNoiseRemover2D.convolveU(U);
+
+                boundaryMHD.periodicBoundaryX2nd_U(U);
+                boundaryMHD.symmetricBoundaryY2nd_U(U);
+            }
         }
 
         projection.correctB(U); 

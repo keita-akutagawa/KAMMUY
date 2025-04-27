@@ -5,6 +5,9 @@ void IdealMHD2DConst::initializeDeviceConstants() {
     cudaMemcpyToSymbol(device_EPS, &EPS, sizeof(double));
     cudaMemcpyToSymbol(device_PI, &PI, sizeof(double));
 
+    cudaMemcpyToSymbol(device_eta, &eta, sizeof(double));
+    cudaMemcpyToSymbol(device_viscosity, &viscosity, sizeof(double));
+
     cudaMemcpyToSymbol(device_B0, &B0, sizeof(double));
     cudaMemcpyToSymbol(device_rho0, &rho0, sizeof(double));
     cudaMemcpyToSymbol(device_p0, &p0, sizeof(double));

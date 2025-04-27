@@ -12,6 +12,9 @@ namespace IdealMHD2DConst
     extern const double EPS;
     extern const double PI;
 
+    extern double eta; 
+    extern double viscosity; 
+
     extern const double B0; 
     extern const double rho0; 
     extern const double p0; 
@@ -37,6 +40,9 @@ namespace IdealMHD2DConst
 
     extern __constant__ double device_EPS;
     extern __constant__ double device_PI;
+
+    extern __device__ double device_eta; 
+    extern __device__ double device_viscosity; 
 
     extern __constant__ double device_B0; 
     extern __constant__ double device_rho0; 

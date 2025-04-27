@@ -50,6 +50,9 @@ const float PIC2DConst::EPS = 0.001;
 const double IdealMHD2DConst::EPS = 1e-20;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
+double IdealMHD2DConst::eta = 0.0;
+double IdealMHD2DConst::viscosity = 0.0;
+
 const int PIC2DConst::nx = 5000;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
@@ -74,7 +77,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 0;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
@@ -106,7 +109,7 @@ const float PIC2DConst::tElectron = (PIC2DConst::B0 * PIC2DConst::B0 / 2.0f / PI
 const float PIC2DConst::tIon = tRatio * tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
-const float PIC2DConst::qElectron = -1.0f * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron)) / 5.0;
+const float PIC2DConst::qElectron = -1.0f * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron));
 const float PIC2DConst::qIon = PIC2DConst::qRatio * PIC2DConst::qElectron;
 
 const float PIC2DConst::omegaPe = sqrt(static_cast<float>(PIC2DConst::numberDensityElectron) * pow(PIC2DConst::qElectron, 2) / PIC2DConst::mElectron / PIC2DConst::epsilon0);
@@ -227,6 +230,9 @@ __constant__ float PIC2DConst::device_bulkVzIon;
 
 __constant__ double IdealMHD2DConst::device_EPS;
 __constant__ double IdealMHD2DConst::device_PI;
+
+__device__ double IdealMHD2DConst::device_eta; 
+__device__ double IdealMHD2DConst::device_viscosity; 
 
 __constant__ double IdealMHD2DConst::device_rho0;
 __constant__ double IdealMHD2DConst::device_B0;
