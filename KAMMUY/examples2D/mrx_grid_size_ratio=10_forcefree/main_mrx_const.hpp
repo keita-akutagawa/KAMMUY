@@ -19,7 +19,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_mrx_grid_size_ratio=10";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_mrx_grid_size_ratio=10_forcefree";
 std::string filenameWithoutStep = "mrx";
 std::ofstream logfile(    directoryName + "/log_mrx.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_mrx.txt");
@@ -30,12 +30,12 @@ std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_mrx.txt");
 const int bufferMHD = 3; 
 const int bufferPIC = 3; 
 
-const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/mrx_grid_size_ratio=10/poisson_symmetric.mtx";
-const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/mrx_grid_size_ratio=10/PCG_W.json";
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/mrx_grid_size_ratio=10_forcefree/poisson_symmetric.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/mrx_grid_size_ratio=10_forcefree/PCG_W.json";
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 1;
+const int recordStep = 5;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
@@ -53,12 +53,12 @@ const double IdealMHD2DConst::PI = 3.14159265358979;
 double IdealMHD2DConst::eta = 0.0;
 double IdealMHD2DConst::viscosity = 0.0;
 
-const int PIC2DConst::nx = 5000;
+const int PIC2DConst::nx = 2000;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 500;
+const int PIC2DConst::ny = 40;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -80,7 +80,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 const int Interface2DConst::convolutionCount = 0;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
-const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
+const double Interface2DConst::deltaForInterlockingFunction = 1 * Interface2DConst::gridSizeRatio; 
 const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
@@ -95,8 +95,8 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 100;
-const int PIC2DConst::numberDensityElectron = 100;
+const int PIC2DConst::numberDensityIon = 20;
+const int PIC2DConst::numberDensityElectron = 20;
 
 const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0f;
 
@@ -104,8 +104,9 @@ const float PIC2DConst::mRatio = 25.0f;
 const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
+const float beta = 0.25;
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = (PIC2DConst::B0 * PIC2DConst::B0 / 2.0f / PIC2DConst::mu0) / (PIC2DConst::numberDensityIon + PIC2DConst::numberDensityElectron * PIC2DConst::tRatio);
+const float PIC2DConst::tElectron = beta * (PIC2DConst::B0 * PIC2DConst::B0 / 2.0f / PIC2DConst::mu0) / (PIC2DConst::numberDensityIon + PIC2DConst::numberDensityElectron * PIC2DConst::tRatio);
 const float PIC2DConst::tIon = tRatio * tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -120,37 +121,23 @@ const float PIC2DConst::omegaCi = PIC2DConst::qIon * PIC2DConst::B0 / PIC2DConst
 const float PIC2DConst::debyeLength = sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron) / pow(PIC2DConst::qElectron, 2));
 const float PIC2DConst::ionInertialLength = PIC2DConst::c / PIC2DConst::omegaPi;
 
-const float betaUpstream = 0.2f * 0.2f;
 const float triggerRatio = 0.1f;
-const float sheatThickness = 1.0f * PIC2DConst::ionInertialLength; 
+const float sheatThickness = 2.0f * PIC2DConst::ionInertialLength; 
 
 float PIC2DConst::dt = 0.0f;
 
-const unsigned long long harrisNumIon = round(PIC2DConst::nx * PIC2DConst::numberDensityIon * 2.0f * sheatThickness);
-const unsigned long long backgroundNumIon = round(sqrt(betaUpstream) * PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityIon);
-const unsigned long long harrisNumElectron = harrisNumIon;
-const unsigned long long backgroundNumElectron = backgroundNumIon;
-const unsigned long long PIC2DConst::totalNumIon = harrisNumIon + backgroundNumIon;
-const unsigned long long PIC2DConst::totalNumElectron = harrisNumElectron + backgroundNumElectron;
+const unsigned long long PIC2DConst::totalNumIon = round(PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityIon);
+const unsigned long long PIC2DConst::totalNumElectron = round(PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityElectron);
 const unsigned long long PIC2DConst::totalNumParticles = PIC2DConst::totalNumIon + PIC2DConst::totalNumElectron;
 
 const float PIC2DConst::vThIon = sqrt(PIC2DConst::tIon / PIC2DConst::mIon);
 const float PIC2DConst::vThElectron = sqrt(PIC2DConst::tElectron / PIC2DConst::mElectron);
 const float PIC2DConst::bulkVxIon = 0.0f;
 const float PIC2DConst::bulkVyIon = 0.0f;
-const float PIC2DConst::bulkVzIon = -PIC2DConst::c * PIC2DConst::debyeLength / sheatThickness * sqrt(2.0f / (1.0f + 1.0f / PIC2DConst::tRatio));
-const float PIC2DConst::bulkVxElectron = -PIC2DConst::bulkVxIon / PIC2DConst::tRatio;
-const float PIC2DConst::bulkVyElectron = -PIC2DConst::bulkVyIon / PIC2DConst::tRatio;
-const float PIC2DConst::bulkVzElectron = -PIC2DConst::bulkVzIon / PIC2DConst::tRatio;
-
-const float vThIonBackground = sqrt(sqrt(betaUpstream) * PIC2DConst::tIon / PIC2DConst::mIon);
-const float vThElectronBackground = sqrt(sqrt(betaUpstream) * PIC2DConst::tElectron / PIC2DConst::mElectron);
-const float bulkVxElectronBackground = 0.0f;
-const float bulkVyElectronBackground = 0.0f;
-const float bulkVzElectronBackground = 0.0f;
-const float bulkVxIonBackground = 0.0f;
-const float bulkVyIonBackground = 0.0f;
-const float bulkVzIonBackground = 0.0f;
+const float PIC2DConst::bulkVzIon = 0.0f;
+const float PIC2DConst::bulkVxElectron = 0.0f;
+const float PIC2DConst::bulkVyElectron = 0.0f;
+const float PIC2DConst::bulkVzElectron = 0.0f;
 
 
 // MHD

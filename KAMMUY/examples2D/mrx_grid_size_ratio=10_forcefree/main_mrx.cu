@@ -2,8 +2,7 @@
 
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
-    const float betaUpstream, const float sheatThickness, const float triggerRatio, 
-    const float bulkVx, const float bulkVy, const float bulkVz, 
+    const float sheatThickness, const float triggerRatio, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -20,7 +19,7 @@ __global__ void initializeU_kernel(
             double xCenter = 0.5f * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
             double yCenter = 0.5f * (IdealMHD2DConst::device_ymax - IdealMHD2DConst::device_ymin);
             
-            rho = IdealMHD2DConst::device_rho0 * (sqrt(betaUpstream) + pow(cosh((y - yCenter) / sheatThickness), -2));
+            rho = IdealMHD2DConst::device_rho0;
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
@@ -31,8 +30,8 @@ __global__ void initializeU_kernel(
             bY  = IdealMHD2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
                 * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
                 / pow(2.0f * sheatThickness, 2)); 
-            bZ  = 0.0;
-            p   = IdealMHD2DConst::device_p0 * (betaUpstream + pow(cosh((y - yCenter) / sheatThickness), -2));
+            bZ  = IdealMHD2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
+            p   = IdealMHD2DConst::device_p0;
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
                 + 0.5 * rho * (u * u + v * v + w * w)
                 + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -55,16 +54,9 @@ void IdealMHD2D::initializeU()
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-    double rho0, bulkVx, bulkVy, bulkVz; 
-    rho0 = PIC2DConst::mIon * PIC2DConst::numberDensityIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron; 
-    bulkVx = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0;  
-    bulkVy = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0; 
-    bulkVz = (PIC2DConst::mIon * PIC2DConst::numberDensityIon * PIC2DConst::bulkVzIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron * PIC2DConst::bulkVzElectron) / rho0; 
-
     initializeU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        betaUpstream, sheatThickness, triggerRatio, 
-        bulkVx, bulkVy, bulkVz, 
+        sheatThickness, triggerRatio, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -103,7 +95,7 @@ __global__ void initializePICField_kernel(
             bY = PIC2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
             * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
             / pow(2.0f * sheatThickness, 2)); 
-            bZ = 0.0f;
+            bZ = PIC2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
             eX = 0.0f;
             eY = 0.0f;
             eZ = 0.0f;
@@ -120,7 +112,6 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
-    /*
     unsigned long long countIon = 0, countElectron = 0;
     for (int i = 0; i < mPIInfo.localNx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
@@ -133,12 +124,21 @@ void PIC2D::initialize()
             yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin + PIC2DConst::EPS;
             ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin - PIC2DConst::EPS;
 
-            int ni = PIC2DConst::numberDensityIon * pow(cosh((y - yCenter) / sheatThickness), -2);
-            int ne = ni; 
+            int ni = PIC2DConst::numberDensityIon;
+            int ne = PIC2DConst::numberDensityElectron;
+
+            float jX = -PIC2DConst::B0 / sheatThickness * tanh((y - yCenter) / sheatThickness) / cosh((y - yCenter) / sheatThickness);
+            float jY = 0.0f; 
+            float jZ = -PIC2DConst::B0 / sheatThickness / pow(cosh((y - yCenter) / sheatThickness), 2);
+            
+            float bulkVxIonLocal = 0.0f, bulkVyIonLocal = 0.0f, bulkVzIonLocal = 0.0f; 
+            float bulkVxElectronLocal = jX / ne / PIC2DConst::qElectron; 
+            float bulkVyElectronLocal = jY / ne / PIC2DConst::qElectron;
+            float bulkVzElectronLocal = jZ / ne / PIC2DConst::qElectron; 
 
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
-                PIC2DConst::bulkVxIon, PIC2DConst::bulkVyIon, PIC2DConst::bulkVzIon, 
+                bulkVxIonLocal, bulkVyIonLocal, bulkVzIonLocal, 
                 PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
                 countIon, countIon + ni, 
                 j + i * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
@@ -146,7 +146,7 @@ void PIC2D::initialize()
             ); 
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
-                PIC2DConst::bulkVxElectron, PIC2DConst::bulkVyElectron, PIC2DConst::bulkVzElectron, 
+                bulkVxElectronLocal, bulkVyElectronLocal, bulkVzElectronLocal, 
                 PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
                 countElectron, countElectron + ne, 
                 j + i * PIC2DConst::ny + mPIInfo.localNx * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
@@ -157,100 +157,8 @@ void PIC2D::initialize()
             countElectron += ne; 
         }
     }
-    initializeParticle.uniformForPosition_x(
-        countIon, countIon + backgroundNumIon, 
-        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
-        0 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.uniformForPosition_x(
-        countElectron, countElectron + backgroundNumElectron, 
-        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, 
-        10000 + mPIInfo.rank, particlesElectron
-    );
-    initializeParticle.uniformForPosition_y(
-        countIon, countIon + backgroundNumIon, 
-        PIC2DConst::ymin - mPIInfo.buffer, PIC2DConst::ymax + mPIInfo.buffer, 
-        20000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.uniformForPosition_y(
-        countElectron, countElectron + backgroundNumElectron, 
-        PIC2DConst::ymin - mPIInfo.buffer, PIC2DConst::ymax + mPIInfo.buffer, 
-        30000 + mPIInfo.rank, particlesElectron
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxIonBackground, bulkVyIonBackground, bulkVzIonBackground, 
-        vThIonBackground, vThIonBackground, vThIonBackground, 
-        countIon, countIon + backgroundNumIon, 
-        40000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxElectronBackground, bulkVyElectronBackground, bulkVzElectronBackground, 
-        vThElectronBackground, vThElectronBackground, vThElectronBackground, 
-        countElectron, countElectron + backgroundNumElectron, 
-        50000 + mPIInfo.rank, particlesElectron
-    );
-    
-    mPIInfo.existNumIonPerProcs = countIon + backgroundNumIon; 
-    mPIInfo.existNumElectronPerProcs = countElectron + backgroundNumElectron; 
-    */
-    
-    unsigned long long harrisNumIonPerProcs = harrisNumIon / mPIInfo.procs; 
-    unsigned long long harrisNumElectronPerProcs = harrisNumElectron / mPIInfo.procs; 
-
-    initializeParticle.uniformForPosition_x(
-        0, mPIInfo.existNumIonPerProcs, 
-        mPIInfo.xminForProcs + PIC2DConst::EPS, mPIInfo.xmaxForProcs - PIC2DConst::EPS, 
-        0 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.uniformForPosition_x(
-        0, mPIInfo.existNumElectronPerProcs, 
-        mPIInfo.xminForProcs + PIC2DConst::EPS, mPIInfo.xmaxForProcs - PIC2DConst::EPS, 
-        1000 + mPIInfo.rank, particlesElectron
-    );
-
-    initializeParticle.harrisForPosition_y(
-        0, harrisNumIonPerProcs, 
-        2000 + mPIInfo.rank, sheatThickness, particlesIon
-    );
-    initializeParticle.uniformForPosition_y(
-        harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
-        PIC2DConst::ymin + PIC2DConst::EPS, PIC2DConst::ymax - PIC2DConst::EPS, 
-        3000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.harrisForPosition_y(
-        0, harrisNumElectronPerProcs, 
-        4000 + mPIInfo.rank, sheatThickness, particlesElectron
-    );
-    initializeParticle.uniformForPosition_y(
-        harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
-        PIC2DConst::ymin + PIC2DConst::EPS, PIC2DConst::ymax - PIC2DConst::EPS, 
-        5000 + mPIInfo.rank, particlesElectron
-    );
-
-    initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxIon, PIC2DConst::bulkVyIon, PIC2DConst::bulkVzIon, 
-        PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
-        0, harrisNumIonPerProcs, 
-        6000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxIonBackground, bulkVyIonBackground, bulkVzIonBackground, 
-        vThIonBackground, vThIonBackground, vThIonBackground, 
-        harrisNumIonPerProcs, mPIInfo.existNumIonPerProcs, 
-        7000 + mPIInfo.rank, particlesIon
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        PIC2DConst::bulkVxElectron, PIC2DConst::bulkVyElectron, PIC2DConst::bulkVzElectron, 
-        PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
-        0, harrisNumElectronPerProcs, 
-        8000 + mPIInfo.rank, particlesElectron
-    );
-    initializeParticle.maxwellDistributionForVelocity(
-        bulkVxElectronBackground, bulkVyElectronBackground, bulkVzElectronBackground, 
-        vThElectronBackground, vThElectronBackground, vThElectronBackground, 
-        harrisNumElectronPerProcs, mPIInfo.existNumElectronPerProcs, 
-        9000 + mPIInfo.rank, particlesElectron
-    );
+    mPIInfo.existNumIonPerProcs = countIon; 
+    mPIInfo.existNumElectronPerProcs = countElectron;
 
 
     dim3 threadsPerBlock(16, 16);
@@ -424,8 +332,8 @@ int main(int argc, char** argv)
         double dtCommon = min(0.7 / PIC2DConst::c, 0.1 * 1.0 / PIC2DConst::omegaPe);
         PIC2DConst::dt = dtCommon;
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
-        IdealMHD2DConst::eta = 0.05 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
-        IdealMHD2DConst::viscosity = 0.05 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
+        IdealMHD2DConst::eta = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
+        IdealMHD2DConst::viscosity = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
         cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
@@ -491,22 +399,20 @@ int main(int argc, char** argv)
         interface2D.calculateUHalf(UPast, UNext); 
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
-        interface2D.sendPICtoMHD(UHalf);
+        //interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(UHalf);
+
+            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        }
 
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
-
-        if (step % 1 == 0) {
-            for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-                interfaceNoiseRemover2D.convolveU(U);
-
-                boundaryMHD.periodicBoundaryX2nd_U(U);
-                boundaryMHD.symmetricBoundaryY2nd_U(U);
-            }
-        }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);
