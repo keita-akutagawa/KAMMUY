@@ -19,7 +19,7 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_alfven_grid_size_ratio=5";
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_alfven_grid_size_ratio=5_nofilter";
 std::string filenameWithoutStep = "alfven";
 std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
@@ -27,12 +27,13 @@ std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_alfven.txt");
 std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 
-const int buffer = 3; 
+const int bufferMHD = 3; 
+const int bufferPIC = 3; 
 
-const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5/poisson_symmetric.mtx";
-const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5/PCG_W.json";
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5_nofilter/poisson_symmetric.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5_nofilter/PCG_W.json";
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -48,6 +49,9 @@ const double Interface2DConst::PI = 3.14159265358979;
 const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
+
+double IdealMHD2DConst::eta = 0.0;
+double IdealMHD2DConst::viscosity = 0.0;
 
 const double waveAmp = 0.05;
 const double waveLength = 1000.0;
@@ -76,7 +80,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 0;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
@@ -85,7 +89,7 @@ const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
-thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * buffer) * PIC2DConst::ny, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * bufferPIC) * PIC2DConst::ny, 0.0);
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNum = 1000000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
@@ -96,8 +100,8 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 20;
-const int PIC2DConst::numberDensityElectron = 20;
+const int PIC2DConst::numberDensityIon = 50;
+const int PIC2DConst::numberDensityElectron = 50;
 
 const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0f;
 
@@ -106,7 +110,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.2f * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -213,6 +217,9 @@ __constant__ float PIC2DConst::device_bulkVzIon;
 
 __constant__ double IdealMHD2DConst::device_EPS;
 __constant__ double IdealMHD2DConst::device_PI;
+
+__device__ double IdealMHD2DConst::device_eta; 
+__device__ double IdealMHD2DConst::device_viscosity; 
 
 __constant__ double IdealMHD2DConst::device_rho0;
 __constant__ double IdealMHD2DConst::device_B0;

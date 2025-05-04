@@ -27,12 +27,13 @@ std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_shock_tube.txt");
 std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_shock_tube.txt");
 
 
-const int buffer = 3; 
+const int bufferPIC = 3;
+const int bufferMHD = 3;  
 
 const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/shock_tube_grid_size_ratio=10/poisson_symmetric.mtx";
 const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/shock_tube_grid_size_ratio=10/PCG_W.json";
 
-const int IdealMHD2DConst::totalStep = 10000;
+const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
 const int recordStep = 1;
 const bool isParticleRecord = false;
@@ -49,12 +50,15 @@ const float PIC2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::EPS = 0.0001;
 const double IdealMHD2DConst::PI = 3.14159265358979;
 
+double IdealMHD2DConst::eta = 0.0;
+double IdealMHD2DConst::viscosity = 0.0;
+
 const int PIC2DConst::nx = 50;
 const float PIC2DConst::dx = 1.0f;
 const float PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
 const float PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 500;
+const int PIC2DConst::ny = 200;
 const float PIC2DConst::dy = 1.0f;
 const float PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
 const float PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -65,14 +69,14 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = 1500 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = 1000 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 1;
+const int Interface2DConst::convolutionCount = 0;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
@@ -81,7 +85,7 @@ const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
 
-thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * buffer) * PIC2DConst::ny, 0.0);
+thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * bufferPIC) * PIC2DConst::ny, 0.0);
 
 const unsigned long long Interface2DConst::reloadParticlesTotalNum = 1000000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
 
@@ -92,8 +96,8 @@ const float PIC2DConst::epsilon0 = 1.0f;
 const float PIC2DConst::mu0 = 1.0f;
 const float PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
 
-const int PIC2DConst::numberDensityIon = 100;
-const int PIC2DConst::numberDensityElectron = 100;
+const int PIC2DConst::numberDensityIon = 200;
+const int PIC2DConst::numberDensityElectron = 200;
 
 const float PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 2.0f;
 
@@ -102,7 +106,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.2f * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = 32.0f / 25.0f * pow(PIC2DConst::B0, 2) / 4.0 / PIC2DConst::numberDensityElectron / PIC2DConst::mu0;
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;
@@ -135,8 +139,8 @@ const float PIC2DConst::bulkVzElectron = 0.0;
 //追加
 const int numberDensityIonLeft = PIC2DConst::numberDensityIon; 
 const int numberDensityElectronLeft = PIC2DConst::numberDensityElectron; 
-const int numberDensityIonRight = static_cast<int>(0.2f * PIC2DConst::numberDensityIon);
-const int numberDensityElectronRight = static_cast<int>(0.2f * PIC2DConst::numberDensityElectron);
+const int numberDensityIonRight = static_cast<int>(0.125f * PIC2DConst::numberDensityIon);
+const int numberDensityElectronRight = static_cast<int>(0.125f * PIC2DConst::numberDensityElectron);
 
 const std::vector<float> bLeft = {0.0f, 0.75f * PIC2DConst::B0, 1.0f * PIC2DConst::B0}; 
 const std::vector<float> bRight = {0.0f, 0.75f * PIC2DConst::B0, -1.0f * PIC2DConst::B0}; 
@@ -146,8 +150,8 @@ const std::vector<float> bulkVRight = {0.0f, 0.0f, 0.0f};
 
 const float tIonLeft = PIC2DConst::tIon; 
 const float tElectronLeft = PIC2DConst::tElectron; 
-const float tIonRight = tIonLeft * (numberDensityIonLeft + PIC2DConst::tRatio * numberDensityElectronLeft) * 0.1f / 1.0f / (numberDensityIonRight + PIC2DConst::tRatio * numberDensityElectronRight); 
-const float tElectronRight = tElectronLeft * (numberDensityIonLeft + PIC2DConst::tRatio * numberDensityElectronLeft) * 0.1f / 1.0f / (numberDensityIonRight + PIC2DConst::tRatio * numberDensityElectronRight); 
+const float tIonRight = tIonLeft * (numberDensityIonLeft + PIC2DConst::tRatio * numberDensityElectronLeft) * 0.1f / (numberDensityIonRight + PIC2DConst::tRatio * numberDensityElectronRight); 
+const float tElectronRight = tElectronLeft * (numberDensityIonLeft + PIC2DConst::tRatio * numberDensityElectronLeft) * 0.1f / (numberDensityIonRight + PIC2DConst::tRatio * numberDensityElectronRight); 
 const float vThIonLeft = sqrt(tIonLeft / PIC2DConst::mIon); 
 const float vThElectronLeft = sqrt(tElectronLeft / PIC2DConst::mElectron); 
 const float vThIonRight = sqrt(tIonRight / PIC2DConst::mIon); 
@@ -236,6 +240,9 @@ __constant__ float PIC2DConst::device_bulkVzIon;
 
 __constant__ double IdealMHD2DConst::device_EPS;
 __constant__ double IdealMHD2DConst::device_PI;
+
+__device__ double IdealMHD2DConst::device_eta; 
+__device__ double IdealMHD2DConst::device_viscosity; 
 
 __constant__ double IdealMHD2DConst::device_rho0;
 __constant__ double IdealMHD2DConst::device_B0;

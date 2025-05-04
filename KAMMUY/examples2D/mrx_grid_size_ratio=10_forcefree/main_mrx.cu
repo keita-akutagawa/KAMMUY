@@ -337,6 +337,7 @@ int main(int argc, char** argv)
         cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
+        cudaMemcpyToSymbol(IdealMHD2DConst::device_viscosity, &IdealMHD2DConst::viscosity, sizeof(double));
 
 
         // STEP1 : MHD step
@@ -399,7 +400,7 @@ int main(int argc, char** argv)
         interface2D.calculateUHalf(UPast, UNext); 
         thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
-        //interface2D.sendPICtoMHD(UHalf);
+        interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
         boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 

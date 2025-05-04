@@ -197,12 +197,12 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
     PIC2DMPI::MPIInfo mPIInfoPIC;
-    int mpiBufNumParticles = 1000000; 
-    PIC2DMPI::setupInfo(mPIInfoPIC, buffer, mpiBufNumParticles);
+    int mpiBufNumParticles = 10000000; 
+    PIC2DMPI::setupInfo(mPIInfoPIC, bufferPIC, mpiBufNumParticles);
     IdealMHD2DMPI::MPIInfo mPIInfoMHD;
-    IdealMHD2DMPI::setupInfo(mPIInfoMHD, buffer);
+    IdealMHD2DMPI::setupInfo(mPIInfoMHD, bufferMHD);
     Interface2DMPI::MPIInfo mPIInfoInterface; 
-    Interface2DMPI::setupInfo(mPIInfoInterface, buffer); 
+    Interface2DMPI::setupInfo(mPIInfoInterface); 
 
     if (mPIInfoPIC.rank == 0) {
         std::cout   << mPIInfoPIC.gridX << std::endl;
@@ -235,6 +235,8 @@ int main(int argc, char** argv)
                             + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX
                             * (mPIInfoPIC.localGridX + 1);
 
+
+    thrust::host_vector<double> host_interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0);
     int bufferForInterlocking = 5;  
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny / 2; j++) {
@@ -333,15 +335,19 @@ int main(int argc, char** argv)
         double dtCommon = min(0.7 / PIC2DConst::c, 0.1 * 1.0 / PIC2DConst::omegaPe);
         PIC2DConst::dt = dtCommon;
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
+        IdealMHD2DConst::eta = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
+        IdealMHD2DConst::viscosity = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
         cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
+        cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
+        cudaMemcpyToSymbol(IdealMHD2DConst::device_viscosity, &IdealMHD2DConst::viscosity, sizeof(double));
 
         // STEP1 : MHD step
 
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXY_predictor();
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -349,8 +355,7 @@ int main(int argc, char** argv)
 
         interface2D.resetTimeAveragedPICParameters();
 
-        int sumUpCount; 
-        sumUpCount = 0; 
+        int sumUpCount = 0;  
         pIC2D.calculateFullMoments();
         thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
         thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
@@ -368,7 +373,7 @@ int main(int argc, char** argv)
         sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
-            float mixingRatio = 1.0 - substep / totalSubstep;
+            float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
             
             unsigned long long seedForReload; 
@@ -408,20 +413,9 @@ int main(int argc, char** argv)
             boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
         }
 
-        projection.correctB(UHalf); 
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-        MPI_Barrier(MPI_COMM_WORLD);
-
         idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(U);
-
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
-        }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);
