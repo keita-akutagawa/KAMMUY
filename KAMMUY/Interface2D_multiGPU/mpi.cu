@@ -8,7 +8,7 @@ int Interface2DMPI::MPIInfo::getRank(int dx)
 }
 
 
-void Interface2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer)
+void Interface2DMPI::setupInfo(MPIInfo& mPIInfo)
 {
     int rank = 0, procs = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -18,9 +18,6 @@ void Interface2DMPI::setupInfo(MPIInfo& mPIInfo, int buffer)
     mPIInfo.procs = procs;
     mPIInfo.gridX = procs;
     mPIInfo.localGridX = rank;
-    mPIInfo.localNx = Interface2DConst::nx / mPIInfo.gridX;
-    mPIInfo.buffer = buffer;
-    mPIInfo.localSizeX = mPIInfo.localNx + 2 * mPIInfo.buffer;
 }
 
 

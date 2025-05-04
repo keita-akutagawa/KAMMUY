@@ -9,7 +9,7 @@
 class CalculateHalfQ
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo& mPIInfo;
     MUSCL muscl;
 
 public:

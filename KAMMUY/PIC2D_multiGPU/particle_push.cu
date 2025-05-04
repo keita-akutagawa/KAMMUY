@@ -86,35 +86,40 @@ ParticleField getParticleFields(
     cy1 = yOverDy - yIndex1;
     cy2 = 1.0f - cy1;
 
-    particleField.bX += B[yIndex1 + PIC2DConst::device_ny * xIndex1].bX * cx2 * cy2;
-    particleField.bX += B[yIndex2 + PIC2DConst::device_ny * xIndex1].bX * cx2 * cy1;
-    particleField.bX += B[yIndex1 + PIC2DConst::device_ny * xIndex2].bX * cx1 * cy2;
-    particleField.bX += B[yIndex2 + PIC2DConst::device_ny * xIndex2].bX * cx1 * cy1;
+    unsigned long long index11 = yIndex1 + PIC2DConst::device_ny * xIndex1; 
+    unsigned long long index12 = yIndex2 + PIC2DConst::device_ny * xIndex1; 
+    unsigned long long index21 = yIndex1 + PIC2DConst::device_ny * xIndex2; 
+    unsigned long long index22 = yIndex2 + PIC2DConst::device_ny * xIndex2; 
 
-    particleField.bY += B[yIndex1 + PIC2DConst::device_ny * xIndex1].bY * cx2 * cy2;
-    particleField.bY += B[yIndex2 + PIC2DConst::device_ny * xIndex1].bY * cx2 * cy1;
-    particleField.bY += B[yIndex1 + PIC2DConst::device_ny * xIndex2].bY * cx1 * cy2;
-    particleField.bY += B[yIndex2 + PIC2DConst::device_ny * xIndex2].bY * cx1 * cy1;
+    particleField.bX += B[index11].bX * cx2 * cy2;
+    particleField.bX += B[index12].bX * cx2 * cy1;
+    particleField.bX += B[index21].bX * cx1 * cy2;
+    particleField.bX += B[index22].bX * cx1 * cy1;
 
-    particleField.bZ += B[yIndex1 + PIC2DConst::device_ny * xIndex1].bZ * cx2 * cy2;
-    particleField.bZ += B[yIndex2 + PIC2DConst::device_ny * xIndex1].bZ * cx2 * cy1;
-    particleField.bZ += B[yIndex1 + PIC2DConst::device_ny * xIndex2].bZ * cx1 * cy2;
-    particleField.bZ += B[yIndex2 + PIC2DConst::device_ny * xIndex2].bZ * cx1 * cy1;
+    particleField.bY += B[index11].bY * cx2 * cy2;
+    particleField.bY += B[index12].bY * cx2 * cy1;
+    particleField.bY += B[index21].bY * cx1 * cy2;
+    particleField.bY += B[index22].bY * cx1 * cy1;
 
-    particleField.eX += E[yIndex1 + PIC2DConst::device_ny * xIndex1].eX * cx2 * cy2;
-    particleField.eX += E[yIndex2 + PIC2DConst::device_ny * xIndex1].eX * cx2 * cy1;
-    particleField.eX += E[yIndex1 + PIC2DConst::device_ny * xIndex2].eX * cx1 * cy2;
-    particleField.eX += E[yIndex2 + PIC2DConst::device_ny * xIndex2].eX * cx1 * cy1;
+    particleField.bZ += B[index11].bZ * cx2 * cy2;
+    particleField.bZ += B[index12].bZ * cx2 * cy1;
+    particleField.bZ += B[index21].bZ * cx1 * cy2;
+    particleField.bZ += B[index22].bZ * cx1 * cy1;
 
-    particleField.eY += E[yIndex1 + PIC2DConst::device_ny * xIndex1].eY * cx2 * cy2;
-    particleField.eY += E[yIndex2 + PIC2DConst::device_ny * xIndex1].eY * cx2 * cy1;
-    particleField.eY += E[yIndex1 + PIC2DConst::device_ny * xIndex2].eY * cx1 * cy2;
-    particleField.eY += E[yIndex2 + PIC2DConst::device_ny * xIndex2].eY * cx1 * cy1;
+    particleField.eX += E[index11].eX * cx2 * cy2;
+    particleField.eX += E[index12].eX * cx2 * cy1;
+    particleField.eX += E[index21].eX * cx1 * cy2;
+    particleField.eX += E[index22].eX * cx1 * cy1;
 
-    particleField.eZ += E[yIndex1 + PIC2DConst::device_ny * xIndex1].eZ * cx2 * cy2;
-    particleField.eZ += E[yIndex2 + PIC2DConst::device_ny * xIndex1].eZ * cx2 * cy1;
-    particleField.eZ += E[yIndex1 + PIC2DConst::device_ny * xIndex2].eZ * cx1 * cy2;
-    particleField.eZ += E[yIndex2 + PIC2DConst::device_ny * xIndex2].eZ * cx1 * cy1;
+    particleField.eY += E[index11].eY * cx2 * cy2;
+    particleField.eY += E[index12].eY * cx2 * cy1;
+    particleField.eY += E[index21].eY * cx1 * cy2;
+    particleField.eY += E[index22].eY * cx1 * cy1;
+
+    particleField.eZ += E[index11].eZ * cx2 * cy2;
+    particleField.eZ += E[index12].eZ * cx2 * cy1;
+    particleField.eZ += E[index21].eZ * cx1 * cy2;
+    particleField.eZ += E[index22].eZ * cx1 * cy1;
 
     return particleField;
 }
@@ -229,6 +234,7 @@ __global__
 void pushPositionOfOneSpecies_kernel(
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
+    const float xminForProcs, const float xmaxForProcs, const int buffer, 
     const float dt
 )
 {
@@ -257,6 +263,7 @@ void pushPositionOfOneSpecies_kernel(
         particlesSpecies[i].x = x;
         particlesSpecies[i].y = y;
         particlesSpecies[i].z = z;
+
     }
 }
 
@@ -273,6 +280,7 @@ void ParticlePush::pushPositionOfOneSpecies(
     pushPositionOfOneSpecies_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(particlesSpecies.data()), 
         existNumSpecies, 
+        mPIInfo.xminForProcs, mPIInfo.xmaxForProcs, mPIInfo.buffer, 
         dt
     );
     cudaDeviceSynchronize();

@@ -61,10 +61,10 @@ public:
     void periodicBoundaryParticleOfOneSpecies_x(
         thrust::device_vector<Particle>& particlesSpecies, 
         unsigned long long& existNumSpecies, 
-        unsigned int& numForSendParticlesSpeciesLeft, 
-        unsigned int& numForSendParticlesSpeciesRight, 
-        unsigned int& numForRecvParticlesSpeciesLeft, 
-        unsigned int& numForRecvParticlesSpeciesRight
+        unsigned long long& numForSendParticlesSpeciesLeft, 
+        unsigned long long& numForSendParticlesSpeciesRight, 
+        unsigned long long& numForRecvParticlesSpeciesLeft, 
+        unsigned long long& numForRecvParticlesSpeciesRight
     );
 
     void freeBoundaryParticle_y(

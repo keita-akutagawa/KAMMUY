@@ -29,13 +29,13 @@ __global__ void freeBoundaryParticle_y_kernel(
     Particle* particlesSpecies, 
     Particle* sendParticlesSpeciesLeft, 
     Particle* sendParticlesSpeciesRight, 
-    unsigned int* countForFreeBoundaryParticlesSpeciesLeft, 
-    unsigned int* countForFreeBoundaryParticlesSpeciesRight, 
+    unsigned long long* countForFreeBoundaryParticlesSpeciesLeft, 
+    unsigned long long* countForFreeBoundaryParticlesSpeciesRight, 
     const unsigned long long existNumSpecies, 
     const int buffer
 )
 {
-    unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < existNumSpecies) {
         float y = particlesSpecies[i].y; 
@@ -51,14 +51,14 @@ __global__ void freeBoundaryParticle_y_kernel(
         }
         
         if (y > boundaryDown + PIC2DConst::device_dy && y <= boundaryDown + 2 * PIC2DConst::device_dy) {
-            unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesLeft[0]), 1);
+            unsigned long long particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
             sendParticle.y = sendParticle.y - PIC2DConst::device_dy + PIC2DConst::device_EPS; 
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
         if (y < boundaryUp - PIC2DConst::device_dy && y >= boundaryUp - 2 * PIC2DConst::device_dy) {
-            unsigned int particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesRight[0]), 1);
+            unsigned long long particleIndex = atomicAdd(&(countForFreeBoundaryParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
             sendParticle.y = sendParticle.y + PIC2DConst::device_dy - PIC2DConst::device_EPS; 
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
@@ -74,8 +74,8 @@ void BoundaryPIC::freeBoundaryParticleOfOneSpecies_y(
     unsigned long long& existNumSpecies
 )
 {   
-    thrust::device_vector<unsigned int> countForFreeBoundaryParticlesSpeciesLeft(1, 0); 
-    thrust::device_vector<unsigned int> countForFreeBoundaryParticlesSpeciesRight(1, 0); 
+    thrust::device_vector<unsigned long long> countForFreeBoundaryParticlesSpeciesLeft(1, 0); 
+    thrust::device_vector<unsigned long long> countForFreeBoundaryParticlesSpeciesRight(1, 0); 
 
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((existNumSpecies + threadsPerBlock.x - 1) / threadsPerBlock.x);

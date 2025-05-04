@@ -28,7 +28,7 @@
 class Projection
 {
 private: 
-    IdealMHD2DMPI::MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo& mPIInfo;
 
     thrust::device_vector<double> divB; 
     thrust::device_vector<double> sum_divB; 

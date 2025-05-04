@@ -18,7 +18,7 @@ public:
         unsigned long long nEnd, 
         float xmin, 
         float xmax, 
-        int seed, 
+        unsigned long long seed, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
@@ -27,7 +27,7 @@ public:
         unsigned long long nEnd, 
         float ymin, 
         float ymax, 
-        int seed, 
+        unsigned long long seed, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
@@ -40,7 +40,7 @@ public:
         float vzThSpecies, 
         unsigned long long nStart, 
         unsigned long long nEnd, 
-        int seed, 
+        unsigned long long seed, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
@@ -49,14 +49,14 @@ public:
         float bulkVxSpecies, float bulkVySpecies, float bulkVzSpecies, 
         float vxThSpecies, float vyThSpecies, float vzThSpecies, 
         unsigned long long nStart, unsigned long long nEnd, 
-        int seed, 
+        unsigned long long seed, 
         thrust::device_vector<Particle>& particlesSpecies
     );
 
     void harrisForPosition_y(
         unsigned long long nStart, 
         unsigned long long nEnd, 
-        int seed, 
+        unsigned long long seed, 
         float sheatThickness, 
         thrust::device_vector<Particle>& particlesSpecies
     );
@@ -64,7 +64,7 @@ public:
     void harrisBackgroundForPosition_y(
         unsigned long long nStart, 
         unsigned long long nEnd, 
-        int seed, 
+        unsigned long long seed, 
         float sheatThickness, 
         thrust::device_vector<Particle>& particlesSpecies
     );

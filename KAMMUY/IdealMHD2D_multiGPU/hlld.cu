@@ -46,11 +46,11 @@ __global__ void calculateFlux_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         double SL  = hLLDParameter[index].SL;
         double S1L = hLLDParameter[index].S1L;
@@ -125,6 +125,7 @@ void HLLD::calculateFluxF(
         thrust::raw_pointer_cast(flux.data()), 
         mPIInfo.localSizeX
     );
+    cudaDeviceSynchronize();
 }
 
 
@@ -134,11 +135,11 @@ __global__ void shuffleForTmpUForFluxG_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         tmpU[index].rho  = U[index].rho;
         tmpU[index].rhoU = U[index].rhoV;
@@ -173,11 +174,11 @@ __global__ void shuffleForFluxG_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
         double f1, f2, f3, f4, f5, f6;
 
         f1 = flux[index].f1;
@@ -235,6 +236,7 @@ void HLLD::calculateFluxG(
         thrust::raw_pointer_cast(flux.data()), 
         mPIInfo.localSizeX
     );
+    cudaDeviceSynchronize();
 
     shuffleFluxG();
 }
@@ -266,11 +268,11 @@ __global__ void calculateHLLDParameter_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pL, pTL;
         double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pR, pTR;
@@ -456,6 +458,7 @@ void HLLD::calculateHLLDParameter()
         thrust::raw_pointer_cast(hLLDParameter.data()), 
         mPIInfo.localSizeX
     );
+    cudaDeviceSynchronize();
 }
 
 ///////////////////////////////////////////
@@ -488,11 +491,11 @@ __global__ void setFlux_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         double rhoL, uL, vL, wL, bXL, bYL, bZL, eL, pTL;
         double rhoR, uR, vR, wR, bXR, bYR, bZR, eR, pTR;

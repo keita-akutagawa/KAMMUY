@@ -18,11 +18,11 @@ __global__ void calculateRho_kernel(
     const int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < PIC2DConst::device_ny) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         rho[index].rho = PIC2DConst::device_qIon * zerothMomentIon[index].n
                        + PIC2DConst::device_qElectron * zerothMomentElectron[index].n; 
@@ -65,11 +65,11 @@ __global__ void calculateF_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < PIC2DConst::device_ny - 1)) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         F[index].F = ((E[index].eX - E[index - PIC2DConst::device_ny].eX) / PIC2DConst::device_dx 
                    + (E[index].eY - E[index - 1].eY) / PIC2DConst::device_dy)
@@ -82,11 +82,11 @@ __global__ void correctE_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < PIC2DConst::device_ny - 1)) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         E[index].eX += PIC2DConst::device_dOfLangdonMarderTypeCorrection
                      * (F[index + PIC2DConst::device_ny].F - F[index].F) / PIC2DConst::device_dx * dt;

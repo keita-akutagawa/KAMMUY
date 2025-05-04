@@ -32,7 +32,7 @@ void periodicBoundaryY2nd_U_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         for (int buf = 0; buf < buffer; buf++) {            
@@ -70,7 +70,7 @@ void wallBoundaryY2nd_U_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         int index = 0 + i * IdealMHD2DConst::device_ny;
@@ -154,7 +154,7 @@ void symmetricBoundaryY2nd_U_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         int index = 0 + i * IdealMHD2DConst::device_ny;

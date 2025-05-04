@@ -32,15 +32,15 @@ namespace PIC2DMPI
         float xminForProcs = 0.0f;
         float xmaxForProcs = 0.0f;
 
-        unsigned int numForSendParticlesIonLeft = 0;
-        unsigned int numForSendParticlesIonRight = 0;
-        unsigned int numForRecvParticlesIonLeft = 0;
-        unsigned int numForRecvParticlesIonRight = 0;
+        unsigned long long numForSendParticlesIonLeft = 0;
+        unsigned long long numForSendParticlesIonRight = 0;
+        unsigned long long numForRecvParticlesIonLeft = 0;
+        unsigned long long numForRecvParticlesIonRight = 0;
 
-        unsigned int numForSendParticlesElectronLeft = 0;
-        unsigned int numForSendParticlesElectronRight = 0;
-        unsigned int numForRecvParticlesElectronLeft = 0;
-        unsigned int numForRecvParticlesElectronRight = 0;
+        unsigned long long numForSendParticlesElectronLeft = 0;
+        unsigned long long numForSendParticlesElectronRight = 0;
+        unsigned long long numForRecvParticlesElectronLeft = 0;
+        unsigned long long numForRecvParticlesElectronRight = 0;
 
         MPI_Datatype mpi_particleType;
         MPI_Datatype mpi_fieldType;
@@ -56,7 +56,7 @@ namespace PIC2DMPI
         bool isInside(int globalX);
 
         __device__
-        int globalToLocal(int globalX, int globalY);
+        unsigned long long globalToLocal(int globalX, int globalY);
     };
 
 
@@ -90,8 +90,8 @@ namespace PIC2DMPI
         MPI_Sendrecv(thrust::raw_pointer_cast(sendFieldLeft.data()),  sendFieldLeft.size(),  mpi_dataType, left,  0, 
                      thrust::raw_pointer_cast(recvFieldRight.data()), recvFieldRight.size(), mpi_dataType, right, 0, 
                      MPI_COMM_WORLD, &st);
-        MPI_Sendrecv(thrust::raw_pointer_cast(sendFieldRight.data()), sendFieldRight.size(), mpi_dataType, right, 0, 
-                     thrust::raw_pointer_cast(recvFieldLeft.data()),  recvFieldLeft.size(),  mpi_dataType, left,  0, 
+        MPI_Sendrecv(thrust::raw_pointer_cast(sendFieldRight.data()), sendFieldRight.size(), mpi_dataType, right, 1, 
+                     thrust::raw_pointer_cast(recvFieldLeft.data()),  recvFieldLeft.size(),  mpi_dataType, left,  1, 
                      MPI_COMM_WORLD, &st);
     
         for (int i = 0; i < mPIInfo.buffer; i++) {
@@ -162,10 +162,10 @@ namespace PIC2DMPI
 
 
     void sendrecv_numParticle_x(
-        const unsigned int& numForSendParticlesSpeciesLeft, 
-        const unsigned int& numForSendParticlesSpeciesRight, 
-        unsigned int& numForRecvParticlesSpeciesLeft, 
-        unsigned int& numForRecvParticlesSpeciesRight, 
+        const unsigned long long& numForSendParticlesSpeciesLeft, 
+        const unsigned long long& numForSendParticlesSpeciesRight, 
+        unsigned long long& numForRecvParticlesSpeciesLeft, 
+        unsigned long long& numForRecvParticlesSpeciesRight, 
         MPIInfo& mPIInfo
     );
 
@@ -174,10 +174,10 @@ namespace PIC2DMPI
         thrust::device_vector<Particle>& sendParticlesSpeciesRight,  
         thrust::device_vector<Particle>& recvParticlesSpeciesLeft,
         thrust::device_vector<Particle>& recvParticlesSpeciesRight,
-        const unsigned int& numForSendParticlesSpeciesLeft, 
-        const unsigned int& numForSendParticlesSpeciesRight, 
-        const unsigned int& numForRecvParticlesSpeciesLeft, 
-        const unsigned int& numForRecvParticlesSpeciesRight, 
+        const unsigned long long& numForSendParticlesSpeciesLeft, 
+        const unsigned long long& numForSendParticlesSpeciesRight, 
+        const unsigned long long& numForRecvParticlesSpeciesLeft, 
+        const unsigned long long& numForRecvParticlesSpeciesRight, 
         MPIInfo& mPIInfo
     );
     

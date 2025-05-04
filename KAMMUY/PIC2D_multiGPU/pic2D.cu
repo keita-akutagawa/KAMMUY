@@ -52,11 +52,11 @@ __global__ void getCenterBE_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < PIC2DConst::device_ny)) {
-        int index = j + PIC2DConst::device_ny * i; 
+        unsigned long long index = j + PIC2DConst::device_ny * i; 
 
         tmpB[index].bX = 0.5f * (B[index].bX + B[index - 1].bX);
         tmpB[index].bY = 0.5f * (B[index].bY + B[index - PIC2DConst::device_ny].bY);
@@ -73,11 +73,11 @@ __global__ void getHalfCurrent_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX - 1 && j < PIC2DConst::device_ny - 1) {
-        int index = j + PIC2DConst::device_ny * i; 
+        unsigned long long index = j + PIC2DConst::device_ny * i; 
 
         current[index].jX = 0.5f * (tmpCurrent[index].jX + tmpCurrent[index + PIC2DConst::device_ny].jX);
         current[index].jY = 0.5f * (tmpCurrent[index].jY + tmpCurrent[index + 1].jY);
@@ -97,7 +97,7 @@ void PIC2D::oneStep_periodicXFreeY(
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
-                      
+    
     fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
@@ -174,6 +174,7 @@ void PIC2D::oneStep_periodicXFreeY(
         particlesIon, particlesElectron
     );
 
+
     interface2D.sendMHDtoPIC_magneticField_y(U, B);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
@@ -183,6 +184,18 @@ void PIC2D::oneStep_periodicXFreeY(
     boundaryPIC.freeBoundaryE_y(E);
     
     calculateFullMoments();
+    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentIon);
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentIon);
+    boundaryPIC.periodicBoundaryZerothMoment_x(zerothMomentElectron);
+    boundaryPIC.freeBoundaryZerothMoment_y(zerothMomentElectron);
+    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentIon);
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentIon);
+    boundaryPIC.periodicBoundaryFirstMoment_x(firstMomentElectron);
+    boundaryPIC.freeBoundaryFirstMoment_y(firstMomentElectron);
+    boundaryPIC.periodicBoundarySecondMoment_x(secondMomentIon);
+    boundaryPIC.freeBoundarySecondMoment_y(secondMomentIon);
+    boundaryPIC.periodicBoundarySecondMoment_x(secondMomentElectron);
+    boundaryPIC.freeBoundarySecondMoment_y(secondMomentElectron);
     interface2D.sendMHDtoPIC_particle(
         U, 
         zerothMomentIon, zerothMomentElectron, 
@@ -321,7 +334,7 @@ void PIC2D::saveFields(
     ofsB << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsB.write(reinterpret_cast<const char*>(&host_B[index].bX), sizeof(float));
             ofsB.write(reinterpret_cast<const char*>(&host_B[index].bY), sizeof(float));
@@ -337,7 +350,7 @@ void PIC2D::saveFields(
     ofsE << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsE.write(reinterpret_cast<const char*>(&host_E[index].eX), sizeof(float));
             ofsE.write(reinterpret_cast<const char*>(&host_E[index].eY), sizeof(float));
@@ -353,7 +366,7 @@ void PIC2D::saveFields(
     ofsCurrent << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsCurrent.write(reinterpret_cast<const char*>(&host_current[index].jX), sizeof(float));
             ofsCurrent.write(reinterpret_cast<const char*>(&host_current[index].jY), sizeof(float));
@@ -451,7 +464,7 @@ void PIC2D::saveZerothMoments(
     ofsZerothMomentIon << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsZerothMomentIon.write(reinterpret_cast<const char*>(
                 &host_zerothMomentIon[index].n), sizeof(float)
@@ -463,7 +476,7 @@ void PIC2D::saveZerothMoments(
     ofsZerothMomentElectron << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsZerothMomentElectron.write(reinterpret_cast<const char*>(
                 &host_zerothMomentElectron[index].n), sizeof(float)
@@ -500,7 +513,7 @@ void PIC2D::saveFirstMoments(
     ofsFirstMomentIon << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsFirstMomentIon.write(reinterpret_cast<const char*>(
                 &host_firstMomentIon[index].x), sizeof(float)
@@ -518,7 +531,7 @@ void PIC2D::saveFirstMoments(
     ofsFirstMomentElectron << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsFirstMomentElectron.write(reinterpret_cast<const char*>(
                 &host_firstMomentElectron[index].x), sizeof(float)
@@ -561,7 +574,7 @@ void PIC2D::saveSecondMoments(
     ofsSecondMomentIon << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsSecondMomentIon.write(reinterpret_cast<const char*>(
                 &host_secondMomentIon[index].xx), sizeof(float)
@@ -588,7 +601,7 @@ void PIC2D::saveSecondMoments(
     ofsSecondMomentElectron << std::fixed << std::setprecision(6);
     for (int i = 0; i < mPIInfo.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            int index = j + PIC2DConst::ny * i;
+            unsigned long long index = j + PIC2DConst::ny * i;
 
             ofsSecondMomentElectron.write(reinterpret_cast<const char*>(
                 &host_secondMomentElectron[index].xx), sizeof(float)

@@ -15,11 +15,11 @@ __global__ void sendPICtoMHD_kernel(
     const int localNxMHD, const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
-        int indexMHD = indexOfInterfaceStartInMHD + j  + (i + bufferMHD) * IdealMHD2DConst::device_ny;
+        unsigned long long indexMHD = indexOfInterfaceStartInMHD + j  + (i + bufferMHD) * IdealMHD2DConst::device_ny;
         double rhoMHD, uMHD, vMHD, wMHD, bXMHD, bYMHD, bZMHD, eMHD, pMHD;
 
         rhoMHD = U[indexMHD].rho;
@@ -34,7 +34,7 @@ __global__ void sendPICtoMHD_kernel(
                * (eMHD - 0.5 * rhoMHD * (uMHD * uMHD + vMHD * vMHD + wMHD * wMHD)
                - 0.5 * (bXMHD * bXMHD + bYMHD * bYMHD + bZMHD * bZMHD));
         
-        int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
+        unsigned long long indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
         double rhoPICtoMHD, uPICtoMHD, vPICtoMHD, wPICtoMHD, bXPICtoMHD, bYPICtoMHD, bZPICtoMHD, pPICtoMHD;
 
         rhoPICtoMHD =  PIC2DConst::device_mIon * zerothMomentIon_PICtoMHD[indexPICtoMHD].n + PIC2DConst::device_mElectron * zerothMomentElectron_PICtoMHD[indexPICtoMHD].n;
@@ -53,7 +53,7 @@ __global__ void sendPICtoMHD_kernel(
                     - (pow(firstMomentElectron_PICtoMHD[indexPICtoMHD].x, 2) + pow(firstMomentElectron_PICtoMHD[indexPICtoMHD].y, 2) + pow(firstMomentElectron_PICtoMHD[indexPICtoMHD].z, 2))
                     / (zerothMomentElectron_PICtoMHD[indexPICtoMHD].n + Interface2DConst::device_EPS)) / 3.0;
 
-        int indexForInterlocking = j * Interface2DConst::device_gridSizeRatio + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny; 
+        unsigned long long indexForInterlocking = j * Interface2DConst::device_gridSizeRatio + (i * Interface2DConst::device_gridSizeRatio + bufferPIC) * PIC2DConst::device_ny; 
 
         rhoMHD = interlockingFunctionY[indexForInterlocking] * rhoMHD + (1.0 - interlockingFunctionY[indexForInterlocking]) * rhoPICtoMHD;
         uMHD   = interlockingFunctionY[indexForInterlocking] * uMHD   + (1.0 - interlockingFunctionY[indexForInterlocking]) * uPICtoMHD;

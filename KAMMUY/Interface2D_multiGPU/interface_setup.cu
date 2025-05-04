@@ -9,11 +9,11 @@ __global__ void calculateSubU_kernel(
     const int localSizeXMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeXMHD && j < IdealMHD2DConst::device_ny) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         USub[index] = mixingRatio * UPast[index] + (1.0 - mixingRatio) * UNext[index];
     }
@@ -146,7 +146,7 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
     const FieldType* field, 
     int localNxPIC, 
     int bufferPIC, 
-    int i, int j
+    unsigned long long i, unsigned long long j
 )
 {
     FieldType convolvedField; 
@@ -165,9 +165,9 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
                 float distance2 = float(dx * dx + dy * dy);
-                float weight = __expf(-distance2 / twoSigma2);
+                float weight = 1.0f;
 
-                int index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
+                unsigned long long index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
                 convolvedField += field[index] * weight;
                 weightSum += weight;
             }
@@ -198,8 +198,8 @@ __global__ void averagingParametersForPICtoMHD_kernel(
     const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
         MagneticField averagedB; 
@@ -215,7 +215,7 @@ __global__ void averagingParametersForPICtoMHD_kernel(
         averagedSecondMomentIon      = getAveragedFieldForPICtoMHD(secondMomentIon_timeAve, localNxPIC, bufferPIC, i, j);
         averagedSecondMomentElectron = getAveragedFieldForPICtoMHD(secondMomentElectron_timeAve, localNxPIC, bufferPIC, i, j);
 
-        int indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
+        unsigned long long indexPICtoMHD = j + i * PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio;
 
         B_PICtoMHD[indexPICtoMHD]                    = averagedB; 
         zerothMomentIon_PICtoMHD[indexPICtoMHD]      = averagedZerothMomentIon; 
@@ -240,19 +240,19 @@ __global__ void calculateTimeAveragedPICParameters_kernel(
     int localSizeXPIC
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
-        B_timeAve[index]                    = B_timeAve[index] / count; 
-        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / count; 
-        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / count; 
-        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / count; 
-        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / count; 
-        secondMomentIon_timeAve[index]      = secondMomentIon_timeAve[index] / count; 
-        secondMomentElectron_timeAve[index] = secondMomentElectron_timeAve[index] / count; 
+        B_timeAve[index]                    = B_timeAve[index] / static_cast<float>(count); 
+        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / static_cast<float>(count); 
+        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / static_cast<float>(count); 
+        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / static_cast<float>(count); 
+        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / static_cast<float>(count); 
+        secondMomentIon_timeAve[index]      = secondMomentIon_timeAve[index] / static_cast<float>(count); 
+        secondMomentElectron_timeAve[index] = secondMomentElectron_timeAve[index] / static_cast<float>(count); 
     }
 }
 

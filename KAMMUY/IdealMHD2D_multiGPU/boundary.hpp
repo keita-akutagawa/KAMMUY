@@ -11,7 +11,7 @@
 class BoundaryMHD
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo; 
+    IdealMHD2DMPI::MPIInfo& mPIInfo; 
 
     thrust::device_vector<ConservationParameter> sendULeft; 
     thrust::device_vector<ConservationParameter> sendURight; 

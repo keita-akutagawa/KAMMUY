@@ -30,7 +30,7 @@ __global__ void freeBoundaryZerothMoment_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         zerothMoment[0 + PIC2DConst::device_ny * i] = zerothMoment[1 + PIC2DConst::device_ny * i];
@@ -86,7 +86,7 @@ __global__ void freeBoundaryFirstMoment_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         firstMoment[0 + PIC2DConst::device_ny * i] = firstMoment[1 + PIC2DConst::device_ny * i];
@@ -144,7 +144,7 @@ __global__ void freeBoundarySecondMoment_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         secondMoment[0 + PIC2DConst::device_ny * i] = secondMoment[1 + PIC2DConst::device_ny * i];

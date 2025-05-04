@@ -53,18 +53,18 @@ __global__ void calculateDivB_kernel(
     int localGridX
 )   
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNx && j < IdealMHD2DConst::device_ny) {
-        int indexLeft  = j + (i - 1 + buffer) * IdealMHD2DConst::device_ny;
-        int indexRight = j + (i + 1 + buffer) * IdealMHD2DConst::device_ny;
-        int indexDown  = (j - 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
+        unsigned long long indexLeft  = j + (i - 1 + buffer) * IdealMHD2DConst::device_ny;
+        unsigned long long indexRight = j + (i + 1 + buffer) * IdealMHD2DConst::device_ny;
+        unsigned long long indexDown  = (j - 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
                        + (i + buffer) * IdealMHD2DConst::device_ny; 
-        int indexUp    = (j + 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
+        unsigned long long indexUp    = (j + 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
                        + (i + buffer) * IdealMHD2DConst::device_ny; 
         
-        int indexForDivB = j + (i + localNx * localGridX) * IdealMHD2DConst::device_ny; 
+        unsigned long long indexForDivB = j + (i + localNx * localGridX) * IdealMHD2DConst::device_ny; 
         
         divB[indexForDivB] = (U[indexRight].bX - U[indexLeft].bX) / (2.0 * IdealMHD2DConst::device_dx)
                            + (U[indexUp].bY - U[indexDown].bY) / (2.0 * IdealMHD2DConst::device_dy);
@@ -80,16 +80,16 @@ __global__ void correctDivB_kernel(
     int localGridX
 )   
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNx && j < IdealMHD2DConst::device_ny) {
-        int index = j + (i + buffer) * IdealMHD2DConst::device_ny;
-        int indexForPsiLeft  = j + ((i - 1 + localNx * localGridX + IdealMHD2DConst::device_nx) % IdealMHD2DConst::device_nx) * IdealMHD2DConst::device_ny; 
-        int indexForPsiRight = j + ((i + 1 + localNx * localGridX + IdealMHD2DConst::device_nx) % IdealMHD2DConst::device_nx) * IdealMHD2DConst::device_ny; 
-        int indexForPsiDown  = (j - 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
+        unsigned long long index = j + (i + buffer) * IdealMHD2DConst::device_ny;
+        unsigned long long indexForPsiLeft  = j + ((i - 1 + localNx * localGridX + IdealMHD2DConst::device_nx) % IdealMHD2DConst::device_nx) * IdealMHD2DConst::device_ny; 
+        unsigned long long indexForPsiRight = j + ((i + 1 + localNx * localGridX + IdealMHD2DConst::device_nx) % IdealMHD2DConst::device_nx) * IdealMHD2DConst::device_ny; 
+        unsigned long long indexForPsiDown  = (j - 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
                              + (i + localNx * localGridX) * IdealMHD2DConst::device_ny; 
-        int indexForPsiUp    = (j + 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
+        unsigned long long indexForPsiUp    = (j + 1 + IdealMHD2DConst::device_ny) % IdealMHD2DConst::device_ny
                              + (i + localNx * localGridX) * IdealMHD2DConst::device_ny; 
         
         U[index].bX += (psi[indexForPsiRight] - psi[indexForPsiLeft]) / (2.0 * IdealMHD2DConst::device_dx);

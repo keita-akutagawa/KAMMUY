@@ -15,13 +15,13 @@ __global__ void getBasicParamter_kernel(
 )
 {
 
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX - 1 && j < IdealMHD2DConst::device_ny - 1) {
 
         double rho, u, v, w, bX, bY, bZ, e, p; 
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         rho = U[index].rho;
         u   = U[index].rhoU / rho;

@@ -25,11 +25,11 @@ __global__ void calculateCurrent_kernel(
     const int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX && j < PIC2DConst::device_ny) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         current[index].jX = PIC2DConst::device_qIon * firstMomentIon[index].x
                           + PIC2DConst::device_qElectron * firstMomentElectron[index].x; 

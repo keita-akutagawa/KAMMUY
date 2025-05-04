@@ -15,15 +15,12 @@ namespace Interface2DMPI
         int procs = 0;
         int gridX = 0;
         int localGridX = 0;
-        int localNx = 0; 
-        int buffer = 0;
-        int localSizeX = 0;
 
         __host__ __device__
         int getRank(int dx);
     }; 
 
-    void setupInfo(MPIInfo& mPIInfo, int buffer);
+    void setupInfo(MPIInfo& mPIInfo);
 }
 
 #endif

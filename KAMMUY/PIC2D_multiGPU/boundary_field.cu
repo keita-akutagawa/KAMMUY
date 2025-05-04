@@ -33,7 +33,7 @@ __global__ void freeBoundaryB_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         B[0 + PIC2DConst::device_ny * i] = B[1 + PIC2DConst::device_ny * i];
@@ -92,7 +92,7 @@ __global__ void freeBoundaryE_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         E[0 + PIC2DConst::device_ny * i] = E[1 + PIC2DConst::device_ny * i];
@@ -148,7 +148,7 @@ __global__ void freeBoundaryCurrent_y_kernel(
     int buffer
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < localSizeX) {
         current[0 + PIC2DConst::device_ny * i] = current[1 + PIC2DConst::device_ny * i];

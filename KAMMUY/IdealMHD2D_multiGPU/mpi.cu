@@ -8,6 +8,7 @@ int IdealMHD2DMPI::MPIInfo::getRank(int dx)
 }
 
 
+__device__ 
 bool IdealMHD2DMPI::MPIInfo::isInside(int globalX)
 {
     int startX = localNx * localGridX;
@@ -21,7 +22,7 @@ bool IdealMHD2DMPI::MPIInfo::isInside(int globalX)
 
 
 __device__
-int IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
+unsigned long long IdealMHD2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 {
     int startX = localNx * localGridX;
     int x = globalX - startX;
@@ -90,14 +91,13 @@ void IdealMHD2DMPI::sendrecv_U_x(
             sendURight[j + i * IdealMHD2DConst::ny] = U[j + (localNx + i)        * IdealMHD2DConst::ny];
         }
     }
-
+    
     MPI_Sendrecv(thrust::raw_pointer_cast(sendULeft.data()),  sendULeft.size(),  mPIInfo.mpi_conservation_parameter_type, left,  0, 
                  thrust::raw_pointer_cast(recvURight.data()), recvURight.size(), mPIInfo.mpi_conservation_parameter_type, right, 0, 
                  MPI_COMM_WORLD, &st);
-    MPI_Sendrecv(thrust::raw_pointer_cast(sendURight.data()), sendURight.size(), mPIInfo.mpi_conservation_parameter_type, right, 0, 
-                 thrust::raw_pointer_cast(recvULeft.data()),  recvULeft.size(),  mPIInfo.mpi_conservation_parameter_type, left,  0, 
+    MPI_Sendrecv(thrust::raw_pointer_cast(sendURight.data()), sendURight.size(), mPIInfo.mpi_conservation_parameter_type, right, 1, 
+                 thrust::raw_pointer_cast(recvULeft.data()),  recvULeft.size(),  mPIInfo.mpi_conservation_parameter_type, left,  1, 
                  MPI_COMM_WORLD, &st);
-
 
     for (int i = 0; i < mPIInfo.buffer; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {

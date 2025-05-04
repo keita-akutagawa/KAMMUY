@@ -4,7 +4,7 @@
 
 struct ReloadParticlesData
 {
-    unsigned int number; 
+    int number; 
     float u;
     float v;
     float w;

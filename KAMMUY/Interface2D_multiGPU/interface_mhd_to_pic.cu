@@ -41,12 +41,12 @@ __global__ void sendMHDtoPIC_magneticField_y_kernel(
     const int localNxPIC, const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double bXPIC, bYPIC, bZPIC;
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
+        unsigned long long indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
         
         bXPIC = B[indexPIC].bX;
         bYPIC = B[indexPIC].bY;
@@ -54,7 +54,7 @@ __global__ void sendMHDtoPIC_magneticField_y_kernel(
         
 
         double bXMHD, bYMHD, bZMHD;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+        unsigned long long indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
         double cx1, cx2, cy1, cy2;  
 
@@ -145,12 +145,12 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
     const int localNxPIC, const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double eXPIC, eYPIC, eZPIC;
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
+        unsigned long long indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
 
         eXPIC = E[indexPIC].eX;
         eYPIC = E[indexPIC].eY;
@@ -158,7 +158,7 @@ __global__ void sendMHDtoPIC_electricField_y_kernel(
 
 
         double eXMHD, eYMHD, eZMHD;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+        unsigned long long indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
         double cx1, cx2, cy1, cy2;  
 
@@ -245,12 +245,12 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
     const int localNxPIC, const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
         double jXPIC, jYPIC, jZPIC;
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
+        unsigned long long indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
 
         jXPIC = current[indexPIC].jX;
         jYPIC = current[indexPIC].jY;
@@ -258,7 +258,7 @@ __global__ void sendMHDtoPIC_currentField_y_kernel(
 
 
         double jXMHD, jYMHD, jZMHD;
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+        unsigned long long indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
         double cx1, cx2, cy1, cy2;  
 
@@ -343,12 +343,13 @@ __global__ void deleteParticles_kernel(
             return; 
         }
 
-        if (interlockingFunctionY[j + (i + bufferPIC) * PIC2DConst::device_ny] < Interface2DConst::device_EPS) return;
+        unsigned long long indexForInterlocking = j + (i + bufferPIC) * PIC2DConst::device_ny;
+        if (interlockingFunctionY[indexForInterlocking] < Interface2DConst::device_EPS) return;
         
         curandState state; 
         curand_init(seed, k, 0, &state);
         float randomValue = curand_uniform(&state);
-        if (randomValue < interlockingFunctionY[j + (i + bufferPIC) * PIC2DConst::device_ny]) {
+        if (randomValue < interlockingFunctionY[indexForInterlocking]) {
             particlesSpecies[k].isExist = false;
         }
     }
@@ -397,15 +398,15 @@ __global__ void reloadParticlesSpecies_kernel(
     const int localNxPIC, const int bufferPIC
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny; 
+        unsigned long long indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny; 
 
         if (interlockingFunctionY[indexPIC] < Interface2DConst::device_EPS) return;
 
-        int indexForReload = j + i * PIC2DConst::device_ny; 
+        unsigned long long indexForReload = j + i * PIC2DConst::device_ny; 
         float u = reloadParticlesDataSpecies[indexForReload].u;
         float v = reloadParticlesDataSpecies[indexForReload].v;
         float w = reloadParticlesDataSpecies[indexForReload].w;
@@ -420,9 +421,10 @@ __global__ void reloadParticlesSpecies_kernel(
             curand_uniform(&stateForReloadIndex) * reloadParticlesTotalNumSpecies
         );
 
+        if (reloadParticlesDataSpecies[indexForReload].number < 0) printf("Minus reload!");
         curandState stateForReload; 
         curand_init(seed, indexForReload, 0, &stateForReload);
-        for (unsigned int k = 0; k < reloadParticlesDataSpecies[indexForReload].number; k++) {
+        for (int k = 0; k < reloadParticlesDataSpecies[indexForReload].number; k++) {
             float randomValue = curand_uniform(&stateForReload);
 
             if (randomValue < interlockingFunctionY[indexPIC]) {
@@ -497,7 +499,7 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
     const MomentType* moment, 
     int localNxPIC, 
     int bufferPIC, 
-    int i, int j
+    unsigned long long i, unsigned long long j
 )
 {
     MomentType convolvedMoment; 
@@ -518,13 +520,13 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
                 float distance2 = float(dx * dx + dy * dy);
                 float weight = __expf(-distance2 / twoSigma2);
 
-                int index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
+                unsigned long long index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
                 convolvedMoment += moment[index] * weight;
                 weightSum += weight;
             }
         }
     }
-    convolvedMoment = convolvedMoment / weightSum;
+    convolvedMoment = moment[j + (i + bufferPIC) * PIC2DConst::device_ny];
 
     return convolvedMoment;
 }
@@ -576,11 +578,11 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
     const int localNxPIC, const int bufferPIC, const int bufferMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localNxPIC && j < PIC2DConst::device_ny) {
-        int indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
+        unsigned long long indexPIC = j + (i + bufferPIC) * PIC2DConst::device_ny;
 
         ZerothMoment convolvedZerothMomentIon, convolvedZerothMomentElectron; 
         FirstMoment convolvedFirstMomentIon, convolvedFirstMomentElectron;
@@ -612,7 +614,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
                - (pow(convolvedFirstMomentElectron.x, 2) + pow(convolvedFirstMomentElectron.y, 2) + pow(convolvedFirstMomentElectron.z, 2))
                / (convolvedZerothMomentElectron.n + Interface2DConst::device_EPS)) / 3.0;
 
-        int indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
+        unsigned long long indexMHD = indexOfInterfaceStartInMHD + static_cast<int>(j / Interface2DConst::device_gridSizeRatio)
                      + (static_cast<int>(i / Interface2DConst::device_gridSizeRatio) + bufferMHD) * IdealMHD2DConst::device_ny;
         double rhoMHD, uMHD, vMHD, wMHD, jXMHD, jYMHD, jZMHD, pMHD;
         double niMHD, neMHD, piMHD, peMHD; 
@@ -645,9 +647,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         neMHD = niMHD; 
         //pressure ratio is assumed to be 1.0
         piMHD = pMHD / 2.0; 
-        peMHD = pMHD / 2.0;
-
-        if (niPIC > 1000 || niMHD > 1000) printf("%f %f %d %d\n", niPIC, niMHD, i, j);
+        peMHD = pMHD / 2.0; 
 
         niPIC = interlockingFunctionY[indexPIC] * niMHD + (1.0 - interlockingFunctionY[indexPIC]) * niPIC;
         nePIC = interlockingFunctionY[indexPIC] * neMHD + (1.0 - interlockingFunctionY[indexPIC]) * nePIC;
@@ -667,7 +667,7 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         vThiPIC = sqrt(piPIC / static_cast<unsigned int>(round(niPIC)) / PIC2DConst::device_mIon);
         vThePIC = sqrt(pePIC / static_cast<unsigned int>(round(nePIC)) / PIC2DConst::device_mElectron);
 
-        int indexForReload = j + i * PIC2DConst::device_ny;
+        unsigned long long indexForReload = j + i * PIC2DConst::device_ny;
 
         reloadParticlesDataIon     [indexForReload].number = static_cast<unsigned int>(round(niPIC));
         reloadParticlesDataElectron[indexForReload].number = static_cast<unsigned int>(round(nePIC));

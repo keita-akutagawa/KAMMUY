@@ -7,7 +7,7 @@
 class FluxSolver
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo& mPIInfo;
 
     HLLD hLLD;
     thrust::device_vector<Flux> flux;
@@ -20,6 +20,14 @@ public:
     );
 
     thrust::device_vector<Flux> getFluxG(
+        const thrust::device_vector<ConservationParameter>& U
+    );
+
+    void addResistiveTermToFluxF(
+        const thrust::device_vector<ConservationParameter>& U
+    );
+
+    void addResistiveTermToFluxG(
         const thrust::device_vector<ConservationParameter>& U
     );
 };

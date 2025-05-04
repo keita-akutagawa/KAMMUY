@@ -21,7 +21,7 @@ bool PIC2DMPI::MPIInfo::isInside(int globalX)
 
 
 __device__
-int PIC2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
+unsigned long long PIC2DMPI::MPIInfo::globalToLocal(int globalX, int globalY)
 {
     int startX = localNx * localGridX;
     int x = globalX - startX;
@@ -220,10 +220,10 @@ void PIC2DMPI::sendrecv_secondMoment_x(
 //////////////////////////////////////////////////
 
 void PIC2DMPI::sendrecv_numParticle_x(
-    const unsigned int& numForSendParticlesSpeciesLeft, 
-    const unsigned int& numForSendParticlesSpeciesRight, 
-    unsigned int& numForRecvParticlesSpeciesLeft, 
-    unsigned int& numForRecvParticlesSpeciesRight, 
+    const unsigned long long& numForSendParticlesSpeciesLeft, 
+    const unsigned long long& numForSendParticlesSpeciesRight, 
+    unsigned long long& numForRecvParticlesSpeciesLeft, 
+    unsigned long long& numForRecvParticlesSpeciesRight, 
     MPIInfo& mPIInfo
 )
 {
@@ -234,11 +234,11 @@ void PIC2DMPI::sendrecv_numParticle_x(
     MPI_Sendrecv(
         &(numForSendParticlesSpeciesLeft), 
         1, 
-        MPI_UNSIGNED,  
+        MPI_UNSIGNED_LONG_LONG,  
         left, 0, 
         &(numForRecvParticlesSpeciesRight), 
         1, 
-        MPI_UNSIGNED, 
+        MPI_UNSIGNED_LONG_LONG, 
         right, 0, 
         MPI_COMM_WORLD, &st
     );
@@ -246,12 +246,12 @@ void PIC2DMPI::sendrecv_numParticle_x(
     MPI_Sendrecv(
         &(numForSendParticlesSpeciesRight), 
         1, 
-        MPI_UNSIGNED, 
-        right, 0, 
+        MPI_UNSIGNED_LONG_LONG, 
+        right, 1, 
         &(numForRecvParticlesSpeciesLeft), 
         1, 
-        MPI_UNSIGNED, 
-        left, 0, 
+        MPI_UNSIGNED_LONG_LONG, 
+        left, 1, 
         MPI_COMM_WORLD, &st
     );
 }
@@ -262,10 +262,10 @@ void PIC2DMPI::sendrecv_particle_x(
     thrust::device_vector<Particle>& sendParticlesSpeciesRight, 
     thrust::device_vector<Particle>& recvParticlesSpeciesLeft, 
     thrust::device_vector<Particle>& recvParticlesSpeciesRight, 
-    const unsigned int& numForSendParticlesSpeciesLeft, 
-    const unsigned int& numForSendParticlesSpeciesRight, 
-    const unsigned int& numForRecvParticlesSpeciesLeft, 
-    const unsigned int& numForRecvParticlesSpeciesRight, 
+    const unsigned long long& numForSendParticlesSpeciesLeft, 
+    const unsigned long long& numForSendParticlesSpeciesRight, 
+    const unsigned long long& numForRecvParticlesSpeciesLeft, 
+    const unsigned long long& numForRecvParticlesSpeciesRight, 
     MPIInfo& mPIInfo
 )
 {
@@ -289,11 +289,11 @@ void PIC2DMPI::sendrecv_particle_x(
         thrust::raw_pointer_cast(sendParticlesSpeciesRight.data()), 
         numForSendParticlesSpeciesRight, 
         mPIInfo.mpi_particleType, 
-        right, 0, 
+        right, 1, 
         thrust::raw_pointer_cast(recvParticlesSpeciesLeft.data()),
         numForRecvParticlesSpeciesLeft, 
         mPIInfo.mpi_particleType, 
-        left, 0, 
+        left, 1, 
         MPI_COMM_WORLD, &st
     );
 }

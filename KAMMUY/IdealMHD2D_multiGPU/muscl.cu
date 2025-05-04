@@ -15,11 +15,11 @@ __global__ void leftParameter_kernel(
     int localSizeX, int shiftForNeighbor
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX - 1) && (0 < j) &&  (j < IdealMHD2DConst::device_ny - 1)) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         dQLeft[index].rho = dQ[index].rho + 0.5 * minmod(dQ[index].rho - dQ[index - shiftForNeighbor].rho, dQ[index + shiftForNeighbor].rho - dQ[index].rho);
         dQLeft[index].u   = dQ[index].u   + 0.5 * minmod(dQ[index].u   - dQ[index - shiftForNeighbor].u  , dQ[index + shiftForNeighbor].u   - dQ[index].u  );
@@ -47,6 +47,7 @@ void MUSCL::getLeftQX(
         thrust::raw_pointer_cast(dQLeft.data()), 
         mPIInfo.localSizeX, IdealMHD2DConst::ny
     );
+    cudaDeviceSynchronize();
 }
 
 
@@ -64,6 +65,7 @@ void MUSCL::getLeftQY(
         thrust::raw_pointer_cast(dQLeft.data()), 
         mPIInfo.localSizeX, 1 
     );
+    cudaDeviceSynchronize();
 }
 
 
@@ -73,11 +75,11 @@ __global__ void rightParameter_kernel(
     int localSizeX, int shiftForNeighbor
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX - 2 && j < IdealMHD2DConst::device_ny - 2) {
-        int index = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         dQRight[index].rho = dQ[index + shiftForNeighbor].rho - 0.5 * minmod(dQ[index + shiftForNeighbor].rho - dQ[index].rho, dQ[index + 2 * shiftForNeighbor].rho - dQ[index + shiftForNeighbor].rho);
         dQRight[index].u   = dQ[index + shiftForNeighbor].u   - 0.5 * minmod(dQ[index + shiftForNeighbor].u   - dQ[index].u  , dQ[index + 2 * shiftForNeighbor].u   - dQ[index + shiftForNeighbor].u  );
@@ -105,6 +107,7 @@ void MUSCL::getRightQX(
         thrust::raw_pointer_cast(dQRight.data()), 
         mPIInfo.localSizeX, IdealMHD2DConst::ny
     );
+    cudaDeviceSynchronize();
 }
 
 
@@ -122,5 +125,6 @@ void MUSCL::getRightQY(
         thrust::raw_pointer_cast(dQRight.data()), 
         mPIInfo.localSizeX, 1 
     );
+    cudaDeviceSynchronize();
 }
 

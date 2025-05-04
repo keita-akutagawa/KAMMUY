@@ -25,11 +25,11 @@ __global__ void convolveU_kernel(
     int localSizeXMHD
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (0 < i && i < localSizeXMHD - 1 && 0 < j && j < IdealMHD2DConst::device_ny - 1) {
-        int indexMHD = j + i * IdealMHD2DConst::device_ny;
+        unsigned long long indexMHD = j + i * IdealMHD2DConst::device_ny;
         double rho, u, v, w, bX, bY, bZ, e, p;
 
         BasicParameter convolvedBasicParameter; 
@@ -43,7 +43,7 @@ __global__ void convolveU_kernel(
 
         for (int windowX = -1; windowX <= 1; windowX++) {
             for (int windowY = -1; windowY <= 1; windowY++) {
-                int localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
+                unsigned long long localIndex = indexMHD + windowY + windowX * IdealMHD2DConst::device_ny; 
                 
                 BasicParameter basicParameter; 
 

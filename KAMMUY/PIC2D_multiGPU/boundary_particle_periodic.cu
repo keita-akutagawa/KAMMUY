@@ -35,8 +35,8 @@ __global__ void periodicBoundaryParticle_x_kernel(
     Particle* particlesSpecies, 
     Particle* sendParticlesSpeciesLeft, 
     Particle* sendParticlesSpeciesRight, 
-    unsigned int* countForSendParticlesSpeciesLeft, 
-    unsigned int* countForSendParticlesSpeciesRight, 
+    unsigned long long* countForSendParticlesSpeciesLeft, 
+    unsigned long long* countForSendParticlesSpeciesRight, 
     const unsigned long long existNumSpecies, 
     const float xminForProcs, const float xmaxForProcs, 
     const int buffer
@@ -60,18 +60,18 @@ __global__ void periodicBoundaryParticle_x_kernel(
         }
 
         if (x > boundaryLeft && x < boundaryLeft + buffer * PIC2DConst::device_dx - PIC2DConst::device_EPS) {
-            unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesLeft[0]), 1);
+            unsigned long long particleIndex = atomicAdd(&(countForSendParticlesSpeciesLeft[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx) {
+            if (sendParticle.x < PIC2DConst::device_xmin + buffer * PIC2DConst::device_dx - PIC2DConst::device_EPS) {
                 sendParticle.x = sendParticle.x + PIC2DConst::device_xmax;
             }
             sendParticlesSpeciesLeft[particleIndex] = sendParticle;
         }
 
         if (x < boundaryRight && x > boundaryRight - buffer * PIC2DConst::device_dx + PIC2DConst::device_EPS) {
-            unsigned int particleIndex = atomicAdd(&(countForSendParticlesSpeciesRight[0]), 1);
+            unsigned long long particleIndex = atomicAdd(&(countForSendParticlesSpeciesRight[0]), 1);
             Particle sendParticle = particlesSpecies[i];
-            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx) {
+            if (sendParticle.x > PIC2DConst::device_xmax - buffer * PIC2DConst::device_dx + PIC2DConst::device_EPS) {
                 sendParticle.x = sendParticle.x - PIC2DConst::device_xmax;
             }
             sendParticlesSpeciesRight[particleIndex] = sendParticle;
@@ -82,14 +82,14 @@ __global__ void periodicBoundaryParticle_x_kernel(
 void BoundaryPIC::periodicBoundaryParticleOfOneSpecies_x(
     thrust::device_vector<Particle>& particlesSpecies, 
     unsigned long long& existNumSpecies, 
-    unsigned int& numForSendParticlesSpeciesLeft, 
-    unsigned int& numForSendParticlesSpeciesRight, 
-    unsigned int& numForRecvParticlesSpeciesLeft, 
-    unsigned int& numForRecvParticlesSpeciesRight
+    unsigned long long& numForSendParticlesSpeciesLeft, 
+    unsigned long long& numForSendParticlesSpeciesRight, 
+    unsigned long long& numForRecvParticlesSpeciesLeft, 
+    unsigned long long& numForRecvParticlesSpeciesRight
 )
 {
-    thrust::device_vector<unsigned int> countForSendParticlesSpeciesLeft(1, 0); 
-    thrust::device_vector<unsigned int> countForSendParticlesSpeciesRight(1, 0); 
+    thrust::device_vector<unsigned long long> countForSendParticlesSpeciesLeft(1, 0); 
+    thrust::device_vector<unsigned long long> countForSendParticlesSpeciesRight(1, 0); 
 
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((existNumSpecies + threadsPerBlock.x - 1) / threadsPerBlock.x);

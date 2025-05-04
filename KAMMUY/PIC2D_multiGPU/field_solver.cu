@@ -12,11 +12,11 @@ __global__ void timeEvolutionB_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < localSizeX - 1 && j < PIC2DConst::device_ny - 1) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         B[index].bX += -(E[index + 1].eZ - E[index].eZ) / PIC2DConst::device_dy * dt;
         B[index].bY += (E[index + PIC2DConst::device_ny].eZ - E[index].eZ) / PIC2DConst::device_dx * dt;
@@ -52,11 +52,11 @@ __global__ void timeEvolutionE_kernel(
     int localSizeX
 )
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < PIC2DConst::device_ny)) {
-        int index = j + i * PIC2DConst::device_ny;
+        unsigned long long index = j + i * PIC2DConst::device_ny;
 
         E[index].eX += (-current[index].jX / PIC2DConst::device_epsilon0
                      + PIC2DConst::device_c * PIC2DConst::device_c * (B[index].bZ - B[index - 1].bZ) / PIC2DConst::device_dy) * dt;

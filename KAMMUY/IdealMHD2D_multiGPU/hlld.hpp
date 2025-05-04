@@ -12,7 +12,7 @@
 class HLLD
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo;
+    IdealMHD2DMPI::MPIInfo& mPIInfo;
 
     CalculateHalfQ calculateHalfQ;
 

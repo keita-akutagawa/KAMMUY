@@ -31,7 +31,7 @@ namespace IdealMHD2DMPI
         bool isInside(int globalX);
 
         __device__
-        int globalToLocal(int globalX, int globalY);
+        unsigned long long globalToLocal(int globalX, int globalY);
     };
 
 

@@ -16,7 +16,7 @@ __global__ void uniformForPosition_x_kernel(
     Particle* particle, 
     const unsigned long long nStart, const unsigned long long nEnd, 
     const float xmin, const float xmax, 
-    const int seed, const unsigned long long offset
+    const unsigned long long seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -34,7 +34,7 @@ void InitializeParticle::uniformForPosition_x(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     float xmin, float xmax, 
-    int seed, 
+    unsigned long long seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -55,7 +55,7 @@ __global__ void uniformForPosition_y_kernel(
     Particle* particle, 
     const unsigned long long nStart, const unsigned long long nEnd, 
     const float ymin, const float ymax, 
-    const int seed, const unsigned long long offset
+    const unsigned long long seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -73,7 +73,7 @@ void InitializeParticle::uniformForPosition_y(
     unsigned long long nStart, 
     unsigned long long nEnd, 
     float ymin, float ymax, 
-    int seed, 
+    unsigned long long seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -96,7 +96,7 @@ __global__ void maxwellDistributionForVelocity_kernel(
     const float bulkVxSpecies, const float bulkVySpecies, const float bulkVzSpecies, 
     const float vxThSpecies, const float vyThSpecies, const float vzThSpecies, 
     const unsigned long long nStart, const unsigned long long nEnd, 
-    const int seed, const unsigned long long offset
+    const unsigned long long seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -134,7 +134,7 @@ void InitializeParticle::maxwellDistributionForVelocity(
     float vzThSpecies, 
     unsigned long long nStart, 
     unsigned long long nEnd, 
-    int seed, 
+    unsigned long long seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -156,7 +156,7 @@ void InitializeParticle::uniformForPosition_xy_maxwellDistributionForVelocity_ea
     float bulkVxSpecies, float bulkVySpecies, float bulkVzSpecies, 
     float vxThSpecies, float vyThSpecies, float vzThSpecies, 
     unsigned long long nStart, unsigned long long nEnd, 
-    int seed, 
+    unsigned long long seed, 
     thrust::device_vector<Particle>& particlesSpecies
 )
 {
@@ -194,7 +194,7 @@ __global__ void harrisForPosition_y_kernel(
     Particle* particle, float sheatThickness, 
     const unsigned long long nStart, 
     const unsigned long long nEnd, 
-    const int seed, const unsigned long long offset
+    const unsigned long long seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -221,7 +221,7 @@ __global__ void harrisForPosition_y_kernel(
 void InitializeParticle::harrisForPosition_y(
     unsigned long long nStart, 
     unsigned long long nEnd, 
-    int seed, 
+    unsigned long long seed, 
     float sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
 )
@@ -242,23 +242,23 @@ __global__ void harrisBackgroundForPosition_y_kernel(
     Particle* particle, float sheatThickness, 
     const unsigned long long nStart, 
     const unsigned long long nEnd, 
-    const int seed, const unsigned long long offset
+    const unsigned long long seed, const unsigned long long offset
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < nEnd - nStart) {
         curandState state; 
-        curand_init(seed, 100 * (i + offset), 0, &state);
+        curand_init(seed, offset + i, 0, &state);
         float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         float randomValue;
         float y;
         while (true) {
             randomValue = curand_uniform(&state);
-            y = randomValue * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
-
-            if (randomValue < (1.0f - 1.0f / cosh((y - yCenter) / sheatThickness))) break;
+            randomValue = thrust::min(thrust::max(PIC2DConst::device_EPS, randomValue), 1.0f - PIC2DConst::device_EPS);
+            y = randomValue * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
+            if (randomValue < 1.0f - pow(cosh((y - yCenter) / sheatThickness), -2)) break;
         } 
         
         particle[i + nStart].y = y;
@@ -269,7 +269,7 @@ __global__ void harrisBackgroundForPosition_y_kernel(
 void InitializeParticle::harrisBackgroundForPosition_y(
     unsigned long long nStart, 
     unsigned long long nEnd, 
-    int seed, 
+    unsigned long long seed, 
     float sheatThickness, 
     thrust::device_vector<Particle>& particlesSpecies
 )
