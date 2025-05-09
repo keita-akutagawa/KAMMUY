@@ -53,44 +53,43 @@ __global__ void oneStepFirst_kernel(
     if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < IdealMHD2DConst::device_ny - 1)) {
         unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
-        UBar[index].rho  = U[index].rho  
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
-        UBar[index].rhoU = U[index].rhoU 
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f1 - fluxF[index - IdealMHD2DConst::device_ny].f1)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f1 - fluxG[index - 1].f1);
-        UBar[index].rhoV = U[index].rhoV
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f2 - fluxF[index - IdealMHD2DConst::device_ny].f2)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f2 - fluxG[index - 1].f2);
-        UBar[index].rhoW = U[index].rhoW
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f3 - fluxF[index - IdealMHD2DConst::device_ny].f3)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f3 - fluxG[index - 1].f3);
-        UBar[index].bX   = U[index].bX 
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f4 - fluxF[index - IdealMHD2DConst::device_ny].f4)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f4 - fluxG[index - 1].f4);
-        UBar[index].bY   = U[index].bY 
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f5 - fluxF[index - IdealMHD2DConst::device_ny].f5)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f5 - fluxG[index - 1].f5);
-        UBar[index].bZ   = U[index].bZ 
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f6 - fluxF[index - IdealMHD2DConst::device_ny].f6)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f6 - fluxG[index - 1].f6);
-        UBar[index].e    = U[index].e 
-                         - dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
-                         - dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7);
-        
-        UBar[index].rhoU += IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dx, 2)
-                          * (U[index + IdealMHD2DConst::device_ny].rhoU - 2.0 * U[index].rhoU + U[index - IdealMHD2DConst::device_ny].rhoU)
-                          + IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dy, 2)
-                          * (U[index + 1].rhoU - 2.0 * U[index].rhoU + U[index - 1].rhoU);
-        UBar[index].rhoV += IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dx, 2)
-                          * (U[index + IdealMHD2DConst::device_ny].rhoV - 2.0 * U[index].rhoV + U[index - IdealMHD2DConst::device_ny].rhoV)
-                          + IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dy, 2)
-                          * (U[index + 1].rhoV - 2.0 * U[index].rhoV + U[index - 1].rhoV);
-        UBar[index].rhoW += IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dx, 2)
-                          * (U[index + IdealMHD2DConst::device_ny].rhoW - 2.0 * U[index].rhoW + U[index - IdealMHD2DConst::device_ny].rhoW)
-                          + IdealMHD2DConst::device_viscosity * dt / pow(IdealMHD2DConst::device_dy, 2)
-                          * (U[index + 1].rhoW - 2.0 * U[index].rhoW + U[index - 1].rhoW);
+        double rho, rhoU, rhoV, rhoW, bX, bY, bZ, e; 
 
+        rho  = U[index].rho  
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f0 - fluxF[index - IdealMHD2DConst::device_ny].f0)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f0 - fluxG[index - 1].f0);
+        rhoU = U[index].rhoU 
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f1 - fluxF[index - IdealMHD2DConst::device_ny].f1)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f1 - fluxG[index - 1].f1);
+        rhoV = U[index].rhoV
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f2 - fluxF[index - IdealMHD2DConst::device_ny].f2)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f2 - fluxG[index - 1].f2);
+        rhoW = U[index].rhoW
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f3 - fluxF[index - IdealMHD2DConst::device_ny].f3)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f3 - fluxG[index - 1].f3);
+        bX   = U[index].bX 
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f4 - fluxF[index - IdealMHD2DConst::device_ny].f4)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f4 - fluxG[index - 1].f4);
+        bY   = U[index].bY 
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f5 - fluxF[index - IdealMHD2DConst::device_ny].f5)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f5 - fluxG[index - 1].f5);
+        bZ   = U[index].bZ 
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f6 - fluxF[index - IdealMHD2DConst::device_ny].f6)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f6 - fluxG[index - 1].f6);
+        e    = U[index].e 
+             - dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
+             - dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7);
+        
+        if (!(isnan(rho) || isnan(rhoU) || isnan(rhoV) || isnan(rhoW) || isnan(bX) || isnan(bY) || isnan(bZ) || isnan(e))) {
+            UBar[index].rho  = rho; 
+            UBar[index].rhoU = rhoU; 
+            UBar[index].rhoV = rhoV; 
+            UBar[index].rhoW = rhoW; 
+            UBar[index].bX   = bX; 
+            UBar[index].bY   = bY; 
+            UBar[index].bZ   = bZ; 
+            UBar[index].e    = e; 
+        }
     }
 }
 
@@ -134,34 +133,16 @@ __global__ void oneStepSecond_kernel(
              - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dx * (fluxF[index].f7 - fluxF[index - IdealMHD2DConst::device_ny].f7)
              - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f7 - fluxG[index - 1].f7));
 
-        rhoU += IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + IdealMHD2DConst::device_ny].rhoU - 2.0 * U[index].rhoU + U[index - IdealMHD2DConst::device_ny].rhoU)
-              + (UBar[index + IdealMHD2DConst::device_ny].rhoU - 2.0 * UBar[index].rhoU + UBar[index - IdealMHD2DConst::device_ny].rhoU))
-              + IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + 1].rhoU - 2.0 * U[index].rhoU + U[index - 1].rhoU)
-              + (UBar[index + 1].rhoU - 2.0 * UBar[index].rhoU + UBar[index - 1].rhoU));
-        rhoV += IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + IdealMHD2DConst::device_ny].rhoV - 2.0 * U[index].rhoV + U[index - IdealMHD2DConst::device_ny].rhoV)
-              + (UBar[index + IdealMHD2DConst::device_ny].rhoV - 2.0 * UBar[index].rhoV + UBar[index - IdealMHD2DConst::device_ny].rhoV))
-              + IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + 1].rhoV - 2.0 * U[index].rhoV + U[index - 1].rhoV)
-              + (UBar[index + 1].rhoV - 2.0 * UBar[index].rhoV + UBar[index - 1].rhoV));
-        rhoW += IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + IdealMHD2DConst::device_ny].rhoW - 2.0 * U[index].rhoW + U[index - IdealMHD2DConst::device_ny].rhoW)
-              + (UBar[index + IdealMHD2DConst::device_ny].rhoW - 2.0 * UBar[index].rhoW + UBar[index - IdealMHD2DConst::device_ny].rhoW))
-              + IdealMHD2DConst::device_viscosity * IdealMHD2DConst::device_dt / pow(IdealMHD2DConst::device_dx, 2)
-              * 0.5 * ((U[index + 1].rhoW - 2.0 * U[index].rhoW + U[index - 1].rhoW)
-              + (UBar[index + 1].rhoW - 2.0 * UBar[index].rhoW + UBar[index - 1].rhoW));
-        
-        U[index].rho  = rho; 
-        U[index].rhoU = rhoU; 
-        U[index].rhoV = rhoV;
-        U[index].rhoW = rhoW; 
-        U[index].bX   = bX; 
-        U[index].bY   = bY; 
-        U[index].bZ   = bZ; 
-        U[index].e    = e;
-        
+        if (!(isnan(rho) || isnan(rhoU) || isnan(rhoV) || isnan(rhoW) || isnan(bX) || isnan(bY) || isnan(bZ) || isnan(e))) {
+            U[index].rho  = rho; 
+            U[index].rhoU = rhoU; 
+            U[index].rhoV = rhoV; 
+            U[index].rhoW = rhoW; 
+            U[index].bX   = bX; 
+            U[index].bY   = bY; 
+            U[index].bZ   = bZ; 
+            U[index].e    = e; 
+        }
     }
 }
 
@@ -481,19 +462,19 @@ __global__ void checkAndResetExtremeValues_kernel(
             * (e - 0.5 * rho * (u * u + v * v + w * w)
             - 0.5 * (bX * bX + bY * bY + bZ * bZ));
 
-        rho = thrust::max(rho, 0.01 * IdealMHD2DConst::device_rho0);
-        p   = thrust::max(p,   0.01 * IdealMHD2DConst::device_p0);
-        rho = thrust::min(rho, 100.0 * IdealMHD2DConst::device_rho0);
-        p   = thrust::min(p,   100.0 * IdealMHD2DConst::device_p0);
+        rho = thrust::max(rho, 0.1 * IdealMHD2DConst::device_rho0);
+        p   = thrust::max(p,   0.1 * IdealMHD2DConst::device_p0);
+        rho = thrust::min(rho, 10.0 * IdealMHD2DConst::device_rho0);
+        p   = thrust::min(p,   10.0 * IdealMHD2DConst::device_p0);
 
         double VA = IdealMHD2DConst::device_B0 / sqrt(IdealMHD2DConst::device_rho0);
-        u = thrust::max(-100.0 * VA, thrust::min(u, 100.0 * VA));
-        v = thrust::max(-100.0 * VA, thrust::min(v, 100.0 * VA));
-        w = thrust::max(-100.0 * VA, thrust::min(w, 100.0 * VA));
+        u = thrust::max(-10.0 * VA, thrust::min(u, 10.0 * VA));
+        v = thrust::max(-10.0 * VA, thrust::min(v, 10.0 * VA));
+        w = thrust::max(-10.0 * VA, thrust::min(w, 10.0 * VA));
 
-        bX = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bX, 100.0 * IdealMHD2DConst::device_B0));
-        bY = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bY, 100.0 * IdealMHD2DConst::device_B0));
-        bZ = thrust::max(-100.0 * IdealMHD2DConst::device_B0, thrust::min(bZ, 100.0 * IdealMHD2DConst::device_B0));
+        bX = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bX, 10.0 * IdealMHD2DConst::device_B0));
+        bY = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bY, 10.0 * IdealMHD2DConst::device_B0));
+        bZ = thrust::max(-10.0 * IdealMHD2DConst::device_B0, thrust::min(bZ, 10.0 * IdealMHD2DConst::device_B0));
 
         e = p / (IdealMHD2DConst::device_gamma - 1.0)
           + 0.5 * rho * (u * u + v * v + w * w)
