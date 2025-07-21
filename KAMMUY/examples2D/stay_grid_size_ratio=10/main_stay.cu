@@ -1,8 +1,7 @@
-#include "main_fast_mode_const.hpp"
+#include "main_stay_const.hpp"
 
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
-    double Cf, double waveAmp, double waveNumber, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -14,18 +13,17 @@ __global__ void initializeU_kernel(
 
         if (mPIInfo.isInside(i)) {
             int index = mPIInfo.globalToLocal(i, j);
-            
+
             double rho, u, v, w, bX, bY, bZ, e, p;
-            double y = j * IdealMHD2DConst::device_dy;
             
-            rho = IdealMHD2DConst::device_rho0 * (1.0 + waveAmp * sin(waveNumber * y));;
+            rho = IdealMHD2DConst::device_rho0;
             u   = 0.0;
-            v   = waveAmp * Cf * sin(waveNumber * y);
+            v   = 0.0;
             w   = 0.0;
             bX  = 0.0;
             bY  = 0.0;
-            bZ  = IdealMHD2DConst::device_B0 * (1.0 + waveAmp * sin(waveNumber * y));
-            p   = IdealMHD2DConst::device_p0 * (1.0 + IdealMHD2DConst::device_gamma * waveAmp * sin(waveNumber * y));
+            bZ  = 0.0f;
+            p   = IdealMHD2DConst::device_p0;
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
                 + 0.5 * rho * (u * u + v * v + w * w)
                 + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -44,15 +42,12 @@ __global__ void initializeU_kernel(
 
 void IdealMHD2D::initializeU()
 {
-    double Cf = sqrt(IdealMHD2DConst::B0 * IdealMHD2DConst::B0 / IdealMHD2DConst::rho0 + IdealMHD2DConst::gamma * IdealMHD2DConst::p0 / IdealMHD2DConst::rho0);
-
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     initializeU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        Cf, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -67,7 +62,6 @@ void IdealMHD2D::initializeU()
 
 __global__ void initializePICField_kernel(
     ElectricField* E, MagneticField* B, 
-    double Cf, double waveAmp, double waveNumber, 
     PIC2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -79,18 +73,14 @@ __global__ void initializePICField_kernel(
 
         if (mPIInfo.isInside(i)) {
             int index = mPIInfo.globalToLocal(i, j);
-            float u, v, w, bX, bY, bZ, eX, eY, eZ;
-            float y = j * PIC2DConst::device_dy + Interface2DConst::device_indexOfInterfaceStartInMHD * IdealMHD2DConst::device_dy;
+            float bX, bY, bZ, eX, eY, eZ;
 
-            u   = 0.0;
-            v   = waveAmp * Cf * sin(waveNumber * y);
-            w   = 0.0;
-            bX  = 0.0;
-            bY  = 0.0;
-            bZ  = PIC2DConst::device_B0 * (1.0 + waveAmp * sin(waveNumber * y));
-            eX = -(v * bZ - w * bY);
-            eY = -(w * bX - u * bZ);
-            eZ = -(u * bY - v * bX);
+            bX = 0.0f; 
+            bY = 0.0f;
+            bZ = 0.0f; 
+            eX = 0.0f; 
+            eY = 0.0f; 
+            eZ = 0.0f; 
 
             E[index].eX = eX;
             E[index].eY = eY;
@@ -104,64 +94,37 @@ __global__ void initializePICField_kernel(
 
 void PIC2D::initialize()
 {
-    double Cf = sqrt(IdealMHD2DConst::B0 * IdealMHD2DConst::B0 / IdealMHD2DConst::rho0 + IdealMHD2DConst::gamma * IdealMHD2DConst::p0 / IdealMHD2DConst::rho0);
-
-    unsigned long long countIon = 0, countElectron = 0;
     for (int i = 0; i < mPIInfo.localNx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
             float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
             float bulkVx, bulkVy, bulkVz;
-            float bulkVxIon, bulkVyIon, bulkVzIon;
-            float bulkVxElectron, bulkVyElectron, bulkVzElectron;
-            int ni, ne; 
-            float y = (j + Interface2DConst::indexOfInterfaceStartInMHD * Interface2DConst::gridSizeRatio) * PIC2DConst::dy;
-            float rho;
 
             xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs + PIC2DConst::EPS;
             xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs - PIC2DConst::EPS;
             yminLocal = j * PIC2DConst::dy + PIC2DConst::ymin + PIC2DConst::EPS;
             ymaxLocal = (j + 1) * PIC2DConst::dy + PIC2DConst::ymin - PIC2DConst::EPS;
-            
-            float rho0 = PIC2DConst::mIon * PIC2DConst::numberDensityIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron;
-            rho = rho0 * (1.0f + waveAmp * sin(waveNumber * y));
-            ni  = round(rho / (PIC2DConst::mIon + PIC2DConst::mElectron));
-            ne  = ni; 
-
             bulkVx = 0.0f;
-            bulkVy = waveAmp * Cf * sin(waveNumber * y);
+            bulkVy = 0.0f;
             bulkVz = 0.0f;
-
-            bulkVxIon = bulkVx; 
-            bulkVyIon = bulkVy; 
-            bulkVzIon = bulkVz; 
-            bulkVxElectron = bulkVx; 
-            bulkVyElectron = bulkVy;
-            bulkVzElectron = bulkVz; 
 
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
-                bulkVxIon, bulkVyIon, bulkVzIon,  
+                bulkVx, bulkVy, bulkVz,  
                 PIC2DConst::vThIon, PIC2DConst::vThIon, PIC2DConst::vThIon, 
-                countIon, countIon + ni, 
+                (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityIon, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityIon, 
                 j + i * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
                 particlesIon
             );
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
-                bulkVxElectron, bulkVyElectron, bulkVzElectron,  
+                bulkVx, bulkVy, bulkVz,  
                 PIC2DConst::vThElectron, PIC2DConst::vThElectron, PIC2DConst::vThElectron, 
-                countElectron, countElectron + ne, 
+                (j + i * PIC2DConst::ny) * PIC2DConst::numberDensityElectron, (j + i * PIC2DConst::ny + 1) * PIC2DConst::numberDensityElectron, 
                 j + i * PIC2DConst::ny + mPIInfo.localNx * PIC2DConst::ny + mPIInfo.rank * mPIInfo.localNx * PIC2DConst::ny, 
                 particlesElectron
             );
-
-            countIon      += ni;
-            countElectron += ne;
         }
     }
-
-    mPIInfo.existNumIonPerProcs = countIon; 
-    mPIInfo.existNumElectronPerProcs = countElectron; 
 
 
     dim3 threadsPerBlock(16, 16);
@@ -170,7 +133,6 @@ void PIC2D::initialize()
 
     initializePICField_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data()), thrust::raw_pointer_cast(B.data()), 
-        Cf, waveAmp, waveNumber, 
         device_mPIInfo
     );
     cudaDeviceSynchronize();
@@ -225,7 +187,7 @@ int main(int argc, char** argv)
 
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
-    mPIInfoPIC.totalNumIonPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumIonPerProcs * 2.0);
+    mPIInfoPIC.totalNumIonPerProcs      = static_cast<unsigned long long>(mPIInfoPIC.existNumIonPerProcs * 2.0);
     mPIInfoPIC.totalNumElectronPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumElectronPerProcs * 2.0);
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin
@@ -237,7 +199,7 @@ int main(int argc, char** argv)
 
 
     thrust::host_vector<double> host_interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0);
-    int bufferForInterlocking = 5;  
+    int bufferForInterlocking = 0;  
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny / 2; j++) {
             if (j < bufferForInterlocking) {
@@ -254,7 +216,7 @@ int main(int argc, char** argv)
             host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
-    
+
     IdealMHD2D idealMHD2D(mPIInfoMHD);
     PIC2D pIC2D(mPIInfoPIC); 
     InterfaceNoiseRemover2D interfaceNoiseRemover2D( 
@@ -342,6 +304,7 @@ int main(int argc, char** argv)
         cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_viscosity, &IdealMHD2DConst::viscosity, sizeof(double));
 
+
         // STEP1 : MHD step
 
         idealMHD2D.setPastU();
@@ -355,22 +318,22 @@ int main(int argc, char** argv)
 
         interface2D.resetTimeAveragedPICParameters();
 
-        int sumUpCount = 0;  
-        pIC2D.calculateFullMoments();
-        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
-        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
-        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
-        interface2D.sumUpTimeAveragedPICParameters(
-            B, 
-            zerothMomentIon, zerothMomentElectron, 
-            firstMomentIon, firstMomentElectron, 
-            secondMomentIon, secondMomentElectron
-        );
-        sumUpCount += 1; 
+        //int sumUpCount = 0;  
+        //pIC2D.calculateFullMoments();
+        //thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        //thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        //thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        //thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        //thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        //thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        //thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        //interface2D.sumUpTimeAveragedPICParameters(
+        //    B, 
+        //    zerothMomentIon, zerothMomentElectron, 
+        //    firstMomentIon, firstMomentElectron, 
+        //    secondMomentIon, secondMomentElectron
+        //);
+        //sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
@@ -384,45 +347,56 @@ int main(int argc, char** argv)
                 seedForReload
             );
 
-            interface2D.sumUpTimeAveragedPICParameters(
-                B, 
-                zerothMomentIon, zerothMomentElectron, 
-                firstMomentIon, firstMomentElectron, 
-                secondMomentIon, secondMomentElectron
-            );
-            sumUpCount += 1; 
+            //interface2D.sumUpTimeAveragedPICParameters(
+            //    B, 
+            //    zerothMomentIon, zerothMomentElectron, 
+            //    firstMomentIon, firstMomentElectron, 
+            //    secondMomentIon, secondMomentElectron
+            //);
+            //sumUpCount += 1; 
         }
 
-        interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
+        //interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
+
+        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B, 
+            zerothMomentIon, zerothMomentElectron, 
+            firstMomentIon, firstMomentElectron, 
+            secondMomentIon, secondMomentElectron
+        );
 
         interface2D.setParametersForPICtoMHD();
 
         // STEP3 : send PIC to MHD
 
-        interface2D.calculateUHalf(UPast, UNext); 
-        thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
-
-        interface2D.sendPICtoMHD(UHalf);
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(UHalf);
-
-            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-        }
-
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+        //interface2D.calculateUHalf(UPast, UNext); 
+        //thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
 
-        projection.correctB(U); 
+        interface2D.sendPICtoMHD(U);
         boundaryMHD.periodicBoundaryX2nd_U(U);
         boundaryMHD.symmetricBoundaryY2nd_U(U);
-        MPI_Barrier(MPI_COMM_WORLD);
 
-
+        //idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+        
+        if (step % 10 == 0) {
+            projection.correctB(U); 
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+            
+            interfaceNoiseRemover2D.convolveU(U);
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+        }
+        
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {
             logfile << std::setprecision(6) << PIC2DConst::totalTime << std::endl;

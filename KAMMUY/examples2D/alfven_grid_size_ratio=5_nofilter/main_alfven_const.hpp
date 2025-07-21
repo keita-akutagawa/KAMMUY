@@ -19,19 +19,19 @@
 #include "../../Interface2D_multiGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_fast_mode_grid_size_ratio=5_nofilter";
-std::string filenameWithoutStep = "fast_mode";
-std::ofstream logfile(    directoryName + "/log_fast_mode.txt"       );
-std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_fast_mode.txt");
-std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_fast_mode.txt");
-std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_fast_mode.txt");
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_latest/results_alfven_grid_size_ratio=5_nofilter";
+std::string filenameWithoutStep = "alfven";
+std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
+std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
+std::ofstream mpifile_PIC(directoryName + "/mpilog_pic_alfven.txt");
+std::ofstream mpifile_Interface(directoryName + "/mpilog_interface_alfven.txt");
 
 
 const int bufferMHD = 3; 
 const int bufferPIC = 3; 
 
-const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/fast_mode_grid_size_ratio=5_nofilter/poisson_symmetric.mtx";
-const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/fast_mode_grid_size_ratio=5_nofilter/PCG_W.json";
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5_nofilter/poisson_symmetric.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY/KAMMUY_latest/examples2D/alfven_grid_size_ratio=5_nofilter/PCG_W.json";
 
 const int IdealMHD2DConst::totalStep = 1000;
 const int PIC2DConst::totalStep = -1;
@@ -80,18 +80,16 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 // Interface
 
-const int Interface2DConst::convolutionCount = 0;
+const int Interface2DConst::convolutionCount = 1;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
-const double Interface2DConst::deltaForInterlockingFunction = 5 * Interface2DConst::gridSizeRatio; 
+const double Interface2DConst::deltaForInterlockingFunction = 2; 
 const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
-const int Interface2DConst::ny = Interface2DConst::interfaceLength; 
+const int Interface2DConst::ny = Interface2DConst::deltaForInterlockingFunction; 
 
-thrust::host_vector<double> host_interlockingFunctionY((PIC2DConst::nx + 2 * bufferPIC) * PIC2DConst::ny, 0.0);
-
-const unsigned long long Interface2DConst::reloadParticlesTotalNum = 1000000;//PIC2DConst::numberDensityIon * PIC2DConst::nx * (Interface2DConst::interfaceLength * 2 + 0);
+const unsigned long long Interface2DConst::reloadParticlesTotalNum = 10000000;
 
 // PIC
 
@@ -110,7 +108,7 @@ const float PIC2DConst::mElectron = 1.0f;
 const float PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const float PIC2DConst::tRatio = 1.0f;
-const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.2f * PIC2DConst::c, 2);
+const float PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
 const float PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
 
 const float PIC2DConst::qRatio = -1.0f;

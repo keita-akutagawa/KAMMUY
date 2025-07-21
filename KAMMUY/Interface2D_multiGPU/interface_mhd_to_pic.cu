@@ -518,7 +518,7 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
                 float distance2 = float(dx * dx + dy * dy);
-                float weight = __expf(-distance2 / twoSigma2);
+                float weight = 1.0;//__expf(-distance2 / twoSigma2);
 
                 unsigned long long index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
                 convolvedMoment += moment[index] * weight;
@@ -526,7 +526,7 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
             }
         }
     }
-    convolvedMoment = moment[j + (i + bufferPIC) * PIC2DConst::device_ny];
+    convolvedMoment = convolvedMoment / weightSum;
 
     return convolvedMoment;
 }
@@ -664,13 +664,13 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         nePIC = thrust::max(nePIC, 1.0);
 
         double vThiPIC, vThePIC;
-        vThiPIC = sqrt(piPIC / static_cast<unsigned int>(round(niPIC)) / PIC2DConst::device_mIon);
-        vThePIC = sqrt(pePIC / static_cast<unsigned int>(round(nePIC)) / PIC2DConst::device_mElectron);
+        vThiPIC = sqrt(piPIC / static_cast<int>(round(niPIC)) / PIC2DConst::device_mIon);
+        vThePIC = sqrt(pePIC / static_cast<int>(round(nePIC)) / PIC2DConst::device_mElectron);
 
         unsigned long long indexForReload = j + i * PIC2DConst::device_ny;
 
-        reloadParticlesDataIon     [indexForReload].number = static_cast<unsigned int>(round(niPIC));
-        reloadParticlesDataElectron[indexForReload].number = static_cast<unsigned int>(round(nePIC));
+        reloadParticlesDataIon     [indexForReload].number = static_cast<int>(round(niPIC));
+        reloadParticlesDataElectron[indexForReload].number = static_cast<int>(round(nePIC));
         reloadParticlesDataIon     [indexForReload].u      = uPIC;
         reloadParticlesDataIon     [indexForReload].v      = vPIC;
         reloadParticlesDataIon     [indexForReload].w      = wPIC;
@@ -679,6 +679,8 @@ __global__ void sendMHDtoPIC_particle_y_kernel(
         reloadParticlesDataElectron[indexForReload].w      = wPIC - jZPIC / static_cast<unsigned int>(round(nePIC)) / abs(PIC2DConst::device_qElectron); //niPIC = nePIC
         reloadParticlesDataIon     [indexForReload].vth    = vThiPIC;
         reloadParticlesDataElectron[indexForReload].vth    = vThePIC;
+
+        if (reloadParticlesDataIon[indexForReload].number < 0) printf("%llu %d \n", indexForReload, reloadParticlesDataIon[indexForReload].number);
     }
 }
 

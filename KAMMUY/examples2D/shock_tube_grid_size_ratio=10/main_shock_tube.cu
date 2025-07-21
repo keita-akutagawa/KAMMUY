@@ -255,7 +255,7 @@ int main(int argc, char** argv)
 
     mPIInfoPIC.existNumIonPerProcs      = static_cast<unsigned long long>(PIC2DConst::totalNumIon / mPIInfoPIC.procs);
     mPIInfoPIC.existNumElectronPerProcs = static_cast<unsigned long long>(PIC2DConst::totalNumElectron / mPIInfoPIC.procs);
-    mPIInfoPIC.totalNumIonPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumIonPerProcs * 2.0);
+    mPIInfoPIC.totalNumIonPerProcs      = static_cast<unsigned long long>(mPIInfoPIC.existNumIonPerProcs * 2.0);
     mPIInfoPIC.totalNumElectronPerProcs = static_cast<unsigned long long>(mPIInfoPIC.existNumElectronPerProcs * 2.0);
 
     mPIInfoPIC.xminForProcs = PIC2DConst::xmin
@@ -267,7 +267,7 @@ int main(int argc, char** argv)
 
 
     thrust::host_vector<double> host_interlockingFunctionY(mPIInfoPIC.localSizeX * PIC2DConst::ny, 0.0);
-    int bufferForInterlocking = 5;  
+    int bufferForInterlocking = 0;  
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny / 2; j++) {
             if (j < bufferForInterlocking) {
@@ -284,7 +284,7 @@ int main(int argc, char** argv)
             host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
-    
+
     IdealMHD2D idealMHD2D(mPIInfoMHD);
     PIC2D pIC2D(mPIInfoPIC); 
     InterfaceNoiseRemover2D interfaceNoiseRemover2D( 
@@ -386,22 +386,22 @@ int main(int argc, char** argv)
 
         interface2D.resetTimeAveragedPICParameters();
 
-        int sumUpCount = 0;  
-        pIC2D.calculateFullMoments();
-        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
-        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
-        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
-        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
-        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
-        interface2D.sumUpTimeAveragedPICParameters(
-            B, 
-            zerothMomentIon, zerothMomentElectron, 
-            firstMomentIon, firstMomentElectron, 
-            secondMomentIon, secondMomentElectron
-        );
-        sumUpCount += 1; 
+        //int sumUpCount = 0;  
+        //pIC2D.calculateFullMoments();
+        //thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        //thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        //thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        //thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        //thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        //thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        //thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        //interface2D.sumUpTimeAveragedPICParameters(
+        //    B, 
+        //    zerothMomentIon, zerothMomentElectron, 
+        //    firstMomentIon, firstMomentElectron, 
+        //    secondMomentIon, secondMomentElectron
+        //);
+        //sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
@@ -415,44 +415,55 @@ int main(int argc, char** argv)
                 seedForReload
             );
 
-            interface2D.sumUpTimeAveragedPICParameters(
-                B, 
-                zerothMomentIon, zerothMomentElectron, 
-                firstMomentIon, firstMomentElectron, 
-                secondMomentIon, secondMomentElectron
-            );
-            sumUpCount += 1; 
+            //interface2D.sumUpTimeAveragedPICParameters(
+            //    B, 
+            //    zerothMomentIon, zerothMomentElectron, 
+            //    firstMomentIon, firstMomentElectron, 
+            //    secondMomentIon, secondMomentElectron
+            //);
+            //sumUpCount += 1; 
         }
 
-        interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
+        //interface2D.calculateTimeAveragedPICParameters(sumUpCount); 
+
+        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B, 
+            zerothMomentIon, zerothMomentElectron, 
+            firstMomentIon, firstMomentElectron, 
+            secondMomentIon, secondMomentElectron
+        );
 
         interface2D.setParametersForPICtoMHD();
 
         // STEP3 : send PIC to MHD
 
-        interface2D.calculateUHalf(UPast, UNext); 
-        thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
-
-        interface2D.sendPICtoMHD(UHalf);
-        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-
-        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
-            interfaceNoiseRemover2D.convolveU(UHalf);
-
-            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
-        }
-
-        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+        //interface2D.calculateUHalf(UPast, UNext); 
+        //thrust::device_vector<ConservationParameter>& UHalf = interface2D.getUHalfRef();
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
 
-        projection.correctB(U); 
+        interface2D.sendPICtoMHD(U);
         boundaryMHD.periodicBoundaryX2nd_U(U);
         boundaryMHD.symmetricBoundaryY2nd_U(U);
-        MPI_Barrier(MPI_COMM_WORLD);
 
+        //idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
+        
+        if (step % 10 == 0) {
+            projection.correctB(U); 
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+            
+            interfaceNoiseRemover2D.convolveU(U);
+            boundaryMHD.periodicBoundaryX2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
+        }
 
         //when crashed 
         if (idealMHD2D.checkCalculationIsCrashed()) {

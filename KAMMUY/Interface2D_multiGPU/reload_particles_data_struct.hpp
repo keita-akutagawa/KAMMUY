@@ -24,10 +24,10 @@ struct ReloadParticlesData
     {
         if (this != &other) {
             number = other.number;
-            u           = other.u;
-            v           = other.v;
-            w           = other.w;
-            vth         = other.vth;
+            u      = other.u;
+            v      = other.v;
+            w      = other.w;
+            vth    = other.vth;
         }
         return *this;
     }

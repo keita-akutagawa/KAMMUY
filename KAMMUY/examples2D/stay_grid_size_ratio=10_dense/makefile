@@ -6,10 +6,10 @@ CFLAGS  = -ccbin mpic++ \
 		  --extended-lambda \
           -rdc=true \
           -Xcompiler "-Wall -O3"
-SRCDIRS = ../../PIC2D_multiGPU ../../IdealMHD2D_multiGPU ../../Interface2D_multiGPU ../../Reload
+SRCDIRS = ../../PIC2D_multiGPU ../../IdealMHD2D_multiGPU ../../Interface2D_multiGPU
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
-MAIN = main_shock_tube.o
+MAIN = main_stay.o
 EXECUTABLE = program
 
 .PHONY: all clean
@@ -24,7 +24,7 @@ $(EXECUTABLE): $(OBJS) $(MAIN)
 %.o: %.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(MAIN): main_shock_tube.cu
+$(MAIN): main_stay.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)

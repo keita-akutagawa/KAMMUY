@@ -22,8 +22,8 @@ def make_poisson_matrix_symmetric(Nx, Ny, dx, dy):
     return A
 
 
-Nx, Ny = 200, 100
-dx, dy = 10.0, 10.0
+Nx, Ny = 5, 1000
+dx, dy = 5.0, 5.0
 N = Nx * Ny
 
 A = make_poisson_matrix_symmetric(Nx, Ny, dx, dy)

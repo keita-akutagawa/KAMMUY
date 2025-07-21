@@ -1,4 +1,4 @@
-#include "main_stay_const.hpp"
+#include "main_stay_reload_const.hpp"
 
 
 void IdealMHD2D::initializeU()
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
                             + (PIC2DConst::xmax - PIC2DConst::xmin) / mPIInfoPIC.gridX
                             * (mPIInfoPIC.localGridX + 1);
 
-    int bufferForInterlocking = 10; 
+    int bufferForInterlocking = 5;  
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny / 2; j++) {
             if (j < bufferForInterlocking) {
@@ -70,8 +70,8 @@ int main(int argc, char** argv)
         }
     }
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
-        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny + 1; j++) {
-            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - j + i * PIC2DConst::ny];
+        for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny; j++) {
+            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
     
@@ -150,8 +150,8 @@ int main(int argc, char** argv)
     U = host_U; 
 
 
-    const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)));
-    for (int step = reloadStep + 1; step < IdealMHD2DConst::totalStep + 1; step++) {
+    const int totalSubstep = int(round(sqrt(PIC2DConst::mRatio)) * Interface2DConst::gridSizeRatio);
+    for (int step = reloadStep; step < IdealMHD2DConst::totalStep + 1; step++) {
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (mPIInfoPIC.rank == 0) {
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
         idealMHD2D.setPastU();
         thrust::device_vector<ConservationParameter>& UPast = idealMHD2D.getUPastRef();
 
-        idealMHD2D.oneStepRK2_periodicXY_predictor();
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_predictor();
 
         thrust::device_vector<ConservationParameter>& UNext = idealMHD2D.getURef();
 
@@ -206,6 +206,21 @@ int main(int argc, char** argv)
 
         int sumUpCount; 
         sumUpCount = 0; 
+        pIC2D.calculateFullMoments();
+        thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
+        thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
+        thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
+        thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
+        thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
+        interface2D.sumUpTimeAveragedPICParameters(
+            B, 
+            zerothMomentIon, zerothMomentElectron, 
+            firstMomentIon, firstMomentElectron, 
+            secondMomentIon, secondMomentElectron
+        );
+        sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             float mixingRatio = 1.0 - substep / totalSubstep;
@@ -219,15 +234,11 @@ int main(int argc, char** argv)
                 seedForReload
             );
 
-            thrust::device_vector<MagneticField>& B = pIC2D.getBRef();
-            thrust::device_vector<ZerothMoment>& zerothMomentIon = pIC2D.getZerothMomentIonRef(); 
-            thrust::device_vector<ZerothMoment>& zerothMomentElectron = pIC2D.getZerothMomentElectronRef(); 
-            thrust::device_vector<FirstMoment>& firstMomentIon = pIC2D.getFirstMomentIonRef(); 
-            thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
             interface2D.sumUpTimeAveragedPICParameters(
                 B, 
                 zerothMomentIon, zerothMomentElectron, 
-                firstMomentIon, firstMomentElectron
+                firstMomentIon, firstMomentElectron, 
+                secondMomentIon, secondMomentElectron
             );
             sumUpCount += 1; 
         }
@@ -243,21 +254,33 @@ int main(int argc, char** argv)
 
         interface2D.sendPICtoMHD(UHalf);
         boundaryMHD.periodicBoundaryX2nd_U(UHalf);
-        boundaryMHD.periodicBoundaryY2nd_U(UHalf);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
 
-        idealMHD2D.oneStepRK2_periodicXY_corrector(UHalf);
+        for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
+            interfaceNoiseRemover2D.convolveU(UHalf);
+
+            boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+            boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        }
+
+        projection.correctB(UHalf); 
+        boundaryMHD.periodicBoundaryX2nd_U(UHalf);
+        boundaryMHD.symmetricBoundaryY2nd_U(UHalf);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        idealMHD2D.oneStepRK2_periodicXSymmetricY_corrector(UHalf);
 
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
         for (int count = 0; count < Interface2DConst::convolutionCount; count++) {
             interfaceNoiseRemover2D.convolveU(U);
 
             boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.periodicBoundaryY2nd_U(U);
+            boundaryMHD.symmetricBoundaryY2nd_U(U);
         }
 
         projection.correctB(U); 
         boundaryMHD.periodicBoundaryX2nd_U(U);
-        boundaryMHD.periodicBoundaryY2nd_U(U);
+        boundaryMHD.symmetricBoundaryY2nd_U(U);
         MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -285,11 +308,11 @@ int main(int argc, char** argv)
         }   
     }
 
-    MPI_Finalize();
-
     if (mPIInfoMHD.rank == 0) {
         std::cout << "program was completed!" << std::endl;
     }
+
+    MPI_Finalize();
 
     return 0;
 }
