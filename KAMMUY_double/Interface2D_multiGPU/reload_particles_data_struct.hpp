@@ -5,18 +5,18 @@
 struct ReloadParticlesData
 {
     int number; 
-    float u;
-    float v;
-    float w;
-    float vth;
+    double u;
+    double v;
+    double w;
+    double vth;
 
     __host__ __device__
     ReloadParticlesData() : 
         number(0), 
-        u(0.0f), 
-        v(0.0f), 
-        w(0.0f),
-        vth(0.0f)
+        u(0.0), 
+        v(0.0), 
+        w(0.0),
+        vth(0.0)
         {}
     
     __host__ __device__

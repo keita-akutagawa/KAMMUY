@@ -79,9 +79,9 @@ __global__ void calculateZerothMomentOfOneSpecies_kernel(
         if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         unsigned long long index11 = yIndex1 + PIC2DConst::device_ny * xIndex1; 
         unsigned long long index12 = yIndex2 + PIC2DConst::device_ny * xIndex1; 
@@ -154,9 +154,9 @@ __global__ void calculateFirstMomentOfOneSpecies_kernel(
         if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         vx = particlesSpecies[i].vx / particlesSpecies[i].gamma;
         vy = particlesSpecies[i].vy / particlesSpecies[i].gamma;
@@ -243,9 +243,9 @@ __global__ void calculateSecondMomentOfOneSpecies_kernel(
         if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particlesSpecies[i].y, yIndex1);
 
         cx1 = xOverDx - xIndex1;
-        cx2 = 1.0f - cx1;
+        cx2 = 1.0 - cx1;
         cy1 = yOverDy - yIndex1;
-        cy2 = 1.0f - cy1;
+        cy2 = 1.0 - cy1;
 
         vx = particlesSpecies[i].vx / particlesSpecies[i].gamma;
         vy = particlesSpecies[i].vy / particlesSpecies[i].gamma;

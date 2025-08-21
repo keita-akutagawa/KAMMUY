@@ -193,7 +193,7 @@ int main(int argc, char** argv)
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
         IdealMHD2DConst::eta = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
         IdealMHD2DConst::viscosity = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
-        cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
+        cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_viscosity, &IdealMHD2DConst::viscosity, sizeof(double));
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
         //sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
-            float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
+            double mixingRatio = 1.0 - static_cast<double>(substep) / static_cast<double>(totalSubstep);
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
             
             unsigned long long seedForReload; 

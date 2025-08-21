@@ -58,12 +58,12 @@ __global__ void getCenterBE_kernel(
     if ((0 < i) && (i < localSizeX) && (0 < j) && (j < PIC2DConst::device_ny)) {
         unsigned long long index = j + PIC2DConst::device_ny * i; 
 
-        tmpB[index].bX = 0.5f * (B[index].bX + B[index - 1].bX);
-        tmpB[index].bY = 0.5f * (B[index].bY + B[index - PIC2DConst::device_ny].bY);
-        tmpB[index].bZ = 0.25f * (B[index].bZ + B[index - PIC2DConst::device_ny].bZ
+        tmpB[index].bX = 0.5 * (B[index].bX + B[index - 1].bX);
+        tmpB[index].bY = 0.5 * (B[index].bY + B[index - PIC2DConst::device_ny].bY);
+        tmpB[index].bZ = 0.25 * (B[index].bZ + B[index - PIC2DConst::device_ny].bZ
                                 + B[index - 1].bZ + B[index - 1 - PIC2DConst::device_ny].bZ);
-        tmpE[index].eX = 0.5f * (E[index].eX + E[index - PIC2DConst::device_ny].eX);
-        tmpE[index].eY = 0.5f * (E[index].eY + E[index - 1].eY);
+        tmpE[index].eX = 0.5 * (E[index].eX + E[index - PIC2DConst::device_ny].eX);
+        tmpE[index].eY = 0.5 * (E[index].eY + E[index - 1].eY);
         tmpE[index].eZ = E[index].eZ;
     }
 }
@@ -79,8 +79,8 @@ __global__ void getHalfCurrent_kernel(
     if (i < localSizeX - 1 && j < PIC2DConst::device_ny - 1) {
         unsigned long long index = j + PIC2DConst::device_ny * i; 
 
-        current[index].jX = 0.5f * (tmpCurrent[index].jX + tmpCurrent[index + PIC2DConst::device_ny].jX);
-        current[index].jY = 0.5f * (tmpCurrent[index].jY + tmpCurrent[index + 1].jY);
+        current[index].jX = 0.5 * (tmpCurrent[index].jX + tmpCurrent[index + PIC2DConst::device_ny].jX);
+        current[index].jY = 0.5 * (tmpCurrent[index].jY + tmpCurrent[index + 1].jY);
         current[index].jZ = tmpCurrent[index].jZ;
     }
 }
@@ -98,7 +98,7 @@ void PIC2D::oneStep_periodicXFreeY(
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
-    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
     
@@ -120,7 +120,7 @@ void PIC2D::oneStep_periodicXFreeY(
     );
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -148,7 +148,7 @@ void PIC2D::oneStep_periodicXFreeY(
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
 
-    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
 
@@ -165,7 +165,7 @@ void PIC2D::oneStep_periodicXFreeY(
     boundaryPIC.freeBoundaryE_y(E);
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -221,7 +221,7 @@ void PIC2D::oneStep_periodicXFreeY_onlyPIC()
     dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (PIC2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
                       
-    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
     
@@ -243,7 +243,7 @@ void PIC2D::oneStep_periodicXFreeY_onlyPIC()
     );
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -267,7 +267,7 @@ void PIC2D::oneStep_periodicXFreeY_onlyPIC()
     boundaryPIC.periodicBoundaryCurrent_x(current);
     boundaryPIC.freeBoundaryCurrent_y(current);
 
-    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0f);
+    fieldSolver.timeEvolutionB(B, E, PIC2DConst::dt / 2.0);
     boundaryPIC.periodicBoundaryB_x(B);
     boundaryPIC.freeBoundaryB_y(B);
 
@@ -284,7 +284,7 @@ void PIC2D::oneStep_periodicXFreeY_onlyPIC()
     boundaryPIC.freeBoundaryE_y(E);
 
     particlePush.pushPosition(
-        particlesIon, particlesElectron, PIC2DConst::dt / 2.0f
+        particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.periodicBoundaryParticle_x(
         particlesIon, particlesElectron
@@ -306,7 +306,7 @@ void PIC2D::saveFields(
     host_current = current;
     std::string filenameB, filenameE, filenameCurrent;
     std::string filenameBEnergy, filenameEEnergy;
-    double BEnergy = 0.0f, EEnergy = 0.0f;
+    double BEnergy = 0.0, EEnergy = 0.0;
 
     filenameB = directoryname + "/"
              + filenameWithoutStep + "_B_" + std::to_string(step)
@@ -344,7 +344,7 @@ void PIC2D::saveFields(
                      + host_B[index].bZ * host_B[index].bZ;
         }
     }
-    BEnergy *= 0.5f / PIC2DConst::mu0;
+    BEnergy *= 0.5 / PIC2DConst::mu0;
 
     std::ofstream ofsE(filenameE, std::ios::binary);
     ofsE << std::fixed << std::setprecision(6);
@@ -360,7 +360,7 @@ void PIC2D::saveFields(
                      + host_E[index].eZ * host_E[index].eZ;
         }
     }
-    EEnergy *= 0.5f * PIC2DConst::epsilon0;
+    EEnergy *= 0.5 * PIC2DConst::epsilon0;
 
     std::ofstream ofsCurrent(filenameCurrent, std::ios::binary);
     ofsCurrent << std::fixed << std::setprecision(6);
@@ -670,7 +670,7 @@ void PIC2D::saveParticle(
              + ".bin";
 
     double x, y, z;
-    double vx, vy, vz, KineticEnergy = 0.0f;
+    double vx, vy, vz, KineticEnergy = 0.0;
 
     std::ofstream ofsXIon(filenameXIon, std::ios::binary);
     ofsXIon << std::fixed << std::setprecision(6);
@@ -692,7 +692,7 @@ void PIC2D::saveParticle(
         ofsVIon.write(reinterpret_cast<const char*>(&vy), sizeof(double));
         ofsVIon.write(reinterpret_cast<const char*>(&vz), sizeof(double));
 
-        KineticEnergy += (host_particlesIon[i].gamma - 1.0f) * PIC2DConst::mIon * pow(PIC2DConst::c, 2);
+        KineticEnergy += (host_particlesIon[i].gamma - 1.0) * PIC2DConst::mIon * pow(PIC2DConst::c, 2);
     }
 
     std::ofstream ofsXElectron(filenameXElectron, std::ios::binary);
@@ -715,7 +715,7 @@ void PIC2D::saveParticle(
         ofsVElectron.write(reinterpret_cast<const char*>(&vy), sizeof(double));
         ofsVElectron.write(reinterpret_cast<const char*>(&vz), sizeof(double));
         
-        KineticEnergy += (host_particlesElectron[i].gamma - 1.0f) * PIC2DConst::mElectron * pow(PIC2DConst::c, 2);
+        KineticEnergy += (host_particlesElectron[i].gamma - 1.0) * PIC2DConst::mElectron * pow(PIC2DConst::c, 2);
     }
 
     std::ofstream ofsKineticEnergy(filenameKineticEnergy, std::ios::binary);

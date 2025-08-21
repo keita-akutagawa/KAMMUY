@@ -21,7 +21,7 @@
 #include "../../Reload/reloader.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/paper4/results_mrx_grid_size_ratio=20_forcefree";
+std::string directoryName = "/cfca-work/akutagawakt/paper4/results_mrx_grid_size_ratio=20_forcefree_400";
 std::string filenameWithoutStep = "mrx";
 std::ofstream logfile(    directoryName + "/log_mrx_reload.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_mrx_reload.txt");
@@ -35,8 +35,8 @@ const int reloadStep = 1405;
 const int bufferMHD = 3; 
 const int bufferPIC = 3; 
 
-const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/paper4/examples2D/mrx_grid_size_ratio=20_forcefree/poisson_symmetric.mtx";
-const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/paper4/examples2D/mrx_grid_size_ratio=20_forcefree/PCG_W.json";
+const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/paper4/examples2D/mrx_grid_size_ratio=20_forcefree_400/poisson_symmetric.mtx";
+const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/paper4/examples2D/mrx_grid_size_ratio=20_forcefree_400/PCG_W.json";
 
 const int IdealMHD2DConst::totalStep = 10000;
 const int PIC2DConst::totalStep = -1;
@@ -44,7 +44,7 @@ const int recordStep = 5;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
-double PIC2DConst::totalTime = 0.0f;
+double PIC2DConst::totalTime = 0.0;
 double IdealMHD2DConst::totalTime = 0.0;
 
 const int Interface2DConst::gridSizeRatio = 20; 
@@ -59,13 +59,13 @@ double IdealMHD2DConst::eta = 0.0;
 double IdealMHD2DConst::viscosity = 0.0;
 
 const int PIC2DConst::nx = 20000;
-const double PIC2DConst::dx = 1.0f;
-const double PIC2DConst::xmin = 0.0f * PIC2DConst::dx; 
+const double PIC2DConst::dx = 1.0;
+const double PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
 const double PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 200;
-const double PIC2DConst::dy = 1.0f;
-const double PIC2DConst::ymin = 0.0f * PIC2DConst::dy; 
+const int PIC2DConst::ny = 400;
+const double PIC2DConst::dy = 1.0;
+const double PIC2DConst::ymin = 0.0 * PIC2DConst::dy; 
 const double PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
 
 
@@ -95,27 +95,27 @@ const unsigned long long Interface2DConst::reloadParticlesTotalNum = 10000000;
 
 // PIC
 
-const double PIC2DConst::c = 1.0f;
-const double PIC2DConst::epsilon0 = 1.0f;
-const double PIC2DConst::mu0 = 1.0f;
-const double PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001f;
+const double PIC2DConst::c = 1.0;
+const double PIC2DConst::epsilon0 = 1.0;
+const double PIC2DConst::mu0 = 1.0;
+const double PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001;
 
 const int PIC2DConst::numberDensityIon = 20;
 const int PIC2DConst::numberDensityElectron = 20;
 
-const double PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0f;
+const double PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0;
 
-const double PIC2DConst::mRatio = 25.0f;
-const double PIC2DConst::mElectron = 1.0f;
+const double PIC2DConst::mRatio = 25.0;
+const double PIC2DConst::mElectron = 1.0;
 const double PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
 const double beta = 0.25;
-const double PIC2DConst::tRatio = 1.0f;
-const double PIC2DConst::tElectron = beta * (PIC2DConst::B0 * PIC2DConst::B0 / 2.0f / PIC2DConst::mu0) / (PIC2DConst::numberDensityIon + PIC2DConst::numberDensityElectron * PIC2DConst::tRatio);
+const double PIC2DConst::tRatio = 1.0;
+const double PIC2DConst::tElectron = beta * (PIC2DConst::B0 * PIC2DConst::B0 / 2.0 / PIC2DConst::mu0) / (PIC2DConst::numberDensityIon + PIC2DConst::numberDensityElectron * PIC2DConst::tRatio);
 const double PIC2DConst::tIon = tRatio * tElectron;
 
-const double PIC2DConst::qRatio = -1.0f;
-const double PIC2DConst::qElectron = -1.0f * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron));
+const double PIC2DConst::qRatio = -1.0;
+const double PIC2DConst::qElectron = -1.0 * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron));
 const double PIC2DConst::qIon = PIC2DConst::qRatio * PIC2DConst::qElectron;
 
 const double PIC2DConst::omegaPe = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron) * pow(PIC2DConst::qElectron, 2) / PIC2DConst::mElectron / PIC2DConst::epsilon0);
@@ -126,10 +126,10 @@ const double PIC2DConst::omegaCi = PIC2DConst::qIon * PIC2DConst::B0 / PIC2DCons
 const double PIC2DConst::debyeLength = sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron) / pow(PIC2DConst::qElectron, 2));
 const double PIC2DConst::ionInertialLength = PIC2DConst::c / PIC2DConst::omegaPi;
 
-const double triggerRatio = 0.1f;
-const double sheatThickness = 3.0f * PIC2DConst::ionInertialLength; 
+const double triggerRatio = 0.1;
+const double sheatThickness = 2.0 * PIC2DConst::ionInertialLength; 
 
-double PIC2DConst::dt = 0.0f;
+double PIC2DConst::dt = 0.0;
 
 const unsigned long long PIC2DConst::totalNumIon = round(PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityIon);
 const unsigned long long PIC2DConst::totalNumElectron = round(PIC2DConst::nx * PIC2DConst::ny * PIC2DConst::numberDensityElectron);
@@ -137,12 +137,12 @@ const unsigned long long PIC2DConst::totalNumParticles = PIC2DConst::totalNumIon
 
 const double PIC2DConst::vThIon = sqrt(PIC2DConst::tIon / PIC2DConst::mIon);
 const double PIC2DConst::vThElectron = sqrt(PIC2DConst::tElectron / PIC2DConst::mElectron);
-const double PIC2DConst::bulkVxIon = 0.0f;
-const double PIC2DConst::bulkVyIon = 0.0f;
-const double PIC2DConst::bulkVzIon = 0.0f;
-const double PIC2DConst::bulkVxElectron = 0.0f;
-const double PIC2DConst::bulkVyElectron = 0.0f;
-const double PIC2DConst::bulkVzElectron = 0.0f;
+const double PIC2DConst::bulkVxIon = 0.0;
+const double PIC2DConst::bulkVyIon = 0.0;
+const double PIC2DConst::bulkVzIon = 0.0;
+const double PIC2DConst::bulkVxElectron = 0.0;
+const double PIC2DConst::bulkVyElectron = 0.0;
+const double PIC2DConst::bulkVzElectron = 0.0;
 
 
 // MHD
@@ -262,3 +262,4 @@ __constant__ int Interface2DConst::device_nx;
 __constant__ int Interface2DConst::device_ny;  
 
 __constant__ unsigned long long Interface2DConst::device_reloadParticlesTotalNum;
+

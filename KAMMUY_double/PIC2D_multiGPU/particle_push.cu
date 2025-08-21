@@ -82,9 +82,9 @@ ParticleField getParticleFields(
     if (yIndex1 < 0 || yIndex1 >= PIC2DConst::device_ny) printf("y = %f, index = %d, ERROR\n", particle.y, yIndex1);
 
     cx1 = xOverDx - xIndex1;
-    cx2 = 1.0f - cx1;
+    cx2 = 1.0 - cx1;
     cy1 = yOverDy - yIndex1;
-    cy2 = 1.0f - cy1;
+    cy2 = 1.0 - cy1;
 
     unsigned long long index11 = yIndex1 + PIC2DConst::device_ny * xIndex1; 
     unsigned long long index12 = yIndex2 + PIC2DConst::device_ny * xIndex1; 
@@ -148,8 +148,8 @@ __global__ void pushVelocityOfOneSpecies_kernel(
         double ex, ey, ez;
         ParticleField particleField;
 
-        qOverMTimesDtOver2 = q / m * dt / 2.0f;
-        tmp1OverC2 = 1.0f / (PIC2DConst::device_c * PIC2DConst::device_c);
+        qOverMTimesDtOver2 = q / m * dt / 2.0;
+        tmp1OverC2 = 1.0 / (PIC2DConst::device_c * PIC2DConst::device_c);
 
         vx = particlesSpecies[i].vx;
         vy = particlesSpecies[i].vy;
@@ -175,7 +175,7 @@ __global__ void pushVelocityOfOneSpecies_kernel(
         ty = tmpForT * by;
         tz = tmpForT * bz;
 
-        tmpForS = 2.0f / (1.0f + tx * tx + ty * ty + tz * tz);
+        tmpForS = 2.0 / (1.0 + tx * tx + ty * ty + tz * tz);
         sx = tmpForS * tx;
         sy = tmpForS * ty;
         sz = tmpForS * tz;
@@ -195,7 +195,7 @@ __global__ void pushVelocityOfOneSpecies_kernel(
         vx = vxPlus + qOverMTimesDtOver2 * ex;
         vy = vyPlus + qOverMTimesDtOver2 * ey;
         vz = vzPlus + qOverMTimesDtOver2 * ez;
-        gamma = sqrt(1.0f + (vx * vx + vy * vy + vz * vz) * tmp1OverC2);
+        gamma = sqrt(1.0 + (vx * vx + vy * vy + vz * vz) * tmp1OverC2);
 
         particlesSpecies[i].vx = vx;
         particlesSpecies[i].vy = vy;

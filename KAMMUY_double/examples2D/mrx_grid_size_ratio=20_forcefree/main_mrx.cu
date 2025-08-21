@@ -2,7 +2,7 @@
 
 __global__ void initializeU_kernel(
     ConservationParameter* U, 
-    const float sheatThickness, const float triggerRatio, 
+    const double sheatThickness, const double triggerRatio, 
     IdealMHD2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -16,8 +16,8 @@ __global__ void initializeU_kernel(
 
             double rho, u, v, w, bX, bY, bZ, e, p;
             double x = i * IdealMHD2DConst::device_dx, y = j * IdealMHD2DConst::device_dy; 
-            double xCenter = 0.5f * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
-            double yCenter = 0.5f * (IdealMHD2DConst::device_ymax - IdealMHD2DConst::device_ymin);
+            double xCenter = 0.5 * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
+            double yCenter = 0.5 * (IdealMHD2DConst::device_ymax - IdealMHD2DConst::device_ymin);
             
             rho = IdealMHD2DConst::device_rho0;
             u   = 0.0;
@@ -26,10 +26,10 @@ __global__ void initializeU_kernel(
             bX  = IdealMHD2DConst::device_B0 * tanh((y - yCenter) / sheatThickness)
                 - IdealMHD2DConst::device_B0 * triggerRatio * (y - yCenter) / sheatThickness
                 * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-                / pow(2.0f * sheatThickness, 2));
+                / pow(2.0 * sheatThickness, 2));
             bY  = IdealMHD2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
                 * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-                / pow(2.0f * sheatThickness, 2)); 
+                / pow(2.0 * sheatThickness, 2)); 
             bZ  = IdealMHD2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
             p   = IdealMHD2DConst::device_p0;
             e   = p / (IdealMHD2DConst::device_gamma - 1.0)
@@ -71,7 +71,7 @@ void IdealMHD2D::initializeU()
 
 __global__ void initializePICField_kernel(
     ElectricField* E, MagneticField* B, 
-    const float sheatThickness, const float triggerRatio, 
+    const double sheatThickness, const double triggerRatio, 
     PIC2DMPI::MPIInfo* device_mPIInfo
 )
 {
@@ -83,22 +83,22 @@ __global__ void initializePICField_kernel(
         if (device_mPIInfo->isInside(i)) {
             int index = device_mPIInfo->globalToLocal(i, j);
 
-            float bX, bY, bZ, eX, eY, eZ;
-            float x = i * PIC2DConst::device_dx + PIC2DConst::device_xmin, y = j * PIC2DConst::device_dy + PIC2DConst::device_ymin;
-            float xCenter = 0.5f * (PIC2DConst::device_xmax - PIC2DConst::device_xmin);
-            float yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
+            double bX, bY, bZ, eX, eY, eZ;
+            double x = i * PIC2DConst::device_dx + PIC2DConst::device_xmin, y = j * PIC2DConst::device_dy + PIC2DConst::device_ymin;
+            double xCenter = 0.5 * (PIC2DConst::device_xmax - PIC2DConst::device_xmin);
+            double yCenter = 0.5 * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
 
             bX = PIC2DConst::device_B0 * tanh((y - yCenter) / sheatThickness)
             - PIC2DConst::device_B0 * triggerRatio * (y - yCenter) / sheatThickness
             * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-            / pow(2.0f * sheatThickness, 2));;
+            / pow(2.0 * sheatThickness, 2));;
             bY = PIC2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
             * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
-            / pow(2.0f * sheatThickness, 2)); 
+            / pow(2.0 * sheatThickness, 2)); 
             bZ = PIC2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
-            eX = 0.0f;
-            eY = 0.0f;
-            eZ = 0.0f;
+            eX = 0.0;
+            eY = 0.0;
+            eZ = 0.0;
 
             E[index].eX = eX;
             E[index].eY = eY;
@@ -115,9 +115,9 @@ void PIC2D::initialize()
     unsigned long long countIon = 0, countElectron = 0;
     for (int i = 0; i < mPIInfo.localNx; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            float xminLocal, xmaxLocal, yminLocal, ymaxLocal;
-            float y = j * PIC2DConst::dy + PIC2DConst::ymin;
-            float yCenter = 0.5f * (PIC2DConst::ymax - PIC2DConst::ymin) + PIC2DConst::ymin;
+            double xminLocal, xmaxLocal, yminLocal, ymaxLocal;
+            double y = j * PIC2DConst::dy + PIC2DConst::ymin;
+            double yCenter = 0.5 * (PIC2DConst::ymax - PIC2DConst::ymin) + PIC2DConst::ymin;
             
             xminLocal = i * PIC2DConst::dx + mPIInfo.xminForProcs + PIC2DConst::EPS;
             xmaxLocal = (i + 1) * PIC2DConst::dx + mPIInfo.xminForProcs - PIC2DConst::EPS;
@@ -127,14 +127,14 @@ void PIC2D::initialize()
             int ni = PIC2DConst::numberDensityIon;
             int ne = PIC2DConst::numberDensityElectron;
 
-            float jX = -PIC2DConst::B0 / sheatThickness * tanh((y - yCenter) / sheatThickness) / cosh((y - yCenter) / sheatThickness);
-            float jY = 0.0f; 
-            float jZ = -PIC2DConst::B0 / sheatThickness / pow(cosh((y - yCenter) / sheatThickness), 2);
+            double jX = -PIC2DConst::B0 / sheatThickness * tanh((y - yCenter) / sheatThickness) / cosh((y - yCenter) / sheatThickness);
+            double jY = 0.0; 
+            double jZ = -PIC2DConst::B0 / sheatThickness / pow(cosh((y - yCenter) / sheatThickness), 2);
             
-            float bulkVxIonLocal = 0.0f, bulkVyIonLocal = 0.0f, bulkVzIonLocal = 0.0f; 
-            float bulkVxElectronLocal = jX / ne / PIC2DConst::qElectron; 
-            float bulkVyElectronLocal = jY / ne / PIC2DConst::qElectron;
-            float bulkVzElectronLocal = jZ / ne / PIC2DConst::qElectron; 
+            double bulkVxIonLocal = 0.0, bulkVyIonLocal = 0.0, bulkVzIonLocal = 0.0; 
+            double bulkVxElectronLocal = jX / ne / PIC2DConst::qElectron; 
+            double bulkVyElectronLocal = jY / ne / PIC2DConst::qElectron;
+            double bulkVzElectronLocal = jZ / ne / PIC2DConst::qElectron; 
 
             initializeParticle.uniformForPosition_xy_maxwellDistributionForVelocity_eachCell(
                 xminLocal, xmaxLocal, yminLocal, ymaxLocal, 
@@ -334,7 +334,7 @@ int main(int argc, char** argv)
         IdealMHD2DConst::dt = totalSubstep * dtCommon;
         IdealMHD2DConst::eta = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
         IdealMHD2DConst::viscosity = 0.0 * pow(IdealMHD2DConst::dx, 2) / IdealMHD2DConst::dt; 
-        cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(float));
+        cudaMemcpyToSymbol(PIC2DConst::device_dt, &PIC2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_dt, &IdealMHD2DConst::dt, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_eta, &IdealMHD2DConst::eta, sizeof(double));
         cudaMemcpyToSymbol(IdealMHD2DConst::device_viscosity, &IdealMHD2DConst::viscosity, sizeof(double));
@@ -371,7 +371,7 @@ int main(int argc, char** argv)
         //sumUpCount += 1; 
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
-            float mixingRatio = 1.0 - static_cast<float>(substep) / static_cast<float>(totalSubstep);
+            double mixingRatio = 1.0 - static_cast<double>(substep) / static_cast<double>(totalSubstep);
             thrust::device_vector<ConservationParameter>& USub = interface2D.calculateAndGetSubU(UPast, UNext, mixingRatio);
             
             unsigned long long seedForReload; 

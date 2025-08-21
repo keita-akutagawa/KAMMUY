@@ -9,9 +9,9 @@ struct MagneticField
 
     __host__ __device__
     MagneticField() : 
-        bX(0.0f),
-        bY(0.0f),
-        bZ(0.0f)
+        bX(0.0),
+        bY(0.0),
+        bZ(0.0)
         {}
     
     __host__ __device__
@@ -76,9 +76,9 @@ struct ElectricField
 
     __host__ __device__
     ElectricField() : 
-        eX(0.0f),
-        eY(0.0f),
-        eZ(0.0f)
+        eX(0.0),
+        eY(0.0),
+        eZ(0.0)
         {}
     
     __host__ __device__
@@ -143,9 +143,9 @@ struct CurrentField
 
     __host__ __device__
     CurrentField() : 
-        jX(0.0f),
-        jY(0.0f),
-        jZ(0.0f)
+        jX(0.0),
+        jY(0.0),
+        jZ(0.0)
         {}
     
     __host__ __device__
@@ -208,7 +208,7 @@ struct RhoField
 
     __host__ __device__
     RhoField() : 
-        rho(0.0f)
+        rho(0.0)
         {}
     
     __host__ __device__
@@ -259,7 +259,7 @@ struct FilterField
 
     __host__ __device__
     FilterField() : 
-        F(0.0f)
+        F(0.0)
         {}
     
     __host__ __device__

@@ -115,7 +115,7 @@ __global__ void maxwellDistributionForVelocity_kernel(
             if (vx * vx + vy * vy + vz * vz < PIC2DConst::device_c * PIC2DConst::device_c) break;
         }
 
-        gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / (PIC2DConst::device_c * PIC2DConst::device_c));
+        gamma = 1.0 / sqrt(1.0 - (vx * vx + vy * vy + vz * vz) / (PIC2DConst::device_c * PIC2DConst::device_c));
 
         particle[i + nStart].vx = vx * gamma;
         particle[i + nStart].vy = vy * gamma;
@@ -202,13 +202,13 @@ __global__ void harrisForPosition_y_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, offset + i, 0, &state);
-        double yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
+        double yCenter = 0.5 * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         double randomValue;
         double y;
         while (true) {
             randomValue = curand_uniform(&state);
-            y = yCenter + sheatThickness * atanh(2.0f * randomValue - 1.0f);
+            y = yCenter + sheatThickness * atanh(2.0 * randomValue - 1.0);
 
             if (PIC2DConst::device_ymin + PIC2DConst::device_EPS < y && y < PIC2DConst::device_ymax - PIC2DConst::device_EPS) break;
         }
@@ -250,15 +250,15 @@ __global__ void harrisBackgroundForPosition_y_kernel(
     if (i < nEnd - nStart) {
         curandState state; 
         curand_init(seed, offset + i, 0, &state);
-        double yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
+        double yCenter = 0.5 * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
 
         double randomValue;
         double y;
         while (true) {
             randomValue = curand_uniform(&state);
-            randomValue = thrust::min(thrust::max(PIC2DConst::device_EPS, randomValue), 1.0f - PIC2DConst::device_EPS);
+            randomValue = thrust::min(thrust::max(PIC2DConst::device_EPS, randomValue), 1.0 - PIC2DConst::device_EPS);
             y = randomValue * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
-            if (randomValue < 1.0f - pow(cosh((y - yCenter) / sheatThickness), -2)) break;
+            if (randomValue < 1.0 - pow(cosh((y - yCenter) / sheatThickness), -2)) break;
         } 
         
         particle[i + nStart].y = y;

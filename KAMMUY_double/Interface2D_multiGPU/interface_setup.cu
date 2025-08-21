@@ -152,10 +152,10 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
     FieldType convolvedField; 
 
     const int R = Interface2DConst::device_gridSizeRatio / 2;
-    const float sigma = Interface2DConst::device_gridSizeRatio / 2.0f;
-    const float twoSigma2 = 2.0f * sigma * sigma;
+    const double sigma = Interface2DConst::device_gridSizeRatio / 2.0;
+    const double twoSigma2 = 2.0 * sigma * sigma;
 
-    float weightSum = 0.0f;
+    double weightSum = 0.0;
     for (int dx = -R; dx <= R; dx++) {
         for (int dy = -R; dy <= R; dy++) {
             int localI = i * Interface2DConst::device_gridSizeRatio + dx;
@@ -164,8 +164,8 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
             if (0 <= localI && localI < localNxPIC &&
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
-                float distance2 = float(dx * dx + dy * dy);
-                float weight = 1.0f;
+                double distance2 = double(dx * dx + dy * dy);
+                double weight = 1.0;
 
                 unsigned long long index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
                 convolvedField += field[index] * weight;
@@ -246,13 +246,13 @@ __global__ void calculateTimeAveragedPICParameters_kernel(
     if (i < localSizeXPIC && j < PIC2DConst::device_ny) {
         unsigned long long index = j + i * PIC2DConst::device_ny;
 
-        B_timeAve[index]                    = B_timeAve[index] / static_cast<float>(count); 
-        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / static_cast<float>(count); 
-        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / static_cast<float>(count); 
-        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / static_cast<float>(count); 
-        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / static_cast<float>(count); 
-        secondMomentIon_timeAve[index]      = secondMomentIon_timeAve[index] / static_cast<float>(count); 
-        secondMomentElectron_timeAve[index] = secondMomentElectron_timeAve[index] / static_cast<float>(count); 
+        B_timeAve[index]                    = B_timeAve[index] / static_cast<double>(count); 
+        zerothMomentIon_timeAve[index]      = zerothMomentIon_timeAve[index] / static_cast<double>(count); 
+        zerothMomentElectron_timeAve[index] = zerothMomentElectron_timeAve[index] / static_cast<double>(count); 
+        firstMomentIon_timeAve[index]       = firstMomentIon_timeAve[index] / static_cast<double>(count); 
+        firstMomentElectron_timeAve[index]  = firstMomentElectron_timeAve[index] / static_cast<double>(count); 
+        secondMomentIon_timeAve[index]      = secondMomentIon_timeAve[index] / static_cast<double>(count); 
+        secondMomentElectron_timeAve[index] = secondMomentElectron_timeAve[index] / static_cast<double>(count); 
     }
 }
 

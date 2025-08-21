@@ -324,17 +324,17 @@ __global__ void deleteParticles_kernel(
     Particle* particlesSpecies, 
     const unsigned long long existNumSpecies, 
     const unsigned long long seed, 
-    const float xminForProcs, const float xmaxForProcs, 
+    const double xminForProcs, const double xmaxForProcs, 
     const int localNxPIC, const int bufferPIC
 )
 {
     unsigned long long k = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (k < existNumSpecies) {
-        float x = particlesSpecies[k].x;
-        float y = particlesSpecies[k].y;
-        float xmin = xminForProcs;
-        float ymin = PIC2DConst::device_ymin;
+        double x = particlesSpecies[k].x;
+        double y = particlesSpecies[k].y;
+        double xmin = xminForProcs;
+        double ymin = PIC2DConst::device_ymin;
 
         int i = floorf(x - xmin); 
         int j = floorf(y - ymin);
@@ -348,7 +348,7 @@ __global__ void deleteParticles_kernel(
         
         curandState state; 
         curand_init(seed, k, 0, &state);
-        float randomValue = curand_uniform(&state);
+        double randomValue = curand_uniform(&state);
         if (randomValue < interlockingFunctionY[indexForInterlocking]) {
             particlesSpecies[k].isExist = false;
         }
@@ -394,7 +394,7 @@ __global__ void reloadParticlesSpecies_kernel(
     Particle* particlesSpecies, 
     unsigned long long* particlesNumCounter, 
     const unsigned long long seed, 
-    const float xminForProcs, const float xmaxForProcs, 
+    const double xminForProcs, const double xmaxForProcs, 
     const int localNxPIC, const int bufferPIC
 )
 {
@@ -407,13 +407,13 @@ __global__ void reloadParticlesSpecies_kernel(
         if (interlockingFunctionY[indexPIC] < Interface2DConst::device_EPS) return;
 
         unsigned long long indexForReload = j + i * PIC2DConst::device_ny; 
-        float u = reloadParticlesDataSpecies[indexForReload].u;
-        float v = reloadParticlesDataSpecies[indexForReload].v;
-        float w = reloadParticlesDataSpecies[indexForReload].w;
-        float vth = reloadParticlesDataSpecies[indexForReload].vth;
+        double u = reloadParticlesDataSpecies[indexForReload].u;
+        double v = reloadParticlesDataSpecies[indexForReload].v;
+        double w = reloadParticlesDataSpecies[indexForReload].w;
+        double vth = reloadParticlesDataSpecies[indexForReload].vth;
 
         Particle particleSource, particleReload;
-        float x, y, z, vx, vy, vz, gamma;
+        double x, y, z, vx, vy, vz, gamma;
 
         curandState stateForReloadIndex;
         curand_init(seed, indexForReload, 0, &stateForReloadIndex);
@@ -425,7 +425,7 @@ __global__ void reloadParticlesSpecies_kernel(
         curandState stateForReload; 
         curand_init(seed, indexForReload, 0, &stateForReload);
         for (int k = 0; k < reloadParticlesDataSpecies[indexForReload].number; k++) {
-            float randomValue = curand_uniform(&stateForReload);
+            double randomValue = curand_uniform(&stateForReload);
 
             if (randomValue < interlockingFunctionY[indexPIC]) {
                 particleSource = reloadParticlesSourceSpecies[
@@ -441,13 +441,13 @@ __global__ void reloadParticlesSpecies_kernel(
                 vx = particleSource.vx; vx = u + vx * vth;
                 vy = particleSource.vy; vy = v + vy * vth;
                 vz = particleSource.vz; vz = w + vz * vth;
-                if (1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0f){
-                    float normalizedVelocity = sqrt(vx * vx + vy * vy + vz * vz);
-                    vx = vx / normalizedVelocity * 0.9f * PIC2DConst::device_c;
-                    vy = vy / normalizedVelocity * 0.9f * PIC2DConst::device_c;
-                    vz = vz / normalizedVelocity * 0.9f * PIC2DConst::device_c;
+                if (1.0 - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2) < 0.0){
+                    double normalizedVelocity = sqrt(vx * vx + vy * vy + vz * vz);
+                    vx = vx / normalizedVelocity * 0.9 * PIC2DConst::device_c;
+                    vy = vy / normalizedVelocity * 0.9 * PIC2DConst::device_c;
+                    vz = vz / normalizedVelocity * 0.9 * PIC2DConst::device_c;
                 };
-                gamma = 1.0f / sqrt(1.0f - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
+                gamma = 1.0 / sqrt(1.0 - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::device_c, 2));
 
                 particleReload.x = x; particleReload.y = y; particleReload.z = z;
                 particleReload.vx = vx * gamma; particleReload.vy = vy * gamma, particleReload.vz = vz * gamma; 
@@ -505,10 +505,10 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
     MomentType convolvedMoment; 
 
     const int R = Interface2DConst::device_gridSizeRatio / 2;
-    const float sigma = Interface2DConst::device_gridSizeRatio / 2.0f;
-    const float twoSigma2 = 2.0f * sigma * sigma;
+    const double sigma = Interface2DConst::device_gridSizeRatio / 2.0;
+    const double twoSigma2 = 2.0 * sigma * sigma;
 
-    float weightSum = 0.0f;
+    double weightSum = 0.0;
     for (int dx = -R; dx <= R; dx++) {
         for (int dy = -R; dy <= R; dy++) {
             int localI = i + dx;
@@ -517,8 +517,8 @@ __device__ MomentType getConvolvedMomentForMHDtoPIC(
             if (0 <= localI && localI < localNxPIC &&
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
-                float distance2 = float(dx * dx + dy * dy);
-                float weight = 1.0;//__expf(-distance2 / twoSigma2);
+                double distance2 = double(dx * dx + dy * dy);
+                double weight = 1.0;//__expf(-distance2 / twoSigma2);
 
                 unsigned long long index = localJ + (localI + bufferPIC) * PIC2DConst::device_ny;
                 convolvedMoment += moment[index] * weight;

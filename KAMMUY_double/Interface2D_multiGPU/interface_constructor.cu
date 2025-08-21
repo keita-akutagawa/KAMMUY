@@ -13,17 +13,17 @@ __global__ void initializeReloadParticlesSource_kernel(
         curandState state;
         curand_init(seed, i, 0, &state);
 
-        float x, y, z, vx, vy, vz;
+        double x, y, z, vx, vy, vz;
         
         x = curand_uniform(&state);
         y = curand_uniform(&state);
-        z = 0.0f;
+        z = 0.0;
         vx = curand_normal(&state);
         vy = curand_normal(&state);
         vz = curand_normal(&state);
 
-        x = min(max(x, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
-        y = min(max(y, PIC2DConst::device_EPS), 1.0f - PIC2DConst::device_EPS); 
+        x = min(max(x, PIC2DConst::device_EPS), 1.0 - PIC2DConst::device_EPS); 
+        y = min(max(y, PIC2DConst::device_EPS), 1.0 - PIC2DConst::device_EPS); 
 
         reloadParticlesSourceSpecies[i].x  = x;
         reloadParticlesSourceSpecies[i].y  = y;

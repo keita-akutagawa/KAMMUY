@@ -34,18 +34,18 @@ void Reloader::reloadPICData(
     std::ifstream ifsB(filenameB, std::ios::binary);
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bX), sizeof(float));
-            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bY), sizeof(float));
-            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bZ), sizeof(float));
+            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bX), sizeof(double));
+            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bY), sizeof(double));
+            ifsB.read(reinterpret_cast<char*>(&host_B[j + i * PIC2DConst::ny].bZ), sizeof(double));
         }
     }
 
     std::ifstream ifsE(filenameE, std::ios::binary);
     for (int i = 0; i < mPIInfoPIC.localSizeX; i++) {
         for (int j = 0; j < PIC2DConst::ny; j++) {
-            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eX), sizeof(float));
-            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eY), sizeof(float));
-            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eZ), sizeof(float));
+            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eX), sizeof(double));
+            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eY), sizeof(double));
+            ifsE.read(reinterpret_cast<char*>(&host_E[j + i * PIC2DConst::ny].eZ), sizeof(double));
         }
     }
 
@@ -89,13 +89,13 @@ void Reloader::reloadPICData(
     std::ifstream ifsParticleIonX(filenameParticleIonX, std::ios::binary);
     std::ifstream ifsParticleIonV(filenameParticleIonV, std::ios::binary);
     for (int i = 0; i < mPIInfoPIC.existNumIonPerProcs; i++) {
-        float x, y, z, vx, vy, vz, gamma; 
-        ifsParticleIonX.read(reinterpret_cast<char*>(&x), sizeof(float));
-        ifsParticleIonX.read(reinterpret_cast<char*>(&y), sizeof(float));
-        ifsParticleIonX.read(reinterpret_cast<char*>(&z), sizeof(float));
-        ifsParticleIonV.read(reinterpret_cast<char*>(&vx), sizeof(float));
-        ifsParticleIonV.read(reinterpret_cast<char*>(&vy), sizeof(float));
-        ifsParticleIonV.read(reinterpret_cast<char*>(&vz), sizeof(float));
+        double x, y, z, vx, vy, vz, gamma; 
+        ifsParticleIonX.read(reinterpret_cast<char*>(&x), sizeof(double));
+        ifsParticleIonX.read(reinterpret_cast<char*>(&y), sizeof(double));
+        ifsParticleIonX.read(reinterpret_cast<char*>(&z), sizeof(double));
+        ifsParticleIonV.read(reinterpret_cast<char*>(&vx), sizeof(double));
+        ifsParticleIonV.read(reinterpret_cast<char*>(&vy), sizeof(double));
+        ifsParticleIonV.read(reinterpret_cast<char*>(&vz), sizeof(double));
         gamma = 1.0 / sqrt(1.0 - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::c, 2)); 
 
         host_particlesIon[i].x = x; 
@@ -111,13 +111,13 @@ void Reloader::reloadPICData(
     std::ifstream ifsParticleElectronX(filenameParticleElectronX, std::ios::binary);
     std::ifstream ifsParticleElectronV(filenameParticleElectronV, std::ios::binary);
     for (int i = 0; i < mPIInfoPIC.existNumElectronPerProcs; i++) {
-        float x, y, z, vx, vy, vz, gamma; 
-        ifsParticleElectronX.read(reinterpret_cast<char*>(&x), sizeof(float));
-        ifsParticleElectronX.read(reinterpret_cast<char*>(&y), sizeof(float));
-        ifsParticleElectronX.read(reinterpret_cast<char*>(&z), sizeof(float));
-        ifsParticleElectronV.read(reinterpret_cast<char*>(&vx), sizeof(float));
-        ifsParticleElectronV.read(reinterpret_cast<char*>(&vy), sizeof(float));
-        ifsParticleElectronV.read(reinterpret_cast<char*>(&vz), sizeof(float));
+        double x, y, z, vx, vy, vz, gamma; 
+        ifsParticleElectronX.read(reinterpret_cast<char*>(&x), sizeof(double));
+        ifsParticleElectronX.read(reinterpret_cast<char*>(&y), sizeof(double));
+        ifsParticleElectronX.read(reinterpret_cast<char*>(&z), sizeof(double));
+        ifsParticleElectronV.read(reinterpret_cast<char*>(&vx), sizeof(double));
+        ifsParticleElectronV.read(reinterpret_cast<char*>(&vy), sizeof(double));
+        ifsParticleElectronV.read(reinterpret_cast<char*>(&vz), sizeof(double));
         gamma = 1.0 / sqrt(1.0 - (vx * vx + vy * vy + vz * vz) / pow(PIC2DConst::c, 2)); 
 
         host_particlesElectron[i].x = x; 
