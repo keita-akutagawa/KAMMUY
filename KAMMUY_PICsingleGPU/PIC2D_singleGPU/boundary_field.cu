@@ -5,11 +5,11 @@ __global__ void periodicBoundaryB_x_kernel(
     MagneticField* B
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        B[0 + PIC2DConst::device_ny * i] = B[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        B[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = B[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        B[j + PIC2DConst::device_ny * 0] = B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = B[j + PIC2DConst::device_ny * 1];
     }
 }
 
@@ -69,11 +69,11 @@ __global__ void periodicBoundaryE_x_kernel(
     ElectricField* E
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        E[0 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        E[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = E[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * 1];
     }
 }
 
@@ -130,11 +130,11 @@ __global__ void periodicBoundaryCurrent_x_kernel(
     CurrentField* current
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        current[0 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        current[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = current[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        current[j + PIC2DConst::device_ny * 0] = current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = current[j + PIC2DConst::device_ny * 1];
     }
 }
 

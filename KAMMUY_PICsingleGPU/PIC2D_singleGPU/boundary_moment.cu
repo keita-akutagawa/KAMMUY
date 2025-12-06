@@ -6,11 +6,11 @@ __global__ void periodicBoundaryZerothMoment_x_kernel(
     ZerothMoment* zerothMoment
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        zerothMoment[0 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        zerothMoment[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = zerothMoment[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * 1];
     }
 }
 
@@ -68,11 +68,11 @@ __global__ void periodicBoundaryFirstMoment_x_kernel(
     FirstMoment* firstMoment
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        firstMoment[0 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        firstMoment[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = firstMoment[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * 1];
     }
 }
 
@@ -131,11 +131,11 @@ __global__ void periodicBoundarySecondMoment_x_kernel(
     SecondMoment* secondMoment
 )
 {
-    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < PIC2DConst::device_ny) {
-        secondMoment[0 + PIC2DConst::device_ny * i] = secondMoment[PIC2DConst::device_nx - 2 + PIC2DConst::device_ny * i];
-        secondMoment[PIC2DConst::device_nx - 1 + PIC2DConst::device_ny * i] = secondMoment[1 + PIC2DConst::device_ny * i];
+    if (j < PIC2DConst::device_ny) {
+        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * 1];
     }
 }
 
