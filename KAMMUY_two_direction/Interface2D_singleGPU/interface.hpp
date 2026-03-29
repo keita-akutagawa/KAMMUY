@@ -33,17 +33,10 @@ private:
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
     IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
 
-    int indexOfInterfaceStartInMHD;
+    int indexOfInterfaceStartInMHD_x;
+    int indexOfInterfaceStartInMHD_y;
 
-    thrust::device_vector<double> interlockingFunctionY;
-
-    thrust::device_vector<MagneticField> B_timeAve; 
-    thrust::device_vector<ZerothMoment> zerothMomentIon_timeAve;
-    thrust::device_vector<ZerothMoment> zerothMomentElectron_timeAve;
-    thrust::device_vector<FirstMoment> firstMomentIon_timeAve;
-    thrust::device_vector<FirstMoment> firstMomentElectron_timeAve;
-    thrust::device_vector<SecondMoment> secondMomentIon_timeAve;
-    thrust::device_vector<SecondMoment> secondMomentElectron_timeAve;
+    thrust::device_vector<double> interlockingFunction;
 
     unsigned long long restartParticlesIndexIon;
     unsigned long long restartParticlesIndexElectron;
@@ -73,8 +66,9 @@ private:
 public:
     Interface2D(
         IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
-        int indexOfInterfaceStartMHD, 
-        thrust::host_vector<double>& host_interlockingFunctionY, 
+        int indexOfInterfaceStartMHD_x, 
+        int indexOfInterfaceStartMHD_y, 
+        thrust::host_vector<double>& host_interlockingFunction, 
         InterfaceNoiseRemover2D& interfaceNoiseRemover2D
     );
 
@@ -134,9 +128,7 @@ public:
         double mixingRatio
     );
 
-    void resetTimeAveragedPICParameters();
-
-    void sumUpTimeAveragedPICParameters(
+    void setParametersForPICtoMHD(
         const thrust::device_vector<MagneticField>& B, 
         const thrust::device_vector<ZerothMoment>& zerothMomentIon, 
         const thrust::device_vector<ZerothMoment>& zerothMomentElectron, 
@@ -145,12 +137,6 @@ public:
         const thrust::device_vector<SecondMoment>& secondMomentIon, 
         const thrust::device_vector<SecondMoment>& secondMomentElectron
     );
-
-    void calculateTimeAveragedPICParameters(
-        int count
-    );
-
-    void setParametersForPICtoMHD();
 
     void calculateUHalf(
         const thrust::device_vector<ConservationParameter>& UPast, 

@@ -37,23 +37,17 @@ __global__ void initializeReloadParticlesSource_kernel(
 
 Interface2D::Interface2D(
     IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
-    int indexOfInterfaceStartMHD, 
-    thrust::host_vector<double>& host_interlockingFunctionY, 
+    int indexOfInterfaceStartMHD_x, 
+    int indexOfInterfaceStartMHD_y, 
+    thrust::host_vector<double>& host_interlockingFunction, 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D
 )
     : mPIInfoMHD(mPIInfoMHD), 
 
-      indexOfInterfaceStartInMHD(indexOfInterfaceStartMHD), 
+      indexOfInterfaceStartInMHD_x(indexOfInterfaceStartMHD_x), 
+      indexOfInterfaceStartInMHD_y(indexOfInterfaceStartMHD_y), 
 
-      interlockingFunctionY(PIC2DConst::nx * PIC2DConst::ny, 0.0), 
-
-      B_timeAve                   (PIC2DConst::nx * PIC2DConst::ny), 
-      zerothMomentIon_timeAve     (PIC2DConst::nx * PIC2DConst::ny), 
-      zerothMomentElectron_timeAve(PIC2DConst::nx * PIC2DConst::ny), 
-      firstMomentIon_timeAve      (PIC2DConst::nx * PIC2DConst::ny), 
-      firstMomentElectron_timeAve (PIC2DConst::nx * PIC2DConst::ny),
-      secondMomentIon_timeAve     (PIC2DConst::nx * PIC2DConst::ny), 
-      secondMomentElectron_timeAve(PIC2DConst::nx * PIC2DConst::ny),
+      interlockingFunction(PIC2DConst::nx * PIC2DConst::ny, 0.0), 
 
       restartParticlesIndexIon(0), 
       restartParticlesIndexElectron(0), 
@@ -81,7 +75,7 @@ Interface2D::Interface2D(
     cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
     cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
 
-    interlockingFunctionY = host_interlockingFunctionY;
+    interlockingFunction = host_interlockingFunction;
     
 
     dim3 threadsPerBlock(256);

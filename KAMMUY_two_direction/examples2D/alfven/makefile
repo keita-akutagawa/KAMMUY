@@ -2,7 +2,7 @@ CC = nvcc
 CFLAGS  = -ccbin mpic++ \
           -I$(AMGX_ROOT)/include \
           -L$(AMGX_ROOT)/lib \
-          -gencode=arch=compute_60,code=sm_80 \
+          -gencode=arch=compute_80,code=sm_80 \
 		  --extended-lambda \
           -rdc=true \
           -Xcompiler "-Wall -O3"

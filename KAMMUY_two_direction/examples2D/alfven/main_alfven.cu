@@ -84,7 +84,7 @@ __global__ void initializePICField_kernel(
         unsigned long long index = j + i * PIC2DConst::device_ny;
 
         double u, v, w, bX, bY, bZ, eX, eY, eZ;
-        double y = j * PIC2DConst::device_dy + Interface2DConst::device_indexOfInterfaceStartInMHD * IdealMHD2DConst::device_dy;
+        double y = j * PIC2DConst::device_dy + Interface2DConst::device_indexOfInterfaceStartInMHD_y * IdealMHD2DConst::device_dy;
 
         u   = waveAmp * VA * sin(waveNumber * y);
         v   = 0.0;
@@ -115,7 +115,7 @@ void PIC2D::initialize()
             float bulkVx, bulkVy, bulkVz;
             float bulkVxIon, bulkVyIon, bulkVzIon;
             float bulkVxElectron, bulkVyElectron, bulkVzElectron;
-            float y = (j + Interface2DConst::indexOfInterfaceStartInMHD * Interface2DConst::gridSizeRatio) * PIC2DConst::dy;
+            float y = (j + Interface2DConst::indexOfInterfaceStartInMHD_y * Interface2DConst::gridSizeRatio) * PIC2DConst::dy;
 
             xminLocal = i * PIC2DConst::dx + PIC2DConst::xmin + PIC2DConst::EPS;
             xmaxLocal = (i + 1) * PIC2DConst::dx + PIC2DConst::xmin - PIC2DConst::EPS;
@@ -223,7 +223,8 @@ int main(int argc, char** argv)
     InterfaceNoiseRemover2D interfaceNoiseRemover2D(mPIInfoMHD);
     Interface2D interface2D(
         mPIInfoMHD, 
-        Interface2DConst::indexOfInterfaceStartInMHD, 
+        Interface2DConst::indexOfInterfaceStartInMHD_x, 
+        Interface2DConst::indexOfInterfaceStartInMHD_y, 
         host_interlockingFunctionY, 
         interfaceNoiseRemover2D
     );
@@ -311,8 +312,6 @@ int main(int argc, char** argv)
 
         // STEP2 : PIC step & send MHD to PIC
 
-        interface2D.resetTimeAveragedPICParameters();
-
         for (int substep = 1; substep <= totalSubstep; substep++) {
 
             double mixingRatio = 1.0 - static_cast<double>(substep) / static_cast<double>(totalSubstep);
@@ -320,7 +319,7 @@ int main(int argc, char** argv)
             
             unsigned long long seedForReload; 
             seedForReload = substep + step * totalSubstep;
-            pIC2D.oneStep_periodicXFreeY(
+            pIC2D.oneStep_freeXY(
                 interface2D, 
                 USub, 
                 seedForReload
@@ -334,14 +333,12 @@ int main(int argc, char** argv)
         thrust::device_vector<FirstMoment>& firstMomentElectron = pIC2D.getFirstMomentElectronRef(); 
         thrust::device_vector<SecondMoment>& secondMomentIon = pIC2D.getSecondMomentIonRef(); 
         thrust::device_vector<SecondMoment>& secondMomentElectron = pIC2D.getSecondMomentElectronRef(); 
-        interface2D.sumUpTimeAveragedPICParameters(
+        interface2D.setParametersForPICtoMHD(
             B, 
             zerothMomentIon, zerothMomentElectron, 
             firstMomentIon, firstMomentElectron, 
             secondMomentIon, secondMomentElectron
         );
-
-        interface2D.setParametersForPICtoMHD();
 
         // STEP3 : send PIC to MHD
 

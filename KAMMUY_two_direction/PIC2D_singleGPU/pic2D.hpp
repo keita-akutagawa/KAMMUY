@@ -66,13 +66,12 @@ public:
     
     virtual void initialize();
 
-    void oneStep_periodicXFreeY(
+    void oneStep_freeXY(
         Interface2D& interface2D, 
         thrust::device_vector<ConservationParameter>& U, 
         unsigned long long seedForReload
     );
 
-    void oneStep_periodicXFreeY_onlyPIC();
 
     void saveFields(
         std::string directoryname, 

@@ -1,37 +1,29 @@
 #include "boundary.hpp"
 
 
-
-__global__ void periodicBoundaryZerothMoment_x_kernel(
+__global__ void freeBoundaryZerothMoment_x_kernel(
     ZerothMoment* zerothMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * 1];
+        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * 1];
+        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
-void BoundaryPIC::periodicBoundaryZerothMoment_x(
+void BoundaryPIC::freeBoundaryZerothMoment_x(
     thrust::device_vector<ZerothMoment>& zerothMoment
 )
 {
     int threadsPerBlock = 256;
     int blocksPerGrid = (PIC2DConst::ny + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryZerothMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    freeBoundaryZerothMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(zerothMoment.data())
     );
     cudaDeviceSynchronize();
-}
-
-void freeBoundaryZerothMoment_x(
-    thrust::device_vector<ZerothMoment>& zerothMoment
-)
-{
-    std::cout << "Not writtern yet. Finish your calculation now!" << std::endl;
 }
 
 
@@ -64,37 +56,29 @@ void BoundaryPIC::freeBoundaryZerothMoment_y(
 //////////////////////////////////////////////////
 
 
-__global__ void periodicBoundaryFirstMoment_x_kernel(
+__global__ void freeBoundaryFirstMoment_x_kernel(
     FirstMoment* firstMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * 1];
+        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * 1];
+        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
-void BoundaryPIC::periodicBoundaryFirstMoment_x(
+void BoundaryPIC::freeBoundaryFirstMoment_x(
     thrust::device_vector<FirstMoment>& firstMoment
 )
 {
     int threadsPerBlock = 256;
     int blocksPerGrid = (PIC2DConst::ny + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryFirstMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    freeBoundaryFirstMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(firstMoment.data())
     );
     cudaDeviceSynchronize();
-}
-
-
-void freeBoundaryFirstMoment_x(
-    thrust::device_vector<FirstMoment>& firstMoment
-)
-{
-    std::cout << "Not writtern yet. Finish your calculation now!" << std::endl;
 }
 
 
@@ -127,37 +111,29 @@ void BoundaryPIC::freeBoundaryFirstMoment_y(
 //////////////////////////////////////////////////
 
 
-__global__ void periodicBoundarySecondMoment_x_kernel(
+__global__ void freeBoundarySecondMoment_x_kernel(
     SecondMoment* secondMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * 1];
+        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * 1];
+        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
-void BoundaryPIC::periodicBoundarySecondMoment_x(
+void BoundaryPIC::freeBoundarySecondMoment_x(
     thrust::device_vector<SecondMoment>& secondMoment
 )
 {
     int threadsPerBlock = 256;
     int blocksPerGrid = (PIC2DConst::ny + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundarySecondMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    freeBoundarySecondMoment_x_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(secondMoment.data())
     );
     cudaDeviceSynchronize();
-}
-
-
-void freeBoundarySecondMoment_x(
-    thrust::device_vector<SecondMoment>& secondMoment
-)
-{
-    std::cout << "Not writtern yet. Finish your calculation now!" << std::endl;
 }
 
 

@@ -9,9 +9,9 @@ namespace Interface2DConst
 
     extern const int gridSizeRatio; 
 
-    extern const int interfaceLength; 
     extern const double deltaForInterlockingFunction; 
-    extern const int indexOfInterfaceStartInMHD; 
+    extern const int indexOfInterfaceStartInMHD_x; 
+    extern const int indexOfInterfaceStartInMHD_y; 
 
     extern const int convolutionCount; 
 
@@ -26,9 +26,9 @@ namespace Interface2DConst
 
     extern __constant__ int device_gridSizeRatio; 
 
-    extern __constant__ int device_interfaceLength; 
     extern __constant__ double device_deltaForInterlockingFunction; 
-    extern __constant__ int device_indexOfInterfaceStartInMHD; 
+    extern __constant__ int device_indexOfInterfaceStartInMHD_x; 
+    extern __constant__ int device_indexOfInterfaceStartInMHD_y; 
 
     extern __constant__ int device_convolutionCount; 
 

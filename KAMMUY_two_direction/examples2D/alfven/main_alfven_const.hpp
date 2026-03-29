@@ -54,7 +54,7 @@ const double waveAmp = 0.05;
 const double waveLength = 1000.0;
 const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
 
-const int PIC2DConst::nx = 25;
+const int PIC2DConst::nx = 100;
 const double PIC2DConst::dx = 1.0;
 const double PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
 const double PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
@@ -65,7 +65,7 @@ const double PIC2DConst::ymin = 0.0 * PIC2DConst::dy;
 const double PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
 
 
-const int IdealMHD2DConst::nx = PIC2DConst::nx / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::nx = 5 * PIC2DConst::nx / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
@@ -80,9 +80,9 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 
 const int Interface2DConst::convolutionCount = 1;
 
-const int Interface2DConst::interfaceLength = -1; //使わないこと
 const double Interface2DConst::deltaForInterlockingFunction = 2; 
-const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
+const int Interface2DConst::indexOfInterfaceStartInMHD_x = IdealMHD2DConst::nx / 2 - PIC2DConst::nx / 2 / Interface2DConst::gridSizeRatio;
+const int Interface2DConst::indexOfInterfaceStartInMHD_y = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;
 const int Interface2DConst::ny = Interface2DConst::deltaForInterlockingFunction; 
@@ -246,9 +246,9 @@ __constant__ double Interface2DConst::device_PI;
 
 __constant__ int Interface2DConst::device_gridSizeRatio;
 
-__constant__ int Interface2DConst::device_interfaceLength;
 __constant__ double Interface2DConst::device_deltaForInterlockingFunction; 
-__constant__ int Interface2DConst::device_indexOfInterfaceStartInMHD;
+__constant__ int Interface2DConst::device_indexOfInterfaceStartInMHD_x;
+__constant__ int Interface2DConst::device_indexOfInterfaceStartInMHD_y;
 
 __constant__ int Interface2DConst::device_convolutionCount;
 

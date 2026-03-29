@@ -14,23 +14,20 @@ class BoundaryPIC
 {
 private:
 
-    thrust::device_vector<Particle> sendParticlesSpeciesYDown; 
-    thrust::device_vector<Particle> sendParticlesSpeciesYUp; 
-    thrust::device_vector<Particle> recvParticlesSpeciesYDown; 
-    thrust::device_vector<Particle> recvParticlesSpeciesYUp;
+    thrust::device_vector<Particle> bufferParticlesSpeciesX; 
+    thrust::device_vector<Particle> bufferParticlesSpeciesY; 
 
 public:
     BoundaryPIC();
 
-    void periodicBoundaryParticle_x(
+    void freeBoundaryParticle_x(
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
     );
-    void periodicBoundaryParticleOfOneSpecies_x(
+    void freeBoundaryParticleOfOneSpecies_x(
         thrust::device_vector<Particle>& particlesSpecies, 
         unsigned long long& existNumSpecies
     );
-
     void freeBoundaryParticle_y(
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
@@ -40,11 +37,6 @@ public:
         unsigned long long& existNumSpecies
     );
 
-
-    void periodicBoundaryB_x(
-        thrust::device_vector<MagneticField>& B
-    );
-
     void freeBoundaryB_x(
         thrust::device_vector<MagneticField>& B
     );
@@ -52,21 +44,11 @@ public:
         thrust::device_vector<MagneticField>& B
     );
 
-
-    void periodicBoundaryE_x(
-        thrust::device_vector<ElectricField>& E
-    );
-    
     void freeBoundaryE_x(
         thrust::device_vector<ElectricField>& E
     );
     void freeBoundaryE_y(
         thrust::device_vector<ElectricField>& E
-    );
-
-
-    void periodicBoundaryCurrent_x(
-        thrust::device_vector<CurrentField>& current
     );
 
     void freeBoundaryCurrent_x(
@@ -76,11 +58,6 @@ public:
         thrust::device_vector<CurrentField>& current
     );
 
-
-    void periodicBoundaryZerothMoment_x(
-        thrust::device_vector<ZerothMoment>& zerothMoment
-    );
-
     void freeBoundaryZerothMoment_x(
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
@@ -88,20 +65,11 @@ public:
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
 
-    
-    void periodicBoundaryFirstMoment_x(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-
     void freeBoundaryFirstMoment_x(
         thrust::device_vector<FirstMoment>& firstMoment
     );
     void freeBoundaryFirstMoment_y(
         thrust::device_vector<FirstMoment>& firstMoment
-    );
-
-    void periodicBoundarySecondMoment_x(
-        thrust::device_vector<SecondMoment>& secondMoment
     );
 
     void freeBoundarySecondMoment_x(
