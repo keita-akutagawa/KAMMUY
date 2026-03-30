@@ -6,14 +6,11 @@
 #include "hlld_parameter_struct.hpp"
 #include "flux_struct.hpp"
 #include "sign.hpp"
-#include "mpi.hpp"
 
 
 class HLLD
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfo;
-
     CalculateHalfQ calculateHalfQ;
 
     thrust::device_vector<BasicParameter> dQCenter;
@@ -28,7 +25,7 @@ private:
     thrust::device_vector<ConservationParameter> tmpUForFluxG;
 
 public:
-    HLLD(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    HLLD();
 
     void calculateFluxF(
         const thrust::device_vector<ConservationParameter>& U

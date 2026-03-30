@@ -1,9 +1,8 @@
 #include "flux_solver.hpp"
 
 
-FluxSolver::FluxSolver(IdealMHD2DMPI::MPIInfo& mPIInfo)
-    : mPIInfo(mPIInfo), 
-      hLLD(mPIInfo)
+FluxSolver::FluxSolver()
+    : hLLD()
 {
 }
 
@@ -35,14 +34,13 @@ thrust::device_vector<Flux> FluxSolver::getFluxG(
 
 
 __global__ void addResistiveTermToFluxF_kernel(
-    const ConservationParameter* U, Flux* flux, 
-    int localSizeX
+    const ConservationParameter* U, Flux* flux
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX - 2) && (0 < j) && (j < IdealMHD2DConst::device_ny - 1)) {
+    if ((0 < i) && (i < IdealMHD2DConst::device_nx - 2) && (0 < j) && (j < IdealMHD2DConst::device_ny - 1)) {
         unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         double jY, jZ;
@@ -73,27 +71,25 @@ void FluxSolver::addResistiveTermToFluxF(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     addResistiveTermToFluxF_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        thrust::raw_pointer_cast(flux.data()), 
-        mPIInfo.localSizeX
+        thrust::raw_pointer_cast(flux.data())
     );
     cudaDeviceSynchronize();
 }
 
 
 __global__ void addResistiveTermToFluxG_kernel(
-    const ConservationParameter* U, Flux* flux, 
-    int localSizeX
+    const ConservationParameter* U, Flux* flux
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX - 1) && (0 < j) && (j < IdealMHD2DConst::device_ny - 2)) {
+    if ((0 < i) && (i < IdealMHD2DConst::device_nx - 1) && (0 < j) && (j < IdealMHD2DConst::device_ny - 2)) {
         unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         double jX, jZ;
@@ -124,13 +120,12 @@ void FluxSolver::addResistiveTermToFluxG(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     addResistiveTermToFluxG_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        thrust::raw_pointer_cast(flux.data()), 
-        mPIInfo.localSizeX
+        thrust::raw_pointer_cast(flux.data())
     );
     cudaDeviceSynchronize();
 }

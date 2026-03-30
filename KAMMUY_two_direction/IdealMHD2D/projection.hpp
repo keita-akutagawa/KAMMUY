@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
-#include "mpi.hpp"
 #include "amgx_config.h"
 
 
@@ -28,10 +27,7 @@
 class Projection
 {
 private: 
-    IdealMHD2DMPI::MPIInfo& mPIInfo;
-
     thrust::device_vector<double> divB; 
-    thrust::device_vector<double> sum_divB; 
     thrust::device_vector<double> psi; 
 
     AMGX_config_handle config;
@@ -42,7 +38,7 @@ private:
 
 
 public: 
-    Projection(IdealMHD2DMPI::MPIInfo& mPIInfo); 
+    Projection(); 
 
     ~Projection(); 
 

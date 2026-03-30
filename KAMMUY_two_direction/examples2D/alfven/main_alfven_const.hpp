@@ -25,8 +25,6 @@ std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
 std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
 
 
-const int bufferMHD = 3; 
-
 const std::string IdealMHD2DConst::MTXfilename = "/home/akutagawakt/KAMMUY_two_direction/examples2D/alfven/poisson_symmetric.mtx";
 const std::string IdealMHD2DConst::jsonFilenameForSolver = "/home/akutagawakt/KAMMUY_two_direction/examples2D/alfven/PCG_W.json";
 
@@ -140,6 +138,8 @@ const double PIC2DConst::bulkVzElectron = 0.0;
 
 
 // MHD
+
+const int IdealMHD2DConst::buffer = 3; 
 
 const double IdealMHD2DConst::B0 = PIC2DConst::B0;
 const double IdealMHD2DConst::rho0 = PIC2DConst::mIon * PIC2DConst::numberDensityIon + PIC2DConst::mElectron * PIC2DConst::numberDensityElectron;

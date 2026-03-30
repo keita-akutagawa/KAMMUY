@@ -14,24 +14,19 @@ private:
 public:
     BoundaryMHD();
 
-    void periodicBoundaryX2nd_U(
+    void periodicBoundary_x(
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void periodicBoundaryY2nd_U(
+    void periodicBoundary_y(
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void wallBoundaryY2nd_U(
+    void wallBoundary_y(
         thrust::device_vector<ConservationParameter>& U
     );
 
-    void wallBoundaryY2nd_flux(
-        thrust::device_vector<Flux>& fluxF, 
-        thrust::device_vector<Flux>& fluxG
-    );
-
-    void symmetricBoundaryY2nd_U(
+    void symmetricBoundary_y(
         thrust::device_vector<ConservationParameter>& U
     );
 

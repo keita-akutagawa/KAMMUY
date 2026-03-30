@@ -3,17 +3,15 @@
 #include "muscl.hpp"
 #include "conservation_parameter_struct.hpp"
 #include "basic_parameter_struct.hpp"
-#include "mpi.hpp"
 
 
 class CalculateHalfQ
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfo;
     MUSCL muscl;
 
 public:
-    CalculateHalfQ(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    CalculateHalfQ();
 
     void setPhysicalParameterX(
         const thrust::device_vector<ConservationParameter>& U, 

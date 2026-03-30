@@ -3,8 +3,7 @@
 #include <thrust/tuple.h>
 
 
-MUSCL::MUSCL(IdealMHD2DMPI::MPIInfo& mPIInfo)
-    : mPIInfo(mPIInfo)
+MUSCL::MUSCL()
 {
 }
 
@@ -12,13 +11,13 @@ MUSCL::MUSCL(IdealMHD2DMPI::MPIInfo& mPIInfo)
 __global__ void leftParameter_kernel(
     const BasicParameter* dQ, 
     BasicParameter* dQLeft, 
-    int localSizeX, int shiftForNeighbor
+    int shiftForNeighbor
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((0 < i) && (i < localSizeX - 1) && (0 < j) &&  (j < IdealMHD2DConst::device_ny - 1)) {
+    if ((0 < i) && (i < IdealMHD2DConst::device_nx - 1) && (0 < j) &&  (j < IdealMHD2DConst::device_ny - 1)) {
         unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         dQLeft[index].rho = dQ[index].rho + 0.5 * minmod(dQ[index].rho - dQ[index - shiftForNeighbor].rho, dQ[index + shiftForNeighbor].rho - dQ[index].rho);
@@ -39,13 +38,13 @@ void MUSCL::getLeftQX(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     leftParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQLeft.data()), 
-        mPIInfo.localSizeX, IdealMHD2DConst::ny
+        IdealMHD2DConst::ny
     );
     cudaDeviceSynchronize();
 }
@@ -57,13 +56,13 @@ void MUSCL::getLeftQY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     leftParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQLeft.data()), 
-        mPIInfo.localSizeX, 1 
+        1 
     );
     cudaDeviceSynchronize();
 }
@@ -72,13 +71,13 @@ void MUSCL::getLeftQY(
 __global__ void rightParameter_kernel(
     const BasicParameter* dQ, 
     BasicParameter* dQRight, 
-    int localSizeX, int shiftForNeighbor
+    int shiftForNeighbor
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localSizeX - 2 && j < IdealMHD2DConst::device_ny - 2) {
+    if (i < IdealMHD2DConst::device_nx - 2 && j < IdealMHD2DConst::device_ny - 2) {
         unsigned long long index = j + i * IdealMHD2DConst::device_ny;
 
         dQRight[index].rho = dQ[index + shiftForNeighbor].rho - 0.5 * minmod(dQ[index + shiftForNeighbor].rho - dQ[index].rho, dQ[index + 2 * shiftForNeighbor].rho - dQ[index + shiftForNeighbor].rho);
@@ -99,13 +98,13 @@ void MUSCL::getRightQX(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     rightParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQRight.data()), 
-        mPIInfo.localSizeX, IdealMHD2DConst::ny
+        IdealMHD2DConst::ny
     );
     cudaDeviceSynchronize();
 }
@@ -117,13 +116,13 @@ void MUSCL::getRightQY(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfo.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
     
     rightParameter_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(dQ.data()), 
         thrust::raw_pointer_cast(dQRight.data()), 
-        mPIInfo.localSizeX, 1 
+        1 
     );
     cudaDeviceSynchronize();
 }
