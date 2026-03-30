@@ -2,9 +2,7 @@
 
 
 HLLD::HLLD()
-    : calculateHalfQ(), 
-      
-      dQCenter     (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
+    : dQCenter     (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       dQLeft       (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       dQRight      (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       hLLDParameter(IdealMHD2DConst::nx * IdealMHD2DConst::ny),

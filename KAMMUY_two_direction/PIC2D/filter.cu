@@ -4,8 +4,7 @@
 
 Filter::Filter()
     : rho(PIC2DConst::nx * PIC2DConst::ny), 
-      F(PIC2DConst::nx * PIC2DConst::ny), 
-      momentCalculator()
+      F(PIC2DConst::nx * PIC2DConst::ny)
 {
 }
 

@@ -177,32 +177,32 @@ int main(int argc, char** argv)
     IdealMHD2DConst::initializeDeviceConstants();
     Interface2DConst::initializeDeviceConstants();
 
-    thrust::host_vector<double> host_interlockingFunctionY(PIC2DConst::nx * PIC2DConst::ny, 0.0);
+    thrust::host_vector<double> host_interlockingFunction(PIC2DConst::nx * PIC2DConst::ny, 0.0);
     int bufferForInterlocking = 0;  
     for (int i = 0; i < PIC2DConst::nx; i++) {
         for (int j = 0; j < PIC2DConst::ny / 2; j++) {
             if (j < bufferForInterlocking) {
-                host_interlockingFunctionY[j + i * PIC2DConst::ny] = 1.0;
+                host_interlockingFunction[j + i * PIC2DConst::ny] = 1.0;
             } else if (bufferForInterlocking <= j && j < Interface2DConst::deltaForInterlockingFunction + bufferForInterlocking) {
-                host_interlockingFunctionY[j + i * PIC2DConst::ny] = 0.5 * (1.0 + cos(Interface2DConst::PI * (j - bufferForInterlocking) / Interface2DConst::deltaForInterlockingFunction));
+                host_interlockingFunction[j + i * PIC2DConst::ny] = 0.5 * (1.0 + cos(Interface2DConst::PI * (j - bufferForInterlocking) / Interface2DConst::deltaForInterlockingFunction));
             } else {
-                host_interlockingFunctionY[j + i * PIC2DConst::ny] = 0.0;
+                host_interlockingFunction[j + i * PIC2DConst::ny] = 0.0;
             }
         }
     }
     for (int i = 0; i < PIC2DConst::nx; i++) {
         for (int j = PIC2DConst::ny / 2; j < PIC2DConst::ny; j++) {
-            host_interlockingFunctionY[j + i * PIC2DConst::ny] = host_interlockingFunctionY[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
+            host_interlockingFunction[j + i * PIC2DConst::ny] = host_interlockingFunction[PIC2DConst::ny - 1 - j + i * PIC2DConst::ny];
         }
     }
 
-    IdealMHD2D idealMHD2D();
+    IdealMHD2D idealMHD2D;
     PIC2D pIC2D; 
-    InterfaceNoiseRemover2D interfaceNoiseRemover2D();
+    InterfaceNoiseRemover2D interfaceNoiseRemover2D;
     Interface2D interface2D(
         Interface2DConst::indexOfInterfaceStartInMHD_x, 
         Interface2DConst::indexOfInterfaceStartInMHD_y, 
-        host_interlockingFunctionY, 
+        host_interlockingFunction, 
         interfaceNoiseRemover2D
     );
     BoundaryMHD& boundaryMHD = idealMHD2D.getBoundaryMHDRef(); 

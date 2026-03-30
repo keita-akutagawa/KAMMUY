@@ -9,9 +9,7 @@
 
 
 IdealMHD2D::IdealMHD2D()
-    : fluxSolver(), 
-
-      fluxF    (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
+    : fluxF    (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       fluxG    (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       U        (IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       UBar     (IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
@@ -19,10 +17,7 @@ IdealMHD2D::IdealMHD2D()
       tmpVector(IdealMHD2DConst::nx * IdealMHD2DConst::ny),
       host_U   (IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
 
-      dtVector(IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
-
-      boundaryMHD(), 
-      projection()
+      dtVector(IdealMHD2DConst::nx * IdealMHD2DConst::ny)
 {
 
 }

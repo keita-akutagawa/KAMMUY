@@ -2,7 +2,6 @@
 
 
 CalculateHalfQ::CalculateHalfQ()
-    : muscl()
 {
 }
 

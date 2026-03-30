@@ -10,8 +10,7 @@
 
 
 Projection::Projection()
-    : 
-      divB(IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
+    : divB(IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
       psi(IdealMHD2DConst::nx * IdealMHD2DConst::ny)
 {
     AMGX_initialize();
