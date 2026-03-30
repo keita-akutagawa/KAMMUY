@@ -318,17 +318,17 @@ int main(int argc, char** argv)
         thrust::device_vector<ConservationParameter>& U = idealMHD2D.getURef();
 
         interface2D.sendPICtoMHD(U);
-        boundaryMHD.periodicBoundaryX2nd_U(U);
-        boundaryMHD.symmetricBoundaryY2nd_U(U);
+        boundaryMHD.periodicBoundary_x(U);
+        boundaryMHD.symmetricBoundary_y(U);
 
         if (step % 10 == 0) {
             projection.correctB(U); 
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
+            boundaryMHD.periodicBoundary_x(U);
+            boundaryMHD.symmetricBoundary_y(U);
             
             interfaceNoiseRemover2D.convolveU(U);
-            boundaryMHD.periodicBoundaryX2nd_U(U);
-            boundaryMHD.symmetricBoundaryY2nd_U(U);
+            boundaryMHD.periodicBoundary_x(U);
+            boundaryMHD.symmetricBoundary_y(U);
         }
 
         //when crashed 
