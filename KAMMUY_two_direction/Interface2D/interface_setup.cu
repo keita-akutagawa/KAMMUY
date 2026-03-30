@@ -25,7 +25,7 @@ thrust::device_vector<ConservationParameter>& Interface2D::calculateAndGetSubU(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(
@@ -88,14 +88,13 @@ __global__ void averagingParametersForPICtoMHD_kernel(
     FirstMoment* firstMomentIon_PICtoMHD, 
     FirstMoment* firstMomentElectron_PICtoMHD, 
     SecondMoment* secondMomentIon_PICtoMHD, 
-    SecondMoment* secondMomentElectron_PICtoMHD, 
-    const int localNxMHD, const int bufferMHD
+    SecondMoment* secondMomentElectron_PICtoMHD
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < localNxMHD && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
+    if (i < PIC2DConst::device_nx / Interface2DConst::device_gridSizeRatio && j < PIC2DConst::device_ny / Interface2DConst::device_gridSizeRatio) {
         MagneticField averagedB; 
         ZerothMoment averagedZerothMomentIon, averagedZerothMomentElectron; 
         FirstMoment averagedFirstMomentIon, averagedFirstMomentElectron; 
@@ -150,8 +149,7 @@ void Interface2D::setParametersForPICtoMHD(
         thrust::raw_pointer_cast(firstMomentIon_PICtoMHD.data()), 
         thrust::raw_pointer_cast(firstMomentElectron_PICtoMHD.data()), 
         thrust::raw_pointer_cast(secondMomentIon_PICtoMHD.data()), 
-        thrust::raw_pointer_cast(secondMomentElectron_PICtoMHD.data()), 
-        mPIInfoMHD.localNx, mPIInfoMHD.buffer
+        thrust::raw_pointer_cast(secondMomentElectron_PICtoMHD.data())
     );
     cudaDeviceSynchronize();
 }
@@ -163,7 +161,7 @@ void Interface2D::calculateUHalf(
 )
 {
     dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid((mPIInfoMHD.localSizeX + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    dim3 blocksPerGrid((IdealMHD2DConst::nx + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (IdealMHD2DConst::ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     calculateSubU_kernel<<<blocksPerGrid, threadsPerBlock>>>(

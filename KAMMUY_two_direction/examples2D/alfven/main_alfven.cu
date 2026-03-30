@@ -224,7 +224,7 @@ int main(int argc, char** argv)
                 << PIC2DConst::nx << " X " << PIC2DConst::ny 
                 << std::endl;
     std::cout << "MHD grid size is " 
-                << mPIInfoMHD.localSizeX << " X " << IdealMHD2DConst::ny
+                << IdealMHD2DConst::nx << " X " << IdealMHD2DConst::ny
                 << std::endl;
 
 
@@ -350,16 +350,10 @@ int main(int argc, char** argv)
             break;
         }
 
-        if (mPIInfoMHD.rank == 0) {
-            IdealMHD2DConst::totalTime += IdealMHD2DConst::dt;
-        }   
+        IdealMHD2DConst::totalTime += IdealMHD2DConst::dt;
     }
 
-    if (mPIInfoMHD.rank == 0) {
-        std::cout << "program was completed!" << std::endl;
-    }
-
-    MPI_Finalize();
+    std::cout << "program was completed!" << std::endl;
 
     return 0;
 }

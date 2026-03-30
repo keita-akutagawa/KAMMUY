@@ -1,9 +1,7 @@
 #include "reloader.hpp"
 
 
-Reloader::Reloader(
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD
-)   : mPIInfoMHD(mPIInfoMHD)
+Reloader::Reloader()
 {
 }
 
@@ -78,7 +76,7 @@ void Reloader::reloadPICData(
     
     std::ifstream ifsParticleIonX(filenameParticleIonX, std::ios::binary);
     std::ifstream ifsParticleIonV(filenameParticleIonV, std::ios::binary);
-    for (int i = 0; i < PIC2DConst::existNumIon; i++) {
+    for (unsigned long long i = 0; i < PIC2DConst::existNumIon; i++) {
         double x, y, z, vx, vy, vz, gamma; 
         ifsParticleIonX.read(reinterpret_cast<char*>(&x), sizeof(double));
         ifsParticleIonX.read(reinterpret_cast<char*>(&y), sizeof(double));
@@ -100,7 +98,7 @@ void Reloader::reloadPICData(
 
     std::ifstream ifsParticleElectronX(filenameParticleElectronX, std::ios::binary);
     std::ifstream ifsParticleElectronV(filenameParticleElectronV, std::ios::binary);
-    for (int i = 0; i < PIC2DConst::existNumElectron; i++) {
+    for (unsigned long long i = 0; i < PIC2DConst::existNumElectron; i++) {
         double x, y, z, vx, vy, vz, gamma; 
         ifsParticleElectronX.read(reinterpret_cast<char*>(&x), sizeof(double));
         ifsParticleElectronX.read(reinterpret_cast<char*>(&y), sizeof(double));
@@ -132,11 +130,10 @@ void Reloader::reloadMHDData(
     std::string filenameU;
     filenameU = savedDirectoryName + "/"
               + filenameWithoutStep + "_U_" + std::to_string(step)
-              + "_" + std::to_string(mPIInfoMHD.rank)
               + ".bin";
     
     std::ifstream ifsU(filenameU, std::ios::binary);
-    for (int i = 0; i < mPIInfoMHD.localSizeX; i++) {
+    for (int i = 0; i < IdealMHD2DConst::nx; i++) {
         for (int j = 0; j < IdealMHD2DConst::ny; j++) {
             ifsU.read(reinterpret_cast<char*>(&host_U[j + i * IdealMHD2DConst::ny].rho), sizeof(double));
             ifsU.read(reinterpret_cast<char*>(&host_U[j + i * IdealMHD2DConst::ny].rhoU), sizeof(double));

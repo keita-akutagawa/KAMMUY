@@ -4,27 +4,21 @@
 
 #include <thrust/device_vector.h>
 #include "const.hpp"
-#include "../IdealMHD2D_multiGPU/const.hpp"
-#include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
-#include "../IdealMHD2D_multiGPU/basic_parameter_struct.hpp"
-#include "../PIC2D_singleGPU/const.hpp"
-#include "../PIC2D_singleGPU/field_parameter_struct.hpp"
-#include "../PIC2D_singleGPU/moment_struct.hpp"
-#include "../IdealMHD2D_multiGPU/mpi.hpp"
+#include "../IdealMHD2D/const.hpp"
+#include "../IdealMHD2D/conservation_parameter_struct.hpp"
+#include "../IdealMHD2D/basic_parameter_struct.hpp"
+#include "../PIC2D/const.hpp"
+#include "../PIC2D/field_parameter_struct.hpp"
+#include "../PIC2D/moment_struct.hpp"
 
 
 class InterfaceNoiseRemover2D
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
-    IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
-
     thrust::device_vector<ConservationParameter> tmpU;
 
 public:
-    InterfaceNoiseRemover2D(
-        IdealMHD2DMPI::MPIInfo& mPIInfoMHD
-    );
+    InterfaceNoiseRemover2D();
 
     void convolveU(
         thrust::device_vector<ConservationParameter>& U

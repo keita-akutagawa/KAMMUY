@@ -2,13 +2,12 @@
 #define RELOADER_H
 
 #include <thrust/host_vector.h>
-#include "../IdealMHD2D_multiGPU/const.hpp"
-#include "../Interface2D_singleGPU/const.hpp"
-#include "../PIC2D_singleGPU/const.hpp"
-#include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
-#include "../PIC2D_singleGPU/particle_struct.hpp"
-#include "../PIC2D_singleGPU/field_parameter_struct.hpp"
-#include "../IdealMHD2D_multiGPU/mpi.hpp"
+#include "../IdealMHD2D/const.hpp"
+#include "../Interface2D/const.hpp"
+#include "../PIC2D/const.hpp"
+#include "../IdealMHD2D/conservation_parameter_struct.hpp"
+#include "../PIC2D/particle_struct.hpp"
+#include "../PIC2D/field_parameter_struct.hpp"
 #include <string>
 #include <fstream>
 
@@ -16,13 +15,10 @@
 class Reloader 
 {
 private: 
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD; 
 
 public: 
 
-    Reloader(
-        IdealMHD2DMPI::MPIInfo& mPIInfoMHD
-    );
+    Reloader();
 
     void reloadPICData(
         thrust::host_vector<Particle>& host_particlesIon, 
