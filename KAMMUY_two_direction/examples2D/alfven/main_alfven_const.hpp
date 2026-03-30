@@ -7,16 +7,16 @@
 #include <algorithm>
 #include <cuda_runtime.h>
 
-#include "../../IdealMHD2D_multiGPU/idealMHD2D.hpp"
-#include "../../PIC2D_singleGPU/pic2D.hpp"
-#include "../../Interface2D_singleGPU/interface.hpp"
-#include "../../PIC2D_singleGPU/boundary.hpp"
-#include "../../IdealMHD2D_multiGPU/boundary.hpp"
-#include "../../Interface2D_singleGPU/remove_noise.hpp"
+#include "../../IdealMHD2D/idealMHD2D.hpp"
+#include "../../PIC2D/pic2D.hpp"
+#include "../../Interface2D/interface.hpp"
+#include "../../PIC2D/boundary.hpp"
+#include "../../IdealMHD2D/boundary.hpp"
+#include "../../Interface2D/remove_noise.hpp"
 
-#include "../../IdealMHD2D_multiGPU/const.hpp"
-#include "../../PIC2D_singleGPU/const.hpp"
-#include "../../Interface2D_singleGPU/const.hpp"
+#include "../../IdealMHD2D/const.hpp"
+#include "../../PIC2D/const.hpp"
+#include "../../Interface2D/const.hpp"
 
 
 std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_two_direction/results_alfven";

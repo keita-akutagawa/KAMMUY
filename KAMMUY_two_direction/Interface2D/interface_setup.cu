@@ -50,8 +50,6 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
     FieldType convolvedField; 
 
     const int R = Interface2DConst::device_gridSizeRatio / 2;
-    const double sigma = Interface2DConst::device_gridSizeRatio / 2.0;
-    const double twoSigma2 = 2.0 * sigma * sigma;
 
     double weightSum = 0.0;
     for (int dx = -R; dx <= R; dx++) {
@@ -62,7 +60,6 @@ __device__ FieldType getAveragedFieldForPICtoMHD(
             if (0 <= localI && localI < PIC2DConst::device_nx &&
                 0 <= localJ && localJ < PIC2DConst::device_ny)
             {
-                double distance2 = double(dx * dx + dy * dy);
                 double weight = 1.0;
 
                 unsigned long long index = localJ + localI * PIC2DConst::device_ny;

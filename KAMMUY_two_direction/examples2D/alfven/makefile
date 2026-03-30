@@ -6,7 +6,7 @@ CFLAGS  = -ccbin mpic++ \
 		  --extended-lambda \
           -rdc=true \
           -Xcompiler "-Wall -O3"
-SRCDIRS = ../../IdealMHD2D_multiGPU ../../PIC2D_singleGPU ../../Interface2D_singleGPU ../../Reload
+SRCDIRS = ../../IdealMHD2D ../../PIC2D ../../Interface2D ../../Reload
 SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cu))
 OBJS = $(patsubst %.cu,%.o,$(SOURCES))
 MAIN = main_alfven.o
