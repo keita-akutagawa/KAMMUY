@@ -22,92 +22,155 @@ private:
 public:
     BoundaryPIC();
 
-    void periodicBoundaryParticle_x(
+    void boundaryParticle(
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
     );
-    void periodicBoundaryParticleOfOneSpecies_x(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
+
+    void boundaryB(
+        thrust::device_vector<MagneticField>& B
     );
 
-    void freeBoundaryParticle_y(
+    void boundaryE(
+        thrust::device_vector<ElectricField>& E
+    );
+
+    void boundaryCurrent(
+        thrust::device_vector<CurrentField>& current
+    );
+
+    void boundaryZerothMoment(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+
+    void boundaryFirstMoment(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+
+    void boundarySecondMoment(
+        thrust::device_vector<SecondMoment>& secondMoment
+    );
+    
+
+    virtual void boundaryParticleXLeft(
         thrust::device_vector<Particle>& particlesIon, 
         thrust::device_vector<Particle>& particlesElectron
     );
-    void freeBoundaryParticleOfOneSpecies_y(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
-    );
-
-
-    void periodicBoundaryB_x(
-        thrust::device_vector<MagneticField>& B
-    );
-
-    void freeBoundaryB_x(
-        thrust::device_vector<MagneticField>& B
-    );
-    void freeBoundaryB_y(
-        thrust::device_vector<MagneticField>& B
-    );
-
-
-    void periodicBoundaryE_x(
-        thrust::device_vector<ElectricField>& E
-    );
     
-    void freeBoundaryE_x(
+    virtual void boundaryParticleXRight(
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron
+    );
+
+    virtual void boundaryParticleYDown(
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron
+    );
+
+    virtual void boundaryParticleYUp(
+        thrust::device_vector<Particle>& particlesIon, 
+        thrust::device_vector<Particle>& particlesElectron
+    );
+
+
+    virtual void boundaryBXLeft(
+        thrust::device_vector<MagneticField>& B
+    );
+
+    virtual void boundaryBXRight(
+        thrust::device_vector<MagneticField>& B
+    );
+
+    virtual void boundaryBYDown(
+        thrust::device_vector<MagneticField>& B
+    );
+
+    virtual void boundaryBYUp(
+        thrust::device_vector<MagneticField>& B
+    );
+
+
+    virtual void boundaryEXLeft(
         thrust::device_vector<ElectricField>& E
     );
-    void freeBoundaryE_y(
+
+    virtual void boundaryEXRight(
+        thrust::device_vector<ElectricField>& E
+    );
+
+    virtual void boundaryEYDown(
+        thrust::device_vector<ElectricField>& E
+    );
+
+    virtual void boundaryEYUp(
         thrust::device_vector<ElectricField>& E
     );
 
 
-    void periodicBoundaryCurrent_x(
+    virtual void boundaryCurrentXLeft(
         thrust::device_vector<CurrentField>& current
     );
 
-    void freeBoundaryCurrent_x(
+    virtual void boundaryCurrentXRight(
         thrust::device_vector<CurrentField>& current
     );
-    void freeBoundaryCurrent_y(
+
+    virtual void boundaryCurrentYDown(
+        thrust::device_vector<CurrentField>& current
+    );
+
+    virtual void boundaryCurrentYUp(
         thrust::device_vector<CurrentField>& current
     );
 
 
-    void periodicBoundaryZerothMoment_x(
+    virtual void boundaryZerothMomentXLeft(
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
 
-    void freeBoundaryZerothMoment_x(
+    virtual void boundaryZerothMomentXRight(
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
-    void freeBoundaryZerothMoment_y(
+
+    virtual void boundaryZerothMomentYDown(
+        thrust::device_vector<ZerothMoment>& zerothMoment
+    );
+
+    virtual void boundaryZerothMomentYUp(
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
 
     
-    void periodicBoundaryFirstMoment_x(
+    virtual void boundaryFirstMomentXLeft(
         thrust::device_vector<FirstMoment>& firstMoment
     );
 
-    void freeBoundaryFirstMoment_x(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-    void freeBoundaryFirstMoment_y(
+    virtual void boundaryFirstMomentXRight(
         thrust::device_vector<FirstMoment>& firstMoment
     );
 
-    void periodicBoundarySecondMoment_x(
+    virtual void boundaryFirstMomentYDown(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+
+    virtual void boundaryFirstMomentYUp(
+        thrust::device_vector<FirstMoment>& firstMoment
+    );
+
+
+    virtual void boundarySecondMomentXLeft(
         thrust::device_vector<SecondMoment>& secondMoment
     );
 
-    void freeBoundarySecondMoment_x(
+    virtual void boundarySecondMomentXRight(
         thrust::device_vector<SecondMoment>& secondMoment
     );
-    void freeBoundarySecondMoment_y(
+
+    virtual void boundarySecondMomentYDown(
+        thrust::device_vector<SecondMoment>& secondMoment
+    );
+
+    virtual void boundarySecondMomentYUp(
         thrust::device_vector<SecondMoment>& secondMoment
     );
 

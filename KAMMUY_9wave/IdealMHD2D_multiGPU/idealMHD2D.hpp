@@ -33,7 +33,7 @@ public:
 
     void setPastU();
 
-    void oneStepRK2_periodicXSymmetricY();
+    void oneStepRK2();
 
     void save(
         std::string directoryname, 

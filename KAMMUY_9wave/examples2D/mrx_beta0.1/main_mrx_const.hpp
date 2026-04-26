@@ -19,24 +19,24 @@
 #include "../../Interface2D_singleGPU/const.hpp"
 
 
-std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_9wave/results_alfven";
-std::string filenameWithoutStep = "alfven";
-std::ofstream logfile(    directoryName + "/log_alfven.txt"       );
-std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_alfven.txt");
+std::string directoryName = "/cfca-work/akutagawakt/KAMMUY_9wave/results_mrx_beta0.1";
+std::string filenameWithoutStep = "mrx_beta0.1";
+std::ofstream logfile(    directoryName + "/log_mrx_beta0.1.txt"       );
+std::ofstream mpifile_MHD(directoryName + "/mpilog_mhd_mrx_beta0.1.txt");
 
 
 const int bufferMHD = 3; 
 
 const int IdealMHD2DConst::totalStep = 500;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 1;
+const int recordStep = 5;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
 double PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const int Interface2DConst::gridSizeRatio = 5; 
+const int Interface2DConst::gridSizeRatio = 10; 
 
 const double Interface2DConst::EPS = 1e-10;
 const double Interface2DConst::PI = 3.14159265358979;
@@ -47,11 +47,7 @@ const double IdealMHD2DConst::PI = 3.14159265358979;
 double IdealMHD2DConst::eta = 0.0;
 double IdealMHD2DConst::viscosity = 0.0;
 
-const double waveAmp = 0.05;
-const double waveLength = 1000.0;
-const double waveNumber = 2.0 * IdealMHD2DConst::PI / waveLength;
-
-const int PIC2DConst::nx = 25;
+const int PIC2DConst::nx = 2000;
 const double PIC2DConst::dx = 1.0;
 const double PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
 const double PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
@@ -67,7 +63,7 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = waveLength * 5 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = 1000 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
@@ -93,8 +89,8 @@ const double PIC2DConst::epsilon0 = 1.0;
 const double PIC2DConst::mu0 = 1.0;
 const double PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001;
 
-const int PIC2DConst::numberDensityIon = 50;
-const int PIC2DConst::numberDensityElectron = 50;
+const int PIC2DConst::numberDensityIon = 20;
+const int PIC2DConst::numberDensityElectron = 20;
 
 const double PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0;
 
@@ -102,9 +98,10 @@ const double PIC2DConst::mRatio = 25.0;
 const double PIC2DConst::mElectron = 1.0;
 const double PIC2DConst::mIon = PIC2DConst::mRatio * PIC2DConst::mElectron;
 
+const double beta = 0.25;
 const double PIC2DConst::tRatio = 1.0f;
-const double PIC2DConst::tElectron = PIC2DConst::mElectron * pow(0.1f * PIC2DConst::c, 2);
-const double PIC2DConst::tIon = PIC2DConst::tRatio * PIC2DConst::tElectron;
+const double PIC2DConst::tElectron = beta * (PIC2DConst::B0 * PIC2DConst::B0 / 2.0f / PIC2DConst::mu0) / (PIC2DConst::numberDensityIon + PIC2DConst::numberDensityElectron * PIC2DConst::tRatio);
+const double PIC2DConst::tIon = tRatio * tElectron;
 
 const double PIC2DConst::qRatio = -1.0;
 const double PIC2DConst::qElectron = -1.0 * sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron));
@@ -117,6 +114,9 @@ const double PIC2DConst::omegaCi = PIC2DConst::qIon * PIC2DConst::B0 / PIC2DCons
 
 const double PIC2DConst::debyeLength = sqrt(PIC2DConst::epsilon0 * PIC2DConst::tElectron / static_cast<double>(PIC2DConst::numberDensityElectron) / pow(PIC2DConst::qElectron, 2));
 const double PIC2DConst::ionInertialLength = PIC2DConst::c / PIC2DConst::omegaPi;
+
+const double triggerRatio = 0.1f;
+const double sheatThickness = 1.0f * PIC2DConst::ionInertialLength; 
 
 double PIC2DConst::dt = 0.0;
 

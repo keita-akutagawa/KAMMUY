@@ -21,24 +21,24 @@ private:
 public:
     BoundaryMHD(IdealMHD2DMPI::MPIInfo& mPIInfo);
 
-    void boundaryU(
+    void periodicBoundaryX2nd_U(
         thrust::device_vector<ConservationParameter>& U
     );
 
-
-    virtual void boundaryUXLeft(
+    void periodicBoundaryY2nd_U(
         thrust::device_vector<ConservationParameter>& U
     );
 
-    virtual void boundaryUXRight(
+    void wallBoundaryY2nd_U(
         thrust::device_vector<ConservationParameter>& U
     );
 
-    virtual void boundaryUYDown(
-        thrust::device_vector<ConservationParameter>& U
+    void wallBoundaryY2nd_flux(
+        thrust::device_vector<Flux>& fluxF, 
+        thrust::device_vector<Flux>& fluxG
     );
 
-    virtual void boundaryUYUp(
+    void symmetricBoundaryY2nd_U(
         thrust::device_vector<ConservationParameter>& U
     );
 
