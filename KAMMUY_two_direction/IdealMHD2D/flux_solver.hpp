@@ -2,19 +2,16 @@
 #include "hlld.hpp"
 #include "get_eta.hpp"
 #include "basic_parameter_struct.hpp"
-#include "mpi.hpp"
 
 
 class FluxSolver
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfo;
-
     HLLD hLLD;
     thrust::device_vector<Flux> flux;
 
 public:
-    FluxSolver(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    FluxSolver();
 
     thrust::device_vector<Flux> getFluxF(
         const thrust::device_vector<ConservationParameter>& U

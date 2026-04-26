@@ -1,15 +1,10 @@
 #include "remove_noise.hpp"
 
 
-InterfaceNoiseRemover2D::InterfaceNoiseRemover2D(
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD
-)
-    : mPIInfoMHD(mPIInfoMHD), 
-
-      tmpU(IdealMHD2DConst::nx * IdealMHD2DConst::ny)
+InterfaceNoiseRemover2D::InterfaceNoiseRemover2D()
+    : tmpU(IdealMHD2DConst::nx * IdealMHD2DConst::ny)
 {
-    cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
-    cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
+
 }
 
 

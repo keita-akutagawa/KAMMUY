@@ -12,6 +12,8 @@ namespace IdealMHD2DConst
     extern const double EPS;
     extern const double PI;
 
+    extern const int buffer; 
+
     extern double eta; 
     extern double viscosity; 
 

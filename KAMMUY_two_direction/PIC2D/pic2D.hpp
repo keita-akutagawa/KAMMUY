@@ -17,9 +17,9 @@
 #include "field_parameter_struct.hpp"
 #include "moment_struct.hpp"
 
-#include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
-#include "../Interface2D_singleGPU/interface.hpp"
-#include "../Interface2D_singleGPU/remove_noise.hpp"
+#include "../IdealMHD2D/conservation_parameter_struct.hpp"
+#include "../Interface2D/interface.hpp"
+#include "../Interface2D/remove_noise.hpp"
 
 
 class PIC2D

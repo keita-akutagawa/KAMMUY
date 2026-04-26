@@ -13,9 +13,9 @@ __global__ void periodicBoundary_x_kernel(
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (j < idealmhd2d_const::device_ny) {
+    if (j < IdealMHD2DConst::device_ny) {
         for (int buf = 0; buf < buffer; buf++) {            
-            U[j + buf * IdealMHD2DConst::device_ny] = U[j + (idealmhd2d_const::device_nx - 2 * buffer + buf) * IdealMHD2DConst::device_ny];
+            U[j + buf * IdealMHD2DConst::device_ny] = U[j + (IdealMHD2DConst::device_nx - 2 * buffer + buf) * IdealMHD2DConst::device_ny];
         }
         
         for (int buf = 0; buf < buffer; buf++) {
@@ -58,7 +58,7 @@ __global__ void periodicBoundary_y_kernel(
 }
 
 
-void BoundaryMHD::periodicBoundaryY2nd_U(
+void BoundaryMHD::periodicBoundary_y(
     thrust::device_vector<ConservationParameter>& U
 )
 {
@@ -74,15 +74,14 @@ void BoundaryMHD::periodicBoundaryY2nd_U(
 
 ///////////////////////
 
-__global__ void wallBoundaryY2nd_U_kernel(
+__global__ void wallBoundary_y_kernel(
     ConservationParameter* U, 
-    int localSizeX, 
     int buffer
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < localSizeX) {
+    if (i < IdealMHD2DConst::device_nx) {
         int index = 0 + i * IdealMHD2DConst::device_ny;
 
         double rho, u, v, w, bX, bY, bZ, p, e;
@@ -139,34 +138,30 @@ __global__ void wallBoundaryY2nd_U_kernel(
     }
 }
 
-void BoundaryMHD::wallBoundaryY2nd_U(
+void BoundaryMHD::wallBoundary_y(
     thrust::device_vector<ConservationParameter>& U
 )
 {
-    MPI_Barrier(MPI_COMM_WORLD); 
-
     int threadsPerBlock = 256;
-    int blocksPerGrid = (mPIInfo.localSizeX + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (IdealMHD2DConst::nx + threadsPerBlock - 1) / threadsPerBlock;
 
-    wallBoundaryY2nd_U_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallBoundary_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        mPIInfo.localSizeX, 
-        mPIInfo.buffer
+        IdealMHD2DConst::buffer
     );
     cudaDeviceSynchronize();
 }
 
 
 __global__
-void symmetricBoundaryY2nd_U_kernel(
+void symmetricBoundary_y_kernel(
     ConservationParameter* U, 
-    int localSizeX, 
     int buffer
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < localSizeX) {
+    if (i < IdealMHD2DConst::device_nx) {
         int index = 0 + i * IdealMHD2DConst::device_ny;
 
         for (int buf = 0; buf < buffer; buf++) {
@@ -182,19 +177,16 @@ void symmetricBoundaryY2nd_U_kernel(
     }
 }
 
-void BoundaryMHD::symmetricBoundaryY2nd_U(
+void BoundaryMHD::symmetricBoundary_y(
     thrust::device_vector<ConservationParameter>& U
 )
-{
-    MPI_Barrier(MPI_COMM_WORLD); 
-    
+{   
     int threadsPerBlock = 256;
-    int blocksPerGrid = (mPIInfo.localSizeX + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (IdealMHD2DConst::nx + threadsPerBlock - 1) / threadsPerBlock;
 
-    symmetricBoundaryY2nd_U_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    symmetricBoundary_y_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
-        mPIInfo.localSizeX, 
-        mPIInfo.buffer
+        IdealMHD2DConst::buffer
     );
     cudaDeviceSynchronize();
 }

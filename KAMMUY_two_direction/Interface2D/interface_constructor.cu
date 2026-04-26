@@ -36,15 +36,12 @@ __global__ void initializeReloadParticlesSource_kernel(
 
 
 Interface2D::Interface2D(
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
     int indexOfInterfaceStartMHD_x, 
     int indexOfInterfaceStartMHD_y, 
     thrust::host_vector<double>& host_interlockingFunction, 
     InterfaceNoiseRemover2D& interfaceNoiseRemover2D
 )
-    : mPIInfoMHD(mPIInfoMHD), 
-
-      indexOfInterfaceStartInMHD_x(indexOfInterfaceStartMHD_x), 
+    : indexOfInterfaceStartInMHD_x(indexOfInterfaceStartMHD_x), 
       indexOfInterfaceStartInMHD_y(indexOfInterfaceStartMHD_y), 
 
       interlockingFunction(PIC2DConst::nx * PIC2DConst::ny, 0.0), 
@@ -58,26 +55,21 @@ Interface2D::Interface2D(
       reloadParticlesDataIon     (PIC2DConst::nx * PIC2DConst::ny), 
       reloadParticlesDataElectron(PIC2DConst::nx * PIC2DConst::ny), 
       
-      B_PICtoMHD                   (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      zerothMomentIon_PICtoMHD     (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      zerothMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      firstMomentIon_PICtoMHD      (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      firstMomentElectron_PICtoMHD (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      secondMomentIon_PICtoMHD     (mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
-      secondMomentElectron_PICtoMHD(mPIInfoMHD.localNx * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      B_PICtoMHD                   ((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentIon_PICtoMHD     ((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      zerothMomentElectron_PICtoMHD((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentIon_PICtoMHD      ((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      firstMomentElectron_PICtoMHD ((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      secondMomentIon_PICtoMHD     ((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
+      secondMomentElectron_PICtoMHD((PIC2DConst::nx / Interface2DConst::gridSizeRatio) * (PIC2DConst::ny / Interface2DConst::gridSizeRatio)), 
 
-      USub (mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
-      UHalf(mPIInfoMHD.localSizeX * IdealMHD2DConst::ny), 
+      USub (IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
+      UHalf(IdealMHD2DConst::nx * IdealMHD2DConst::ny), 
 
       interfaceNoiseRemover2D(interfaceNoiseRemover2D)
 {
-
-    cudaMalloc(&device_mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo));
-    cudaMemcpy(device_mPIInfoMHD, &mPIInfoMHD, sizeof(IdealMHD2DMPI::MPIInfo), cudaMemcpyHostToDevice);
-
     interlockingFunction = host_interlockingFunction;
     
-
     dim3 threadsPerBlock(256);
     dim3 blocksPerGrid((Interface2DConst::reloadParticlesTotalNum + threadsPerBlock.x - 1) / threadsPerBlock.x);
 

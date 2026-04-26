@@ -4,7 +4,6 @@
 
 
 CurrentCalculator::CurrentCalculator()
-    : momentCalculator()
 {
 }
 

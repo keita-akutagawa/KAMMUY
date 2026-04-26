@@ -5,15 +5,11 @@
 #include "boundary.hpp"
 #include "const.hpp"
 #include "projection.hpp"
-#include "mpi.hpp"
 
 
 class IdealMHD2D
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfo; 
-    IdealMHD2DMPI::MPIInfo* device_mPIInfo; 
-
     FluxSolver fluxSolver;
     
     thrust::device_vector<Flux> fluxF;
@@ -29,7 +25,7 @@ private:
     Projection projection; 
 
 public:
-    IdealMHD2D(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    IdealMHD2D();
 
     virtual void initializeU(); 
 

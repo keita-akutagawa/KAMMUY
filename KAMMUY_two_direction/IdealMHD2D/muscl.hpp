@@ -1,17 +1,15 @@
 #include <thrust/device_vector.h>
 #include "const.hpp"
 #include "minmod.hpp"
-#include "basic_parameter_struct.hpp"
-#include "mpi.hpp"
+#include "basic_parameter_struct.hpp"\
 
 
 class MUSCL
 {
 private:
-    IdealMHD2DMPI::MPIInfo mPIInfo;
 
 public:
-    MUSCL(IdealMHD2DMPI::MPIInfo& mPIInfo);
+    MUSCL();
 
     void getLeftQX(
         const thrust::device_vector<BasicParameter>& dQ, 

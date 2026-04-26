@@ -14,25 +14,21 @@
 #include "const.hpp"
 #include "reload_particles_data_struct.hpp"
 #include "remove_noise.hpp"
-#include "../IdealMHD2D_multiGPU/const.hpp"
-#include "../IdealMHD2D_multiGPU/conservation_parameter_struct.hpp"
-#include "../IdealMHD2D_multiGPU/basic_parameter_struct.hpp"
-#include "../PIC2D_singleGPU/const.hpp"
-#include "../PIC2D_singleGPU/field_parameter_struct.hpp"
-#include "../PIC2D_singleGPU/moment_struct.hpp"
-#include "../PIC2D_singleGPU/particle_struct.hpp"
-#include "../PIC2D_singleGPU/moment_calculator.hpp"
-#include "../PIC2D_singleGPU/is_exist_transform.hpp"
-#include "../PIC2D_singleGPU/boundary.hpp"
-#include "../IdealMHD2D_multiGPU/mpi.hpp"
+#include "../IdealMHD2D/const.hpp"
+#include "../IdealMHD2D/conservation_parameter_struct.hpp"
+#include "../IdealMHD2D/basic_parameter_struct.hpp"
+#include "../PIC2D/const.hpp"
+#include "../PIC2D/field_parameter_struct.hpp"
+#include "../PIC2D/moment_struct.hpp"
+#include "../PIC2D/particle_struct.hpp"
+#include "../PIC2D/moment_calculator.hpp"
+#include "../PIC2D/is_exist_transform.hpp"
+#include "../PIC2D/boundary.hpp"
 
 
 class Interface2D
 {
 private:
-    IdealMHD2DMPI::MPIInfo& mPIInfoMHD;
-    IdealMHD2DMPI::MPIInfo* device_mPIInfoMHD; 
-
     int indexOfInterfaceStartInMHD_x;
     int indexOfInterfaceStartInMHD_y;
 
@@ -65,7 +61,6 @@ private:
 
 public:
     Interface2D(
-        IdealMHD2DMPI::MPIInfo& mPIInfoMHD, 
         int indexOfInterfaceStartMHD_x, 
         int indexOfInterfaceStartMHD_y, 
         thrust::host_vector<double>& host_interlockingFunction, 
