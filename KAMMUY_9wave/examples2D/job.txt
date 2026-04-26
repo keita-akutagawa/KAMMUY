@@ -1,0 +1,5 @@
+rm -rf main_stay.o stay.* && make && sbatch --job-name=stay script.sh
+rm -rf main_alfven.o alfven.* && make && sbatch --job-name=alfven script.sh
+rm -rf main_fast_mode.o fast_mode.* && make && sbatch --job-name=fast_mode script.sh
+rm -rf main_shock_tube.o shock_tube.* && make && sbatch --job-name=shock_tube script.sh
+rm -rf main_mrx.o mrx.* && make && sbatch --job-name=mrx script.sh
