@@ -531,7 +531,7 @@ void BoundaryPIC::boundaryCurrent(
 
 
 __global__ void periodicBoundaryZerothMomentX_kernel(
-    ZerothMomentField* zerothMoment
+    ZerothMoment* zerothMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
@@ -543,7 +543,7 @@ __global__ void periodicBoundaryZerothMomentX_kernel(
 }
 
 __global__ void freeBoundaryZerothMomentY_kernel(
-    ZerothMomentField* zerothMoment
+    ZerothMoment* zerothMoment
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -574,7 +574,7 @@ void BoundaryPIC::boundaryZerothMoment(
 
 
 __global__ void periodicBoundaryFirstMomentX_kernel(
-    FirstMomentField* firstMoment
+    FirstMoment* firstMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
@@ -586,7 +586,7 @@ __global__ void periodicBoundaryFirstMomentX_kernel(
 }
 
 __global__ void freeBoundaryFirstMomentY_kernel(
-    FirstMomentField* firstMoment
+    FirstMoment* firstMoment
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -617,7 +617,7 @@ void BoundaryPIC::boundaryFirstMoment(
 
 
 __global__ void periodicBoundarySecondMomentX_kernel(
-    SecondMomentField* secondMoment
+    SecondMoment* secondMoment
 )
 {
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
@@ -629,7 +629,7 @@ __global__ void periodicBoundarySecondMomentX_kernel(
 }
 
 __global__ void freeBoundarySecondMomentY_kernel(
-    SecondMomentField* secondMoment
+    SecondMoment* secondMoment
 )
 {
     unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
