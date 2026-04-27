@@ -362,6 +362,7 @@ __global__ void boundaryParticleX_kernel(
         
         if (x <= boundaryLeft) {
             particlesSpecies[i].x = 2 * boundaryLeft - particlesSpecies[i].x; 
+            particlesSpecies[i].vx = -particlesSpecies[i].vx; 
         }
         if (x >= boundaryRight - PIC2DConst::device_dx) {
             particlesSpecies[i].isExist = false; 
@@ -524,7 +525,9 @@ __global__ void wallFreeBoundaryEX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * 1];
+        E[j + PIC2DConst::device_ny * 0].eX = 0.0;
+        E[j + PIC2DConst::device_ny * 0].eY = 0.0;
+        E[j + PIC2DConst::device_ny * 0].eZ = 0.0;
         E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
