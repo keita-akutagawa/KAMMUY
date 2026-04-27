@@ -26,69 +26,33 @@ public:
         unsigned long long& existNumElectron
     );
 
-    void boundaryB(
-        thrust::device_vector<MagneticField>& B
+    virtual void boundaryParticleSpecies(
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpecies
     );
 
-    void boundaryE(
-        thrust::device_vector<ElectricField>& E
+    virtual void boundaryB(
+        thrust::device_vector<MagneticField>& B  
+    ); 
+
+    virtual void boundaryE(
+        thrust::device_vector<ElectricField>& E  
     );
 
-    void boundaryCurrent(
+    virtual void boundaryCurrent(
         thrust::device_vector<CurrentField>& current
     );
 
-    void boundaryZerothMoment(
+    virtual void boundaryZerothMoment(
         thrust::device_vector<ZerothMoment>& zerothMoment
     );
 
-    void boundaryFirstMoment(
+    virtual void boundaryFirstMoment(
         thrust::device_vector<FirstMoment>& firstMoment
     );
 
-    void boundarySecondMoment(
+    virtual void boundarySecondMoment(
         thrust::device_vector<SecondMoment>& secondMoment
-    );
-    
-
-    virtual void boundaryParticleXLeft(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
-    );
-    
-    virtual void boundaryParticleXRight(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
-    );
-
-    virtual void boundaryParticleYDown(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
-    );
-
-    virtual void boundaryParticleYUp(
-        thrust::device_vector<Particle>& particlesSpecies, 
-        unsigned long long& existNumSpecies
-    );
-
-    template<typename T> 
-    void boundaryFieldXLeft(
-        thrust::device_vector<T>& field
-    );
-
-    template<typename T> 
-    void boundaryFieldXRight(
-        thrust::device_vector<T>& field
-    );
-
-    template<typename T> 
-    void boundaryFieldYDown(
-        thrust::device_vector<T>& field
-    );
-
-    template<typename T> 
-    void boundaryFieldYUp(
-        thrust::device_vector<T>& field
     );
 
 private:
