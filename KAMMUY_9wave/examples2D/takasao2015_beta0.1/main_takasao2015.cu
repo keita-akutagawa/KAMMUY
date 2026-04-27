@@ -1,4 +1,4 @@
-#include "main_mrx_const.hpp"
+#include "main_takasao2015_const.hpp"
 
 
 __device__
@@ -26,17 +26,19 @@ __global__ void initializeU_kernel(
             double x = i * IdealMHD2DConst::device_dx, y = j * IdealMHD2DConst::device_dy; 
             double xCenter = 0.5f * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
             double yCenter = 0.5f * (IdealMHD2DConst::device_ymax - IdealMHD2DConst::device_ymin);
+            double xPosition = 0.8 * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
+            double yPosition = yCenter; 
             
             rho = IdealMHD2DConst::device_rho0;
             u   = 0.0;
             v   = 0.0;
             w   = 0.0;
             bX  = IdealMHD2DConst::device_B0 * tanh((y - yCenter) / sheatThickness)
-                - IdealMHD2DConst::device_B0 * triggerRatio * (y - yCenter) / sheatThickness
-                * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
+                - IdealMHD2DConst::device_B0 * triggerRatio * (y - yPosition) / sheatThickness
+                * exp(-(pow((x - xPosition), 2) + pow((y - yPosition), 2))
                 / pow(2.0f * sheatThickness, 2));
-            bY  = IdealMHD2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
-                * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
+            bY  = IdealMHD2DConst::device_B0 * triggerRatio * (x - xPosition) / sheatThickness
+                * exp(-(pow((x - xPosition), 2) + pow((y - yPosition), 2))
                 / pow(2.0f * sheatThickness, 2)); 
             bZ  = IdealMHD2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
             p   = IdealMHD2DConst::device_p0;
@@ -92,13 +94,15 @@ __global__ void initializePICField_kernel(
         double x = i * PIC2DConst::device_dx + PIC2DConst::device_xmin, y = j * PIC2DConst::device_dy + PIC2DConst::device_ymin;
         double xCenter = 0.5f * (PIC2DConst::device_xmax - PIC2DConst::device_xmin);
         double yCenter = 0.5f * (PIC2DConst::device_ymax - PIC2DConst::device_ymin);
+        double xPosition = 0.8 * (IdealMHD2DConst::device_xmax - IdealMHD2DConst::device_xmin);
+        double yPosition = yCenter; 
 
         bX = PIC2DConst::device_B0 * tanh((y - yCenter) / sheatThickness)
-        - PIC2DConst::device_B0 * triggerRatio * (y - yCenter) / sheatThickness
-        * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
+        - PIC2DConst::device_B0 * triggerRatio * (y - yPosition) / sheatThickness
+        * exp(-(pow((x - xPosition), 2) + pow((y - yPosition), 2))
         / pow(2.0f * sheatThickness, 2));;
-        bY = PIC2DConst::device_B0 * triggerRatio * (x - xCenter) / sheatThickness
-        * exp(-(pow((x - xCenter), 2) + pow((y - yCenter), 2))
+        bY = PIC2DConst::device_B0 * triggerRatio * (x - xPosition) / sheatThickness
+        * exp(-(pow((x - xPosition), 2) + pow((y - yPosition), 2))
         / pow(2.0f * sheatThickness, 2)); 
         bZ = PIC2DConst::device_B0 / cosh((y - yCenter) / sheatThickness);
         eX = 0.0f;
@@ -181,7 +185,7 @@ void PIC2D::initialize()
 }
 
 
-__global__ void periodicBoundaryXLeft_kernel(
+__global__ void wallBoundaryXLeft_kernel(
     ConservationParameter* U, 
     int localSizeX, 
     int buffer
@@ -190,8 +194,38 @@ __global__ void periodicBoundaryXLeft_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < IdealMHD2DConst::device_ny) {
-        for (int buf = 0; buf < buffer; buf++) {            
-            U[j + buf * IdealMHD2DConst::device_ny] = U[j + (localSizeX - 2 * buffer + buf) * IdealMHD2DConst::device_ny];
+        for (int buf = 0; buf < buffer; buf++) {   
+            unsigned long long index = j + buffer * IdealMHD2DConst::device_ny; 
+            double rho, u, v, w, bX, bY, bZ, e, p, psi;
+
+            rho = U[index].rho;
+            u   = U[index].rhoU / rho;
+            v   = U[index].rhoV / rho;
+            w   = U[index].rhoW / rho;
+            bX  = U[index].bX;
+            bY  = U[index].bY;
+            bZ  = U[index].bZ;
+            e   = U[index].e;
+            p   = (IdealMHD2DConst::device_gamma - 1.0)
+                * (e - 0.5 * rho * (u * u + v * v + w * w)
+                - 0.5 * (bX * bX + bY * bY + bZ * bZ));   
+            psi = U[index].psi; 
+                
+            u = 0.0; 
+            e = p / (IdealMHD2DConst::device_gamma - 1.0)
+              + 0.5 * rho * (u * u + v * v + w * w)
+              + 0.5 * (bX * bX + bY * bY + bZ * bZ);
+
+
+            U[j + buf * IdealMHD2DConst::device_ny].rho = rho;
+            U[j + buf * IdealMHD2DConst::device_ny].rhoU = rho * u;
+            U[j + buf * IdealMHD2DConst::device_ny].rhoV = rho * v;
+            U[j + buf * IdealMHD2DConst::device_ny].rhoW = rho * w;
+            U[j + buf * IdealMHD2DConst::device_ny].bX = bX;
+            U[j + buf * IdealMHD2DConst::device_ny].bY = bY;
+            U[j + buf * IdealMHD2DConst::device_ny].bZ = bZ;
+            U[j + buf * IdealMHD2DConst::device_ny].e = e;
+            U[j + buf * IdealMHD2DConst::device_ny].psi = psi;
         }
     }
 }
@@ -203,7 +237,7 @@ void BoundaryMHD::boundaryUXLeft(
     int threadsPerBlock = 256;
     int blocksPerGrid = (IdealMHD2DConst::ny + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryXLeft_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallBoundaryXLeft_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
         mPIInfo.localSizeX, 
         mPIInfo.buffer
@@ -212,7 +246,7 @@ void BoundaryMHD::boundaryUXLeft(
 }
 
 
-__global__ void periodicBoundaryXRight_kernel(
+__global__ void freeBoundaryXRight_kernel(
     ConservationParameter* U, 
     int localSizeX, 
     int buffer
@@ -221,8 +255,10 @@ __global__ void periodicBoundaryXRight_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < IdealMHD2DConst::device_ny) {
-        for (int buf = 0; buf < buffer; buf++) {            
-            U[j + (localSizeX - buffer + buf) * IdealMHD2DConst::device_ny] = U[j + (buffer + buf) * IdealMHD2DConst::device_ny];
+        unsigned long long index = j + (localSizeX - 1) * IdealMHD2DConst::device_ny;
+
+        for (int buf = 0; buf < buffer; buf++) {
+            U[index - buf * IdealMHD2DConst::device_ny] = U[index - buffer * IdealMHD2DConst::device_ny];
         }
     }
 }
@@ -234,7 +270,7 @@ void BoundaryMHD::boundaryUXRight(
     int threadsPerBlock = 256;
     int blocksPerGrid = (IdealMHD2DConst::ny + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryXRight_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    freeBoundaryXRight_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(U.data()), 
         mPIInfo.localSizeX, 
         mPIInfo.buffer
@@ -324,24 +360,17 @@ __global__ void boundaryParticleX_kernel(
         double boundaryLeft  = PIC2DConst::device_xmin;
         double boundaryRight = PIC2DConst::device_xmax;
         
-        if (x <= boundaryLeft + PIC2DConst::device_dx) {
-            particlesSpecies[i].isExist = false; 
+        if (x <= boundaryLeft) {
+            particlesSpecies[i].x = 2 * boundaryLeft - particlesSpecies[i].x; 
         }
         if (x >= boundaryRight - PIC2DConst::device_dx) {
             particlesSpecies[i].isExist = false; 
-        }
-        
-        if (x > boundaryLeft + PIC2DConst::device_dx && x <= boundaryLeft + 2 * PIC2DConst::device_dx) {
-            unsigned long long particleIndex = atomicAdd(&(countForParticlesSpecies[0]), 1);
-            Particle tmpParticle = particlesSpecies[i];
-            tmpParticle.x = tmpParticle.x + PIC2DConst::device_xmax - 2 * PIC2DConst::device_dx; 
-            bufferParticlesSpecies[particleIndex] = tmpParticle;
         }
 
         if (x < boundaryRight - PIC2DConst::device_dx && x >= boundaryRight - 2 * PIC2DConst::device_dx) {
             unsigned long long particleIndex = atomicAdd(&(countForParticlesSpecies[0]), 1);
             Particle tmpParticle = particlesSpecies[i];
-            tmpParticle.x = tmpParticle.x - PIC2DConst::device_xmax + 2 * PIC2DConst::device_dx; 
+            tmpParticle.x = tmpParticle.x + PIC2DConst::device_dx - PIC2DConst::device_EPS; 
             bufferParticlesSpecies[particleIndex] = tmpParticle;
         }
     }
@@ -445,7 +474,7 @@ void BoundaryPIC::boundaryParticleSpecies(
 }
 
 
-__global__ void periodicBoundaryBX_kernel(
+__global__ void wallFreeBoundaryBX_kernel(
     MagneticField* B
 )
 {
@@ -476,7 +505,7 @@ void BoundaryPIC::boundaryB(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundaryBX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(B.data())
     );
     cudaDeviceSynchronize();
@@ -488,7 +517,7 @@ void BoundaryPIC::boundaryB(
 }
 
 
-__global__ void periodicBoundaryEX_kernel(
+__global__ void wallFreeBoundaryEX_kernel(
     ElectricField* E
 )
 {
@@ -519,7 +548,7 @@ void BoundaryPIC::boundaryE(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryEX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundaryEX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(E.data())
     );
     cudaDeviceSynchronize();
@@ -531,7 +560,7 @@ void BoundaryPIC::boundaryE(
 }
 
 
-__global__ void periodicBoundaryCurrentX_kernel(
+__global__ void wallFreeBoundaryCurrentX_kernel(
     CurrentField* current
 )
 {
@@ -562,7 +591,7 @@ void BoundaryPIC::boundaryCurrent(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(current.data())
     );
     cudaDeviceSynchronize();
@@ -574,7 +603,7 @@ void BoundaryPIC::boundaryCurrent(
 }
 
 
-__global__ void periodicBoundaryZerothMomentX_kernel(
+__global__ void wallFreeBoundaryZerothMomentX_kernel(
     ZerothMoment* zerothMoment
 )
 {
@@ -605,7 +634,7 @@ void BoundaryPIC::boundaryZerothMoment(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryZerothMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundaryZerothMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(zerothMoment.data())
     );
     cudaDeviceSynchronize();
@@ -617,7 +646,7 @@ void BoundaryPIC::boundaryZerothMoment(
 }
 
 
-__global__ void periodicBoundaryFirstMomentX_kernel(
+__global__ void wallFreeBoundaryFirstMomentX_kernel(
     FirstMoment* firstMoment
 )
 {
@@ -648,7 +677,7 @@ void BoundaryPIC::boundaryFirstMoment(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundaryFirstMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundaryFirstMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(firstMoment.data())
     );
     cudaDeviceSynchronize();
@@ -660,7 +689,7 @@ void BoundaryPIC::boundaryFirstMoment(
 }
 
 
-__global__ void periodicBoundarySecondMomentX_kernel(
+__global__ void wallFreeBoundarySecondMomentX_kernel(
     SecondMoment* secondMoment
 )
 {
@@ -691,7 +720,7 @@ void BoundaryPIC::boundarySecondMoment(
     int threadsPerBlock = 256;
     int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
-    periodicBoundarySecondMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+    wallFreeBoundarySecondMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
         thrust::raw_pointer_cast(secondMoment.data())
     );
     cudaDeviceSynchronize();

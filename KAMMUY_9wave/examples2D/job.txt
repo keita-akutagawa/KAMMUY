@@ -1,2 +1,3 @@
 rm -rf main_alfven.o alfven.* && make && sbatch --job-name=alfven script.sh
 rm -rf main_mrx.o mrx.* && make && sbatch --job-name=mrx script.sh
+rm -rf main_takasao2015.o takasao2015.* && make && sbatch --job-name=takasao2015 script.sh
