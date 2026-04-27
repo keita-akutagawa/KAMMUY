@@ -481,8 +481,8 @@ __global__ void wallFreeBoundaryBX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        B[j + PIC2DConst::device_ny * 0] = B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = B[j + PIC2DConst::device_ny * 1];
+        B[j + PIC2DConst::device_ny * 0] = B[j + PIC2DConst::device_ny * 1];
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
@@ -524,8 +524,8 @@ __global__ void wallFreeBoundaryEX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * 1];
+        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * 1];
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
@@ -567,8 +567,8 @@ __global__ void wallFreeBoundaryCurrentX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        current[j + PIC2DConst::device_ny * 0] = current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = current[j + PIC2DConst::device_ny * 1];
+        current[j + PIC2DConst::device_ny * 0] = current[j + PIC2DConst::device_ny * 1];
+        current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
@@ -610,8 +610,8 @@ __global__ void wallFreeBoundaryZerothMomentX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * 1];
+        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * 1];
+        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
@@ -653,8 +653,8 @@ __global__ void wallFreeBoundaryFirstMomentX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * 1];
+        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * 1];
+        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
@@ -696,8 +696,8 @@ __global__ void wallFreeBoundarySecondMomentX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
-        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * 1];
+        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * 1];
+        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
     }
 }
 
