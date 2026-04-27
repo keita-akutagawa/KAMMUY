@@ -352,6 +352,7 @@ __global__ void boundaryParticle_kernel(
             tmpParticle.x = tmpParticle.x + PIC2DConst::device_xmax - 2 * PIC2DConst::device_dx; 
             bufferParticlesSpecies[particleIndex] = tmpParticle;
         }
+
         if (y < boundaryUp - PIC2DConst::device_dy && y >= boundaryUp - 2 * PIC2DConst::device_dy) {
             unsigned long long particleIndex = atomicAdd(&(countForParticlesSpecies[0]), 1);
             Particle tmpParticle = particlesSpecies[i];
@@ -443,43 +444,218 @@ void BoundaryPIC::boundaryB(
 }
 
 
+__global__ void periodicBoundaryEX_kernel(
+    ElectricField* E
+)
+{
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (j < PIC2DConst::device_ny) {
+        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * 1];
+    }
+}
+
+__global__ void freeBoundaryEY_kernel(
+    ElectricField* E
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < PIC2DConst::device_nx) {
+        E[0 + PIC2DConst::device_ny * i] = E[1 + PIC2DConst::device_ny * i];
+        E[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = E[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+    }
+}
+
 void BoundaryPIC::boundaryE(
     thrust::device_vector<ElectricField>& E
 )
 {
-    
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
+
+    periodicBoundaryEX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(E.data())
+    );
+    cudaDeviceSynchronize();
+
+    freeBoundaryEY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(E.data())
+    );
+    cudaDeviceSynchronize();
 }
 
+
+__global__ void periodicBoundaryCurrentX_kernel(
+    CurrentField* current
+)
+{
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (j < PIC2DConst::device_ny) {
+        current[j + PIC2DConst::device_ny * 0] = current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        current[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = current[j + PIC2DConst::device_ny * 1];
+    }
+}
+
+__global__ void freeBoundaryCurrentY_kernel(
+    CurrentField* current
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < PIC2DConst::device_nx) {
+        current[0 + PIC2DConst::device_ny * i] = current[1 + PIC2DConst::device_ny * i];
+        current[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = current[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+    }
+}
 
 void BoundaryPIC::boundaryCurrent(
     thrust::device_vector<CurrentField>& current
 )
 {
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
+    periodicBoundaryCurrentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(current.data())
+    );
+    cudaDeviceSynchronize();
+
+    freeBoundaryCurrentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(current.data())
+    );
+    cudaDeviceSynchronize();
 }
 
+
+__global__ void periodicBoundaryZerothMomentX_kernel(
+    ZerothMomentField* zerothMoment
+)
+{
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (j < PIC2DConst::device_ny) {
+        zerothMoment[j + PIC2DConst::device_ny * 0] = zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        zerothMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = zerothMoment[j + PIC2DConst::device_ny * 1];
+    }
+}
+
+__global__ void freeBoundaryZerothMomentY_kernel(
+    ZerothMomentField* zerothMoment
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < PIC2DConst::device_nx) {
+        zerothMoment[0 + PIC2DConst::device_ny * i] = zerothMoment[1 + PIC2DConst::device_ny * i];
+        zerothMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = zerothMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+    }
+}
 
 void BoundaryPIC::boundaryZerothMoment(
     thrust::device_vector<ZerothMoment>& zerothMoment
 )
 {
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
+    periodicBoundaryZerothMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(zerothMoment.data())
+    );
+    cudaDeviceSynchronize();
+
+    freeBoundaryZerothMomentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(zerothMoment.data())
+    );
+    cudaDeviceSynchronize();
 }
 
+
+__global__ void periodicBoundaryFirstMomentX_kernel(
+    FirstMomentField* firstMoment
+)
+{
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (j < PIC2DConst::device_ny) {
+        firstMoment[j + PIC2DConst::device_ny * 0] = firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        firstMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = firstMoment[j + PIC2DConst::device_ny * 1];
+    }
+}
+
+__global__ void freeBoundaryFirstMomentY_kernel(
+    FirstMomentField* firstMoment
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < PIC2DConst::device_nx) {
+        firstMoment[0 + PIC2DConst::device_ny * i] = firstMoment[1 + PIC2DConst::device_ny * i];
+        firstMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = firstMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+    }
+}
 
 void BoundaryPIC::boundaryFirstMoment(
     thrust::device_vector<FirstMoment>& firstMoment
 )
 {
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
+    periodicBoundaryFirstMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(firstMoment.data())
+    );
+    cudaDeviceSynchronize();
+
+    freeBoundaryFirstMomentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(firstMoment.data())
+    );
+    cudaDeviceSynchronize();
 }
 
+
+__global__ void periodicBoundarySecondMomentX_kernel(
+    SecondMomentField* secondMoment
+)
+{
+    unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (j < PIC2DConst::device_ny) {
+        secondMoment[j + PIC2DConst::device_ny * 0] = secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        secondMoment[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = secondMoment[j + PIC2DConst::device_ny * 1];
+    }
+}
+
+__global__ void freeBoundarySecondMomentY_kernel(
+    SecondMomentField* secondMoment
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < PIC2DConst::device_nx) {
+        secondMoment[0 + PIC2DConst::device_ny * i] = secondMoment[1 + PIC2DConst::device_ny * i];
+        secondMoment[PIC2DConst::device_ny - 1 + PIC2DConst::device_ny * i] = secondMoment[PIC2DConst::device_ny - 2 + PIC2DConst::device_ny * i];
+    }
+}
 
 void BoundaryPIC::boundarySecondMoment(
     thrust::device_vector<SecondMoment>& secondMoment
 )
 {
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (max(PIC2DConst::nx, PIC2DConst::ny) + threadsPerBlock - 1) / threadsPerBlock;
 
+    periodicBoundarySecondMomentX_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(secondMoment.data())
+    );
+    cudaDeviceSynchronize();
+
+    freeBoundarySecondMomentY_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(secondMoment.data())
+    );
+    cudaDeviceSynchronize();
 }
 
 
