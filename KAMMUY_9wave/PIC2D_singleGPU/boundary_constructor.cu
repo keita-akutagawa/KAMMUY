@@ -2,10 +2,7 @@
 
 
 BoundaryPIC::BoundaryPIC()
-    : sendParticlesSpeciesYDown(PIC2DConst::nx * PIC2DConst::numberDensityIon * 10), 
-      sendParticlesSpeciesYUp(PIC2DConst::nx * PIC2DConst::numberDensityIon * 10), 
-      recvParticlesSpeciesYDown(PIC2DConst::nx * PIC2DConst::numberDensityIon * 10), 
-      recvParticlesSpeciesYUp(PIC2DConst::nx * PIC2DConst::numberDensityIon * 10)
+    : bufferParticlesSpecies(max(PIC2DConst::nx, PIC2DConst::ny) * max(PIC2DConst::numberDensityIon, PIC2DConst::numberDensityElectron) * 10)
 {
 }
 

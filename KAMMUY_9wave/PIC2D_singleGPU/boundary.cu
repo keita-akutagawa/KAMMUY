@@ -3,13 +3,20 @@
 
 void BoundaryPIC::boundaryParticle(
     thrust::device_vector<Particle>& particlesIon, 
-    thrust::device_vector<Particle>& particlesElectron
+    unsigned long long& existNumIon, 
+    thrust::device_vector<Particle>& particlesElectron, 
+    unsigned long long& existNumElectron
 )
 {
-    boundaryParticleXLeft(particlesIon, particlesElectron);
-    boundaryParticleXRight(particlesIon, particlesElectron);
-    boundaryParticleYDown(particlesIon, particlesElectron);
-    boundaryParticleYUp(particlesIon, particlesElectron);
+    boundaryParticleXLeft(particlesIon, existNumIon);
+    boundaryParticleXRight(particlesIon, existNumIon);
+    boundaryParticleYDown(particlesIon, existNumIon);
+    boundaryParticleYUp(particlesIon, existNumIon);
+
+    boundaryParticleXLeft(particlesElectron, existNumElectron);
+    boundaryParticleXRight(particlesElectron, existNumElectron);
+    boundaryParticleYDown(particlesElectron, existNumElectron);
+    boundaryParticleYUp(particlesElectron, existNumElectron);
 }
 
 
@@ -17,10 +24,10 @@ void BoundaryPIC::boundaryB(
     thrust::device_vector<MagneticField>& B
 )
 {
-    boundaryBXLeft(B);
-    boundaryBXRight(B);
-    boundaryBYDown(B);
-    boundaryBYUp(B);
+    boundaryFieldXLeft(B);
+    boundaryFieldXRight(B);
+    boundaryFieldYDown(B);
+    boundaryFieldYUp(B);
 }
 
 
@@ -28,10 +35,10 @@ void BoundaryPIC::boundaryE(
     thrust::device_vector<ElectricField>& E
 )
 {
-    boundaryEXLeft(E);
-    boundaryEXRight(E);
-    boundaryEYDown(E);
-    boundaryEYUp(E);
+    boundaryFieldXLeft(E);
+    boundaryFieldXRight(E);
+    boundaryFieldYDown(E);
+    boundaryFieldYUp(E);
 }
 
 
@@ -39,10 +46,10 @@ void BoundaryPIC::boundaryCurrent(
     thrust::device_vector<CurrentField>& current
 )
 {
-    boundaryCurrentXLeft(current);
-    boundaryCurrentXRight(current); 
-    boundaryCurrentYDown(current);
-    boundaryCurrentYUp(current);
+    boundaryFieldXLeft(current);
+    boundaryFieldXRight(current); 
+    boundaryFieldYDown(current);
+    boundaryFieldYUp(current);
 }
 
 
@@ -50,10 +57,10 @@ void BoundaryPIC::boundaryZerothMoment(
     thrust::device_vector<ZerothMoment>& zerothMoment
 )
 {
-    boundaryZerothMomentXLeft(zerothMoment);
-    boundaryZerothMomentXRight(zerothMoment);
-    boundaryZerothMomentYDown(zerothMoment);
-    boundaryZerothMomentYUp(zerothMoment);
+    boundaryFieldXLeft(zerothMoment);
+    boundaryFieldXRight(zerothMoment);
+    boundaryFieldYDown(zerothMoment);
+    boundaryFieldYUp(zerothMoment);
 }
 
 
@@ -61,10 +68,10 @@ void BoundaryPIC::boundaryFirstMoment(
     thrust::device_vector<FirstMoment>& firstMoment
 )
 {
-    boundaryFirstMomentXLeft(firstMoment);
-    boundaryFirstMomentXRight(firstMoment);
-    boundaryFirstMomentYDown(firstMoment);
-    boundaryFirstMomentYUp(firstMoment);
+    boundaryFieldXLeft(firstMoment);
+    boundaryFieldXRight(firstMoment);
+    boundaryFieldYDown(firstMoment);
+    boundaryFieldYUp(firstMoment);
 }
 
 
@@ -72,9 +79,9 @@ void BoundaryPIC::boundarySecondMoment(
     thrust::device_vector<SecondMoment>& secondMoment
 )
 {
-    boundarySecondMomentXLeft(secondMoment);
-    boundarySecondMomentXRight(secondMoment);
-    boundarySecondMomentYDown(secondMoment);
-    boundarySecondMomentYUp(secondMoment);
+    boundaryFieldXLeft(secondMoment);
+    boundaryFieldXRight(secondMoment);
+    boundaryFieldYDown(secondMoment);
+    boundaryFieldYUp(secondMoment);
 }
 

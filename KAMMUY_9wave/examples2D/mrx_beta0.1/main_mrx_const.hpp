@@ -74,7 +74,7 @@ const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy +
 const int Interface2DConst::convolutionCount = 1;
 
 const int Interface2DConst::interfaceLength = -1; //使わないこと
-const double Interface2DConst::deltaForInterlockingFunction = 2; 
+const double Interface2DConst::deltaForInterlockingFunction = 5; 
 const int Interface2DConst::indexOfInterfaceStartInMHD = IdealMHD2DConst::ny / 2 - PIC2DConst::ny / 2 / Interface2DConst::gridSizeRatio;
 
 const int Interface2DConst::nx = PIC2DConst::nx;

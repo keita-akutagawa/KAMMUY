@@ -14,17 +14,16 @@ class BoundaryPIC
 {
 private:
 
-    thrust::device_vector<Particle> sendParticlesSpeciesYDown; 
-    thrust::device_vector<Particle> sendParticlesSpeciesYUp; 
-    thrust::device_vector<Particle> recvParticlesSpeciesYDown; 
-    thrust::device_vector<Particle> recvParticlesSpeciesYUp;
+    thrust::device_vector<Particle> bufferParticlesSpecies; 
 
 public:
     BoundaryPIC();
 
     void boundaryParticle(
         thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        unsigned long long& existNumIon,
+        thrust::device_vector<Particle>& particlesElectron,
+        unsigned long long& existNumElectron
     );
 
     void boundaryB(
@@ -53,125 +52,43 @@ public:
     
 
     virtual void boundaryParticleXLeft(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpecies
     );
     
     virtual void boundaryParticleXRight(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpecies
     );
 
     virtual void boundaryParticleYDown(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpecies
     );
 
     virtual void boundaryParticleYUp(
-        thrust::device_vector<Particle>& particlesIon, 
-        thrust::device_vector<Particle>& particlesElectron
+        thrust::device_vector<Particle>& particlesSpecies, 
+        unsigned long long& existNumSpecies
     );
 
-
-    virtual void boundaryBXLeft(
-        thrust::device_vector<MagneticField>& B
+    template<typename T> 
+    void boundaryFieldXLeft(
+        thrust::device_vector<T>& field
     );
 
-    virtual void boundaryBXRight(
-        thrust::device_vector<MagneticField>& B
+    template<typename T> 
+    void boundaryFieldXRight(
+        thrust::device_vector<T>& field
     );
 
-    virtual void boundaryBYDown(
-        thrust::device_vector<MagneticField>& B
+    template<typename T> 
+    void boundaryFieldYDown(
+        thrust::device_vector<T>& field
     );
 
-    virtual void boundaryBYUp(
-        thrust::device_vector<MagneticField>& B
-    );
-
-
-    virtual void boundaryEXLeft(
-        thrust::device_vector<ElectricField>& E
-    );
-
-    virtual void boundaryEXRight(
-        thrust::device_vector<ElectricField>& E
-    );
-
-    virtual void boundaryEYDown(
-        thrust::device_vector<ElectricField>& E
-    );
-
-    virtual void boundaryEYUp(
-        thrust::device_vector<ElectricField>& E
-    );
-
-
-    virtual void boundaryCurrentXLeft(
-        thrust::device_vector<CurrentField>& current
-    );
-
-    virtual void boundaryCurrentXRight(
-        thrust::device_vector<CurrentField>& current
-    );
-
-    virtual void boundaryCurrentYDown(
-        thrust::device_vector<CurrentField>& current
-    );
-
-    virtual void boundaryCurrentYUp(
-        thrust::device_vector<CurrentField>& current
-    );
-
-
-    virtual void boundaryZerothMomentXLeft(
-        thrust::device_vector<ZerothMoment>& zerothMoment
-    );
-
-    virtual void boundaryZerothMomentXRight(
-        thrust::device_vector<ZerothMoment>& zerothMoment
-    );
-
-    virtual void boundaryZerothMomentYDown(
-        thrust::device_vector<ZerothMoment>& zerothMoment
-    );
-
-    virtual void boundaryZerothMomentYUp(
-        thrust::device_vector<ZerothMoment>& zerothMoment
-    );
-
-    
-    virtual void boundaryFirstMomentXLeft(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-
-    virtual void boundaryFirstMomentXRight(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-
-    virtual void boundaryFirstMomentYDown(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-
-    virtual void boundaryFirstMomentYUp(
-        thrust::device_vector<FirstMoment>& firstMoment
-    );
-
-
-    virtual void boundarySecondMomentXLeft(
-        thrust::device_vector<SecondMoment>& secondMoment
-    );
-
-    virtual void boundarySecondMomentXRight(
-        thrust::device_vector<SecondMoment>& secondMoment
-    );
-
-    virtual void boundarySecondMomentYDown(
-        thrust::device_vector<SecondMoment>& secondMoment
-    );
-
-    virtual void boundarySecondMomentYUp(
-        thrust::device_vector<SecondMoment>& secondMoment
+    template<typename T> 
+    void boundaryFieldYUp(
+        thrust::device_vector<T>& field
     );
 
 private:

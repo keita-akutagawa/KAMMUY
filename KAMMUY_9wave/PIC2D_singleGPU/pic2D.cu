@@ -102,7 +102,7 @@ void PIC2D::oneStep(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.boundaryParticle(
-        particlesIon, particlesElectron
+        particlesIon, PIC2DConst::existNumIon, particlesElectron, PIC2DConst::existNumElectron
     );
 
     currentCalculator.calculateCurrent(
@@ -137,7 +137,7 @@ void PIC2D::oneStep(
         particlesIon, particlesElectron, PIC2DConst::dt / 2.0
     );
     boundaryPIC.boundaryParticle(
-        particlesIon, particlesElectron
+        particlesIon, PIC2DConst::existNumIon, particlesElectron, PIC2DConst::existNumElectron
     );
 
 
@@ -163,7 +163,7 @@ void PIC2D::oneStep(
         seedForReload
     );
     boundaryPIC.boundaryParticle(
-        particlesIon, particlesElectron
+        particlesIon, PIC2DConst::existNumIon, particlesElectron, PIC2DConst::existNumElectron
     );
 }   
 
