@@ -16,4 +16,6 @@ googletest/
 .vscode
 *.zip
 .vscode
+*.o* 
+*.e*
 
