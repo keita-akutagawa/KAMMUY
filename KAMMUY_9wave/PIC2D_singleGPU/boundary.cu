@@ -10,5 +10,8 @@ void BoundaryPIC::boundaryParticle(
 {
     boundaryParticleSpecies(particlesIon, existNumIon);
     boundaryParticleSpecies(particlesElectron, existNumElectron);
+
+    if (PIC2DConst::existNumIon > PIC2DConst::totalNumIon) std::cout << "BROKEN" << std::endl;
+    if (PIC2DConst::existNumElectron > PIC2DConst::totalNumElectron) std::cout << "BROKEN" << std::endl;
 }
 

@@ -50,6 +50,76 @@ void InitializeParticle::uniformForPosition_x(
 }
 
 
+__global__ void uniformForPosition_x_all_kernel(
+    Particle* particle, 
+    const unsigned long long nStart, const unsigned long long nEnd, 
+    const unsigned long long seed
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < nEnd - nStart) {
+        curandState state; 
+        curand_init(seed, i, 0, &state);
+        double x = curand_uniform(&state) * (PIC2DConst::device_xmax - PIC2DConst::device_xmin) + PIC2DConst::device_xmin;
+        particle[i + nStart].x = x;
+        particle[i + nStart].isExist = true; 
+    }
+}
+
+void InitializeParticle::uniformForPosition_x_all(
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
+    unsigned long long seed, 
+    thrust::device_vector<Particle>& particlesSpecies
+)
+{
+    dim3 threadsPerBlock(256);
+    dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
+
+    uniformForPosition_x_all_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        nStart, nEnd, seed
+    );
+    cudaDeviceSynchronize();
+}
+
+
+__global__ void uniformForPosition_y_all_kernel(
+    Particle* particle, 
+    const unsigned long long nStart, const unsigned long long nEnd, 
+    const unsigned long long seed
+)
+{
+    unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i < nEnd - nStart) {
+        curandState state; 
+        curand_init(seed, i, 0, &state);
+        double y = curand_uniform(&state) * (PIC2DConst::device_ymax - PIC2DConst::device_ymin) + PIC2DConst::device_ymin;
+        particle[i + nStart].y = y;
+        particle[i + nStart].isExist = true; 
+    }
+}
+
+void InitializeParticle::uniformForPosition_y_all(
+    unsigned long long nStart, 
+    unsigned long long nEnd, 
+    unsigned long long seed, 
+    thrust::device_vector<Particle>& particlesSpecies
+)
+{
+    dim3 threadsPerBlock(256);
+    dim3 blocksPerGrid((nEnd - nStart + threadsPerBlock.x - 1) / threadsPerBlock.x);
+
+    uniformForPosition_y_all_kernel<<<blocksPerGrid, threadsPerBlock>>>(
+        thrust::raw_pointer_cast(particlesSpecies.data()), 
+        nStart, nEnd, seed
+    );
+    cudaDeviceSynchronize();
+}
+
+
 __global__ void uniformForPosition_y_kernel(
     Particle* particle, 
     const unsigned long long nStart, const unsigned long long nEnd, 

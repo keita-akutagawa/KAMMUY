@@ -82,17 +82,15 @@ __global__ void oneStepFirst_kernel(
              - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f8 - fluxG[index - 1].f8)
              - IdealMHD2DConst::device_dt * pow(IdealMHD2DConst::device_ch / IdealMHD2DConst::device_cp, 2) * U[index].psi;
         
-        if (!(isnan(rho) || isnan(rhoU) || isnan(rhoV) || isnan(rhoW) || isnan(bX) || isnan(bY) || isnan(bZ) || isnan(e) || isnan(psi))) {
-            UBar[index].rho  = rho; 
-            UBar[index].rhoU = rhoU; 
-            UBar[index].rhoV = rhoV; 
-            UBar[index].rhoW = rhoW; 
-            UBar[index].bX   = bX; 
-            UBar[index].bY   = bY; 
-            UBar[index].bZ   = bZ; 
-            UBar[index].e    = e; 
-            UBar[index].psi  = psi; 
-        }
+        UBar[index].rho  = rho; 
+        UBar[index].rhoU = rhoU; 
+        UBar[index].rhoV = rhoV; 
+        UBar[index].rhoW = rhoW; 
+        UBar[index].bX   = bX; 
+        UBar[index].bY   = bY; 
+        UBar[index].bZ   = bZ; 
+        UBar[index].e    = e; 
+        UBar[index].psi  = psi; 
     }
 }
 
@@ -140,17 +138,15 @@ __global__ void oneStepSecond_kernel(
              - IdealMHD2DConst::device_dt / IdealMHD2DConst::device_dy * (fluxG[index].f8 - fluxG[index - 1].f8))
              - IdealMHD2DConst::device_dt / 2.0 * pow(IdealMHD2DConst::device_ch / IdealMHD2DConst::device_cp, 2) * 0.5 * (U[index].psi + UBar[index].psi);
 
-        if (!(isnan(rho) || isnan(rhoU) || isnan(rhoV) || isnan(rhoW) || isnan(bX) || isnan(bY) || isnan(bZ) || isnan(e) || isnan(psi))) {
-            U[index].rho  = rho; 
-            U[index].rhoU = rhoU; 
-            U[index].rhoV = rhoV; 
-            U[index].rhoW = rhoW; 
-            U[index].bX   = bX; 
-            U[index].bY   = bY; 
-            U[index].bZ   = bZ; 
-            U[index].e    = e; 
-            U[index].psi  = psi; 
-        }
+        U[index].rho  = rho; 
+        U[index].rhoU = rhoU; 
+        U[index].rhoV = rhoV; 
+        U[index].rhoW = rhoW; 
+        U[index].bX   = bX; 
+        U[index].bY   = bY; 
+        U[index].bZ   = bZ; 
+        U[index].e    = e; 
+        U[index].psi  = psi; 
     }
 }
 

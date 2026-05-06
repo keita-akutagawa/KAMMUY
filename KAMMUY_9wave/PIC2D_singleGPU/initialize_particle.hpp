@@ -29,6 +29,20 @@ public:
         thrust::device_vector<Particle>& particlesSpecies
     );
 
+    void uniformForPosition_x_all(
+        unsigned long long nStart, 
+        unsigned long long nEnd, 
+        unsigned long long seed, 
+        thrust::device_vector<Particle>& particlesSpecies
+    );
+
+    void uniformForPosition_y_all(
+        unsigned long long nStart, 
+        unsigned long long nEnd, 
+        unsigned long long seed, 
+        thrust::device_vector<Particle>& particlesSpecies
+    );
+
     void maxwellDistributionForVelocity(
         double bulkVxSpecies, 
         double bulkVySpecies, 
