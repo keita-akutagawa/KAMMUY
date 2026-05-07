@@ -203,6 +203,8 @@ __global__ void wallBoundaryXLeft_kernel(
             psi = U[index].psi; 
                 
             u = 0.0; 
+            bY = 0.0; 
+            bZ = 0.0; 
             e = p / (IdealMHD2DConst::device_gamma - 1.0)
               + 0.5 * rho * (u * u + v * v + w * w)
               + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -264,6 +266,8 @@ __global__ void wallBoundaryXRight_kernel(
             psi = U[index].psi; 
                 
             u = 0.0; 
+            bY = 0.0; 
+            bZ = 0.0; 
             e = p / (IdealMHD2DConst::device_gamma - 1.0)
               + 0.5 * rho * (u * u + v * v + w * w)
               + 0.5 * (bX * bX + bY * bY + bZ * bZ);
@@ -502,8 +506,14 @@ __global__ void wallFreeBoundaryBX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        B[j + PIC2DConst::device_ny * 0] = B[j + PIC2DConst::device_ny * 1];
-        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        B[j + PIC2DConst::device_ny * 0].bX = B[j + PIC2DConst::device_ny * 1].bX;
+        B[j + PIC2DConst::device_ny * 0].bY = 0.0; 
+        B[j + PIC2DConst::device_ny * 0].bZ = 0.0; 
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].bX = B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].bX;
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].bY = 0.0;
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].bY = 0.0;
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].bZ = 0.0;
+        B[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].bZ = 0.0;
     }
 }
 
@@ -545,8 +555,13 @@ __global__ void wallFreeBoundaryEX_kernel(
     unsigned long long j = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (j < PIC2DConst::device_ny) {
-        E[j + PIC2DConst::device_ny * 0] = E[j + PIC2DConst::device_ny * 1];
-        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)] = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)];
+        E[j + PIC2DConst::device_ny * 0].eX = 0.0;
+        E[j + PIC2DConst::device_ny * 0].eY = E[j + PIC2DConst::device_ny * 1].eY;
+        E[j + PIC2DConst::device_ny * 0].eZ = E[j + PIC2DConst::device_ny * 1].eZ;
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].eX = 0.0;
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].eX = 0.0;
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].eY = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].eY;
+        E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 1)].eZ = E[j + PIC2DConst::device_ny * (PIC2DConst::device_nx - 2)].eZ;
     }
 }
 

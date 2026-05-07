@@ -29,14 +29,14 @@ const int bufferMHD = 3;
 
 const int IdealMHD2DConst::totalStep = 10000;
 const int PIC2DConst::totalStep = -1;
-const int recordStep = 25;
+const int recordStep = 5;
 const bool isParticleRecord = false;
 const int particleRecordStep = PIC2DConst::totalStep;
 
 double PIC2DConst::totalTime = 0.0f;
 double IdealMHD2DConst::totalTime = 0.0;
 
-const int Interface2DConst::gridSizeRatio = 20; 
+const int Interface2DConst::gridSizeRatio = 10; 
 
 const double Interface2DConst::EPS = 1e-10;
 const double Interface2DConst::PI = 3.14159265358979;
@@ -47,12 +47,12 @@ const double IdealMHD2DConst::PI = 3.14159265358979;
 double IdealMHD2DConst::eta = 0.0;
 double IdealMHD2DConst::viscosity = 0.0;
 
-const int PIC2DConst::nx = 5000;
+const int PIC2DConst::nx = 1000;
 const double PIC2DConst::dx = 1.0;
 const double PIC2DConst::xmin = 0.0 * PIC2DConst::dx; 
 const double PIC2DConst::xmax = PIC2DConst::nx * PIC2DConst::dx + PIC2DConst::xmin;
 
-const int PIC2DConst::ny = 200;
+const int PIC2DConst::ny = 100;
 const double PIC2DConst::dy = 1.0;
 const double PIC2DConst::ymin = 0.0 * PIC2DConst::dy; 
 const double PIC2DConst::ymax = PIC2DConst::ny * PIC2DConst::dy + PIC2DConst::ymin;
@@ -63,7 +63,7 @@ const double IdealMHD2DConst::dx = PIC2DConst::dx * Interface2DConst::gridSizeRa
 const double IdealMHD2DConst::xmin = 0.0 * IdealMHD2DConst::dx;
 const double IdealMHD2DConst::xmax = IdealMHD2DConst::nx * IdealMHD2DConst::dx + IdealMHD2DConst::xmin;
 
-const int IdealMHD2DConst::ny = 5000 / Interface2DConst::gridSizeRatio;
+const int IdealMHD2DConst::ny = 1000 / Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::dy = PIC2DConst::dy * Interface2DConst::gridSizeRatio;
 const double IdealMHD2DConst::ymin = 0.0 * IdealMHD2DConst::dy;
 const double IdealMHD2DConst::ymax = IdealMHD2DConst::ny * IdealMHD2DConst::dy + IdealMHD2DConst::ymin;
@@ -89,8 +89,8 @@ const double PIC2DConst::epsilon0 = 1.0;
 const double PIC2DConst::mu0 = 1.0;
 const double PIC2DConst::dOfLangdonMarderTypeCorrection = 0.001;
 
-const int PIC2DConst::numberDensityIon = 40;
-const int PIC2DConst::numberDensityElectron = 40;
+const int PIC2DConst::numberDensityIon = 20;
+const int PIC2DConst::numberDensityElectron = 20;
 
 const double PIC2DConst::B0 = sqrt(static_cast<double>(PIC2DConst::numberDensityElectron)) / 1.0;
 
