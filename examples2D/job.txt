@@ -1,1 +1,0 @@
-rm -rf main_mrx.o mrx.* && make && sbatch --job-name=mrx script.sh

@@ -1,6 +1,0 @@
-{
-    "EPS": 1e-20,
-    "PI": 3.141592653589793,
-    "convolution_interval": 5,
-    "delta_interlocking_function": 5.0
-}
