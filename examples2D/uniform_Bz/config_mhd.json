@@ -1,0 +1,18 @@
+{
+    "pusher": "ssprk3",
+    "reconstructor": "muscl",
+    "order": 2,
+    "boundary": {
+        "x_left": "periodic",
+        "x_right": "periodic",
+        "y_down": "periodic",
+        "y_up": "periodic"
+    },
+    "smr_boundary": {
+        "x_left": "interpolate",
+        "x_right": "interpolate",
+        "y_down": "interpolate",
+        "y_up": "interpolate"
+    },
+    "output": "binary"
+}

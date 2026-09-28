@@ -18,4 +18,5 @@ googletest/
 .vscode
 *.o* 
 *.e*
+nohup*
 

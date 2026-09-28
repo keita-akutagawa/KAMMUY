@@ -1,0 +1,41 @@
+{
+    "buffer": 4,
+    "nx": [
+        208
+    ],
+    "ny": [
+        208
+    ],
+    "dx": [
+        5.0
+    ],
+    "dy": [
+        5.0
+    ],
+    "xmin": [
+        -520.0
+    ],
+    "ymin": [
+        -520.0
+    ],
+    "xmax": [
+        520.0
+    ],
+    "ymax": [
+        520.0
+    ],
+    "start_index_x": [
+        0
+    ],
+    "start_index_y": [
+        0
+    ],
+    "end_index_x": [
+        208
+    ],
+    "end_index_y": [
+        208
+    ],
+    "smr_avail": false,
+    "number_of_levels": 1
+}
